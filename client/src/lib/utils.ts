@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const BASE_URL =
-  "https://edf98ba8-b42b-4552-af80-c80610cfb92a-00-2erzt6krhzqqr.pike.replit.dev"; // 👈 đổi theo domain backend của bạn
+  "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev"; // 👈 đổi theo domain backend của bạn
 
 export async function defaultFetcher({ queryKey }) {
   const [path] = queryKey;
