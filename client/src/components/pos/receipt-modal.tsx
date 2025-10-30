@@ -70,9 +70,9 @@ export function ReceiptModal({
 
   // Query store settings
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/store-settings");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       console.log("🏢 Store settings fetched:", response.json());
       return response.json();
     },
@@ -81,14 +81,14 @@ export function ReceiptModal({
 
   // Query to get table info based on orderId
   const { data: tableInfo } = useQuery({
-    queryKey: ["https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/tables/by-order", receipt?.id],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/by-order", receipt?.id],
     queryFn: async () => {
       if (!receipt?.id) return null;
 
       // First get the order to find tableId
       const orderResponse = await apiRequest(
         "GET",
-        `https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/orders/${receipt.id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${receipt.id}`,
       );
       const order = await orderResponse.json();
       receipt.orderNumber = order.orderNumber;
@@ -98,7 +98,7 @@ export function ReceiptModal({
       // Then get the table info
       const tableResponse = await apiRequest(
         "GET",
-        `https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/tables/${order.tableId}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${order.tableId}`,
       );
       const table = await tableResponse.json();
 
@@ -168,7 +168,7 @@ export function ReceiptModal({
   useEffect(() => {
     async function fetchPrinterConfigs() {
       try {
-        const printerResponse = await fetch("https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/printer-configs");
+        const printerResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs");
         if (!printerResponse.ok) {
           console.error("Failed to fetch printer configs");
           return;
@@ -181,7 +181,7 @@ export function ReceiptModal({
         let tableFloor = null;
         if (receipt?.tableId) {
           try {
-            const tableResponse = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/tables/${receipt.tableId}`);
+            const tableResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${receipt.tableId}`);
             if (tableResponse.ok) {
               const tableData = await tableResponse.json();
               tableFloor = tableData.floor;
@@ -413,7 +413,7 @@ export function ReceiptModal({
       let activePrinterConfigs = [];
       try {
         console.log("🖨️ Fetching active printer configurations...");
-        const printerResponse = await fetch("https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/printer-configs");
+        const printerResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs");
         if (printerResponse.ok) {
           const allConfigs = await printerResponse.json();
           activePrinterConfigs = allConfigs.filter(
@@ -452,7 +452,7 @@ export function ReceiptModal({
         console.log("🖨️ Trying configured POS printers for all platforms...");
 
         try {
-          const printResponse = await fetch("https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/pos/print-receipt", {
+          const printResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/pos/print-receipt", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

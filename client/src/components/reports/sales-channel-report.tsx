@@ -61,19 +61,19 @@ export function SalesChannelReport() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: employees } = useQuery({
-    queryKey: ["https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     staleTime: 5 * 60 * 1000,
   });
 
   // Sales channel sales data query
   const { data: salesChannelSalesData, isLoading: salesLoading } = useQuery({
     queryKey: [
-      "https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-sales",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-sales",
       startDate,
       endDate,
       selectedSeller,
@@ -88,7 +88,7 @@ export function SalesChannelReport() {
           salesChannel: selectedSalesChannel,
         }),
       });
-      const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-sales?${params}`);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-sales?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch sales channel sales data");
       }
@@ -100,7 +100,7 @@ export function SalesChannelReport() {
   // Sales channel profit data query
   const { data: salesChannelProfitData, isLoading: profitLoading } = useQuery({
     queryKey: [
-      "https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-profit",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-profit",
       startDate,
       endDate,
       selectedSeller,
@@ -115,7 +115,7 @@ export function SalesChannelReport() {
           salesChannel: selectedSalesChannel,
         }),
       });
-      const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-profit?${params}`);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-profit?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch sales channel profit data");
       }
@@ -128,7 +128,7 @@ export function SalesChannelReport() {
   const { data: salesChannelProductsData, isLoading: productsLoading } =
     useQuery({
       queryKey: [
-        "https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-products",
+        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-products",
         startDate,
         endDate,
         selectedSeller,
@@ -149,7 +149,7 @@ export function SalesChannelReport() {
           ...(productType !== "all" && { productType }),
           ...(selectedCategory !== "all" && { categoryId: selectedCategory }),
         });
-        const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/sales-channel-products?${params}`);
+        const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-products?${params}`);
         if (!response.ok) {
           throw new Error("Failed to fetch sales channel products data");
         }

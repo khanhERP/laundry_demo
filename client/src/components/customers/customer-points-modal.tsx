@@ -89,7 +89,7 @@ export function CustomerPointsModal({
   const { data: pointsData, isLoading: pointsLoading } = useQuery({
     queryKey: ['customer-points', customerId],
     queryFn: async () => {
-      const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/customers/${customerId}/points`);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerId}/points`);
       if (!response.ok) throw new Error('Failed to fetch customer points');
       return response.json();
     },
@@ -100,7 +100,7 @@ export function CustomerPointsModal({
   const { data: pointHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['customer-point-history', customerId],
     queryFn: async () => {
-      const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/customers/${customerId}/point-history`);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerId}/point-history`);
       if (!response.ok) throw new Error('Failed to fetch point history');
       return response.json();
     },
@@ -110,7 +110,7 @@ export function CustomerPointsModal({
   // Update points mutation
   const updatePointsMutation = useMutation({
     mutationFn: async (data: PointUpdateForm) => {
-      const response = await fetch(`https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/customers/${customerId}/points`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerId}/points`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export function CustomerPointsModal({
         queryKey: ['customer-point-history', customerId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['https://c4a08644-6f82-4c21-bf98-8d382f0008d1-00-2q0r6kl8z7wo.pike.replit.dev/api/customers'],
+        queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers'],
       });
       toast({
         title: t("common.success"),
