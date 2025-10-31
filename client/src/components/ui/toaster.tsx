@@ -47,11 +47,6 @@ export function Toaster() {
             else if (description.includes('Failed to create product')) {
               translatedDescription = 'Không thể tạo sản phẩm. Vui lòng kiểm tra lại thông tin và thử lại.';
             }
-            // Handle JSON parsing errors from API
-            else if (description.includes('Unexpected token') && description.includes('not valid JSON')) {
-              translatedDescription = 'Lỗi hệ thống. Vui lòng thử lại sau hoặc liên hệ quản trị viên.';
-              console.error('API returned HTML instead of JSON:', description);
-            }
           }
         }
 

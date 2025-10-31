@@ -15,11 +15,11 @@ export function AttendanceStats() {
   );
 
   const { data: employees } = useQuery({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
+    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees'],
   });
 
   const { data: attendanceRecords } = useQuery({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'],
+    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/attendance'],
   });
 
   const getMonthlyStats = () => {
@@ -105,6 +105,16 @@ export function AttendanceStats() {
     });
   };
 
+  const formatDateTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Date Selector */}
@@ -122,13 +132,18 @@ export function AttendanceStats() {
             </div>
             <div className="flex items-center gap-2">
               <Label htmlFor="month-picker">{t('attendance.selectMonth')}:</Label>
-              <Input
-                id="month-picker"
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="w-auto"
-              />
+              <div className="flex flex-col gap-1">
+                <Input
+                  id="month-picker"
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-auto"
+                />
+                <span className="text-xs text-gray-500">
+                  {formatDateTime(selectedMonth + "-01").split(' ')[0]}
+                </span>
+              </div>
             </div>
           </div>
         </CardHeader>

@@ -8,38 +8,23 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     dashboardDescription: "Tổng quan về doanh số và trạng thái hoạt động",
     salesAnalysis: "Phân tích bán hàng",
     menuAnalysis: "Phân tích menu",
+    productAnalysis: "Phân tích sản phẩm",
     tableAnalysis: "Phân tích bàn",
     backToTables: "Quay lại Bàn",
-    filter: "Bộ lọc",
     product: "Sản phẩm",
-
-    // Dashboard overview labels
-    store: "Cửa hàng",
-    storeLabel: "Cửa hàng:",
-    allStores: "Tất cả",
-    all: "Tất cả",
-    storeFilter: "Cửa hàng:",
-    allOption: "Tất cả",
-    todaySalesResults: "Kết quả bán hàng hôm nay",
-    salesAmount: "Doanh số bán hàng",
-    netRevenue: "Doanh thu thuần",
-    afterDiscount: "(sau giảm giá)",
-    dailySalesChart: "Doanh số bán hàng theo ngày",
-    day: "Ngày",
-    sales: "Doanh số",
-    monthlyRevenue: "Theo doanh thu tháng",
-    times: "lần",
-    topCustomers: "Top 10 khách hàng mua nhiều nhất",
 
     // Date and time filters
     startDate: "Từ ngày",
     endDate: "Đến ngày",
     refresh: "Làm mới",
     toDay: "Hôm nay",
+    yesterday: "Hôm qua",
     thisWeek: "Tuần này",
     lastWeek: "Tuần trước",
     thisMonth: "Tháng này",
     lastMonth: "Tháng trước",
+    thisQuarter: "Quý này",
+    thisYear: "Năm nay",
     custom: "Tùy chỉnh",
 
     // Dashboard metrics
@@ -73,13 +58,13 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
     // Payment methods
     paymentMethodBreakdown: "Phân tích phương thức thanh toán",
+    discount: "Giảm giá",
     paymentMethodDetails:
       "Chi tiết phương thức thanh toán và phân tích doanh số hàng ngày",
 
     // Tab names for reports
     salesAnalysisTab: "Báo cáo phân tích bán hàng",
     menuAnalysisTab: "Báo cáo phân tích menu",
-    productAnalysisTab: "Phân tích sản phẩm",
     tableAnalysisTab: "Báo cáo phân tích bàn",
     salesChartTab: "Báo cáo bán hàng",
     purchaseTab: "Báo cáo mua hàng",
@@ -97,6 +82,29 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     customerAnalysis: "Khách hàng",
     channelAnalysis: "Hình thức bán hàng",
     salesMethod: "Hình thức bán hàng",
+
+    // Chart and visual
+    chartView: "Xem biểu đồ",
+    visualRepresentation: "Trực quan hóa dữ liệu",
+
+    // Filter labels
+    salesMethod: "Hình thức bán hàng",
+    salesChannel: "Hình thức bán hàng",
+    productFilter: "Sản phẩm",
+    productFilterPlaceholder: "Tìm theo tên hoặc mã",
+    customerFilter: "Khách hàng",
+    customerFilterPlaceholder: "Tìm theo tên, số điện thoại hoặc mã",
+    customerCodePlaceholder: "Tìm theo mã khách hàng",
+    orderNumberPlaceholder: "Tìm theo số đơn bán",
+    employeeFilter: "Tìm kiếm nhân viên",
+    employeeFilterPlaceholder: "Tìm theo tên nhân viên",
+    employeeId: "Mã nhân viên",
+    customerId: "Mã khách hàng",
+    customerName: "Tên khách hàng",
+    vip: "Khách VIP",
+    newCustomer: "Khách hàng mới",
+    inactive: "Không hoạt động",
+    active: "Hoạt động",
 
     // Chart and visual
     chartView: "Xem biểu đồ",
@@ -203,8 +211,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     customerSearch: "Khách hàng",
     customerSearchPlaceholder: "Tìm theo tên hoặc số điện thoại",
     productSearch: "Loại sản phẩm",
-    floor: "Tầng",
-    store: "Cửa hàng",
     productSearchPlaceholder: "Tìm theo tên hoặc mã",
 
     // Additional order report keys
@@ -252,7 +258,7 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     direct: "Trực tiếp",
     other: "Khác",
     returnValue: "Giá trị trả hàng",
-    netRevenue: "Doanh thu",
+    netRevenue: "Doanh thu ròng",
     totalCost: "Tổng chi phí",
     grossProfit: "Lợi nhuận gộp",
     totalInvoices: "Tổng hóa đơn",
@@ -345,6 +351,7 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     disposalReport: "Báo cáo hủy hàng",
     employeeSalesReport: "Báo cáo bán hàng nhân viên",
     customerSalesReport: "Báo cáo bán hàng khách hàng",
+    topCustomersByRevenue: "Top 10 khách hàng doanh thu cao nhất",
     supplierReportByProduct: "Báo cáo nhà cung cấp theo sản phẩm",
     salePrice: "Giá bán",
     saleValue: "Giá trị bán",
@@ -376,9 +383,10 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
     // Additional missing keys
     floor: "Tầng",
-    store: "Cửa hàng",
     period: "Kỳ",
-    noDataDescription: "Không có dữ liệu để hiển thị",
+    noDataDescription: "Chọn khoảng thời gian có dữ liệu bán hàng để xem phân tích",
+    noDataInSelectedPeriod: "Không có dữ liệu trong khoảng thời gian đã chọn",
+    tryDifferentPeriod: "Thử chọn khoảng thời gian khác hoặc kiểm tra dữ liệu đơn hàng và hóa đơn",
     monthAccumulated: "Tháng tích lũy",
     peakHour: "Giờ cao điểm",
     filters: "Bộ lọc",
@@ -397,8 +405,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     yAxis: "Trục Y",
     legend: "Chú thích",
     dataPoints: "Điểm dữ liệu",
-    revenueLabel: "Doanh thu",
-    ordersLabel: "Số đơn bán",
 
     // Menu analysis
     productPerformance: "Hiệu suất sản phẩm",
@@ -506,8 +512,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     salesMethodReport: "Báo cáo theo hình thức bán hàng",
     salesMethodReportDesc:
       "Phân tích chi tiết theo hình thức bán hàng (Ăn tại chỗ / Mang về)",
-    salesOrderList: "Danh sách đơn hàng bán",
-    priceSettings: "Thiết lập giá",
 
     // Financial reports
     financialReport: "Báo cáo tài chính",
@@ -559,21 +563,11 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     productDetails: "Chi tiết sản phẩm",
     priceInfo: "Thông tin giá",
     additionalInfo: "Thông tin khác",
-    noDataInDateRange: "Không có dữ liệu trong khoảng thời gian đã chọn",
-    tryDifferentDateRange:
-      "Thử chọn khoảng thời gian khác hoặc kiểm tra dữ liệu đơn hàng và hóa đơn",
 
     // Spending Report (Đã chi và dự chi)
     spendingReport: "Đã chi và dự chi",
     spendingReportTitle: "Báo cáo đã chi và dự chi",
-    spendingReportDescription:
-      "Báo cáo chi tiết về chi phí đã phát sinh và dự kiến",
-    dashboardTab: "Bảng điều khiển",
-    salesAnalysisTab: "Phân tích bán hàng",
-    menuAnalysisTab: "Phân tích menu",
-    tableAnalysisTab: "Phân tích bàn",
-    salesReportTab: "Báo cáo bán hàng",
-    spendingReportTab: "Đã chi và dự chi",
+    spendingReportDescription: "Báo cáo chi tiết về chi phí đã phát sinh và dự kiến",
     rawMaterialsPurchased: "Nguyên vật liệu đã mua / Chi tiêu nguyên vật liệu",
     managementExpenses: "Chi phí quản lý",
     fixedExpenses: "Chi phí cố định",
@@ -590,42 +584,30 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
   ko: {
     title: "보고서",
-    filter: "필터",
     description: "판매 및 운영 보고서 보기",
     dashboard: "대시보드",
     dashboardDescription: "총 매출 및 운영 상태 대시보드",
     salesAnalysis: "매출 분석",
+    orderCount: "주문 수",
     menuAnalysis: "메뉴 분석",
+    productAnalysis: "제품 분석",
+    totalMoney: "총 금액",
     tableAnalysis: "테이블 분석",
     backToTables: "테이블로 돌아가기",
-
-    // Dashboard overview labels
-    store: "매장",
-    storeLabel: "매장:",
-    allStores: "전체",
-    all: "전체",
-    storeFilter: "매장:",
-    allOption: "전체",
-    todaySalesResults: "오늘의 판매 결과",
-    salesAmount: "판매액",
-    netRevenue: "순매출",
-    afterDiscount: "(할인 후)",
-    dailySalesChart: "일별 판매 차트",
-    day: "일",
-    sales: "매출",
-    monthlyRevenue: "월별 매출 기준",
-    times: "회",
-    topCustomers: "상위 10명 고객",
+    product: "상품",
 
     // Date and time filters
     startDate: "시작일",
     endDate: "종료일",
     refresh: "새로고침",
     toDay: "오늘",
+    yesterday: "어제",
     thisWeek: "이번 주",
     lastWeek: "지난주",
     thisMonth: "이번 달",
     lastMonth: "지난 달",
+    thisQuarter: "이번 분기",
+    thisYear: "올해",
     custom: "사용자 정의",
 
     // Dashboard metrics
@@ -664,7 +646,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     // Tab names for reports
     salesAnalysisTab: "매출 분석 보고서",
     menuAnalysisTab: "메뉴 분석 보고서",
-    productAnalysisTab: "제품 분석",
     tableAnalysisTab: "테이블 분석 보고서",
     salesChartTab: "매출 보고서",
     purchaseTab: "구매 보고서",
@@ -692,7 +673,7 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     salesMethod: "판매 방법",
     salesChannel: "판매 채널",
     productFilter: "상품",
-    productFilterPlaceholder: "코드, 이름으 검색",
+    productFilterPlaceholder: "코드, 이름으��� 검색",
     customerFilter: "고객",
     customerFilterPlaceholder: "이름, 전화번호 또는 코드로 검색",
     customerCodePlaceholder: "고객 코드로 검색",
@@ -956,9 +937,10 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
     // Additional missing keys
     floor: "층",
-    store: "매장",
     period: "기간",
-    noDataDescription: "표시할 데이터가 없습니다",
+    noDataDescription: "판매 데이터가 있는 날짜 범위를 선택하여 분석을 확인하세요",
+    noDataInSelectedPeriod: "선택한 기간에 데이터가 없습니다",
+    tryDifferentPeriod: "다른 기간을 선택하거나 주문 및 송장 데이터를 확인하세요",
     monthAccumulated: "월 누적",
     peakHour: "피크 시간",
     filters: "필터",
@@ -978,8 +960,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     yAxis: "Y축",
     legend: "범례",
     dataPoints: "데이터 포인트",
-    revenueLabel: "매출",
-    ordersLabel: "주문 수",
 
     // Menu analysis
     productPerformance: "제품 성과",
@@ -1085,8 +1065,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     cancelled: "취소됨",
     salesMethodReport: "판매 방법 보고서",
     salesMethodReportDesc: "판매 방법별 상세 분석 (매장 식사 / 포장)",
-    salesOrderList: "판매 주문 목록",
-    priceSettings: "가격 설정",
 
     // Financial reports
     financialReport: "재무 보고서",
@@ -1137,20 +1115,11 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     productDetails: "제품 세부 정보",
     priceInfo: "가격 정보",
     additionalInfo: "추가 정보",
-    noDataInDateRange: "선택한 기간에 데이터가 없습니다",
-    tryDifferentDateRange:
-      "다른 기간을 선택하거나 주문 및 송장 데이터를 확인하십시오",
 
     // Spending Report (지출 및 예상 지출)
     spendingReport: "지출 및 예상 지출",
     spendingReportTitle: "지출 및 예상 지출 보고서",
     spendingReportDescription: "발생 및 예상 비용에 대한 상세 보고서",
-    dashboardTab: "대시보드",
-    salesAnalysisTab: "매출 분석",
-    menuAnalysisTab: "메뉴 분석",
-    tableAnalysisTab: "테이블 분석",
-    salesReportTab: "매출 보고서",
-    spendingReportTab: "지출 및 예상 지출",
     rawMaterialsPurchased: "구매한 원자재 / 원자재 지출",
     managementExpenses: "관리 비용",
     fixedExpenses: "고정 비용",
@@ -1167,32 +1136,14 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
   en: {
     title: "Reports",
-    filter: "Filter",
     description: "View sales and operational reports",
     dashboard: "Dashboard",
     dashboardDescription: "Dashboard of total sales and operational status",
     salesAnalysis: "Sales Analysis",
     menuAnalysis: "Menu Analysis",
+    productAnalysis: "Product Analysis",
     tableAnalysis: "Table Analysis",
     backToTables: "Back to Tables",
-
-    // Dashboard overview labels
-    store: "Store",
-    storeLabel: "Store:",
-    allStores: "All",
-    all: "All",
-    storeFilter: "Store:",
-    allOption: "All",
-    todaySalesResults: "Today's Sales Results",
-    salesAmount: "Sales Amount",
-    netRevenue: "Net Revenue",
-    afterDiscount: "(after discount)",
-    dailySalesChart: "Daily Sales Chart",
-    day: "Day",
-    sales: "Sales",
-    monthlyRevenue: "By Monthly Revenue",
-    times: "times",
-    topCustomers: "Top 10 Customers",
 
     // Date and time filters
     startDate: "Start Date",
@@ -1200,10 +1151,13 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     endDate: "End Date",
     refresh: "Refresh",
     toDay: "Today",
+    yesterday: "Yesterday",
     thisWeek: "This Week",
     lastWeek: "Last Week",
     thisMonth: "This Month",
     lastMonth: "Last Month",
+    thisQuarter: "This Quarter",
+    thisYear: "This Year",
     custom: "Custom",
 
     // Dashboard metrics
@@ -1244,7 +1198,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     // Tab names for reports
     salesAnalysisTab: "Sales Analysis Report",
     menuAnalysisTab: "Menu Analysis Report",
-    productAnalysisTab: "Product Analysis",
     tableAnalysisTab: "Table Analysis Report",
     salesChartTab: "Sales Report",
     purchaseTab: "Purchase Report",
@@ -1361,8 +1314,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     customerSearch: "Customer",
     customerSearchPlaceholder: "Search by name or phone",
     productSearchPlaceholder: "Search by name or code",
-    floor: "Floor",
-    store: "Store",
 
     // Additional order report keys
     orderReportByTransaction: "Order Report by Transaction",
@@ -1541,9 +1492,10 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
     // Additional missing keys
     floor: "Floor",
-    store: "Store",
     period: "Period",
-    noDataDescription: "No data to display",
+    noDataDescription: "Select a date range with sales data to view analysis",
+    noDataInSelectedPeriod: "No data in the selected period",
+    tryDifferentPeriod: "Try selecting a different period or check order and invoice data",
     monthAccumulated: "Month Accumulated",
     peakHour: "Peak Hour",
     filters: "Filters",
@@ -1563,8 +1515,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     yAxis: "Y-Axis",
     legend: "Legend",
     dataPoints: "Data Points",
-    revenueLabel: "Revenue",
-    ordersLabel: "Orders",
 
     // Menu analysis
     productPerformance: "Product Performance",
@@ -1652,8 +1602,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
 
     // Status
     status: "Status",
-    active: "Active",
-    inactive: "Inactive",
 
     // Additional report sections
     detailedAnalysis: "Detailed Analysis",
@@ -1672,8 +1620,6 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     salesMethodReport: "Sales Method Report",
     salesMethodReportDesc:
       "Detailed analysis by sales method (Dine In / Takeaway)",
-    salesOrderList: "Sales Order List",
-    priceSettings: "Price Settings",
 
     // Financial reports
     financialReport: "Financial Report",
@@ -1724,21 +1670,11 @@ export const reportsTranslations: { [key: string]: ReportsTranslations } = {
     productDetails: "Product Details",
     priceInfo: "Price Information",
     additionalInfo: "Additional Information",
-    noDataInDateRange: "No data in the selected date range",
-    tryDifferentDateRange:
-      "Try selecting a different date range or check order and invoice data",
 
     // Spending Report
     spendingReport: "Spending Report",
     spendingReportTitle: "Spending and Projected Spending Report",
-    spendingReportDescription:
-      "Detailed report on incurred and projected expenses",
-    dashboardTab: "Dashboard",
-    salesAnalysisTab: "Sales Analysis",
-    menuAnalysisTab: "Menu Analysis",
-    tableAnalysisTab: "Table Analysis",
-    salesReportTab: "Sales Report",
-    spendingReportTab: "Spending Report",
+    spendingReportDescription: "Detailed report on incurred and projected expenses",
     rawMaterialsPurchased: "Raw Materials Purchased / Raw Materials Spending",
     managementExpenses: "Management Expenses",
     fixedExpenses: "Fixed Expenses",

@@ -91,9 +91,9 @@ export function PaymentMethodModal({
 
   // Query store settings to get dynamic address - ALWAYS CALL THIS HOOK
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
+      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings");
       return response.json();
     },
     enabled: isOpen, // Only fetch when modal is open
@@ -176,9 +176,9 @@ export function PaymentMethodModal({
 
   // Query payment methods from API
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
+      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods");
       return response.json();
     },
     enabled: isOpen, // Only fetch when modal is open
@@ -394,7 +394,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+              const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
               console.log(
                 "🎯 QR Payment: Connecting to WebSocket for customer display:",
                 wsUrl,
@@ -529,7 +529,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+              const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
               console.log(
                 "Fallback QR Payment: Attempting to connect to WebSocket:",
                 wsUrl,
@@ -697,7 +697,7 @@ export function PaymentMethodModal({
         try {
           const protocol =
             window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+          const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
           const ws = new WebSocket(wsUrl);
 
           ws.onopen = () => {
@@ -847,7 +847,8 @@ export function PaymentMethodModal({
           orderNumber: `ORD-${Date.now()}`,
           tableId: null, // POS orders don't have tables
           salesChannel: "pos", // Mark as POS order
-          customerName: orderInfo.customerName || "Khách hàng lẻ",
+          customerName: orderInfo.customerName || receipt?.customerName || "Khách hàng lẻ",
+          customerPhone: orderInfo.customerPhone || receipt?.customerPhone || null,
           customerCount: 1,
           status: "paid", // Mark as paid immediately
           paymentMethod: method, // Explicitly set payment method
@@ -864,7 +865,7 @@ export function PaymentMethodModal({
         console.log(`📦 Order items:`, orderItems);
 
         // Create order via API
-        const createResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+        const createResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -882,17 +883,60 @@ export function PaymentMethodModal({
             createdOrder,
           );
 
-          // Update orderInfo with the real order ID for E-Invoice
+          // Update orderInfo with the real order ID
           orderInfo.id = createdOrder.id;
           receipt.id = createdOrder.id;
           orderForPayment.id = createdOrder.id;
           orderInfo.orderNumber = createdOrder.orderNumber;
 
-          setSelectedPaymentMethod(method);
-          setShowEInvoice(true);
+          // CHECK BUSINESS TYPE - if laundry, show receipt modal directly
+          const businessType = storeSettings?.businessType;
           console.log(
-            `🔥 SHOWING E-INVOICE MODAL for created POS ${method} order ${createdOrder.id}`,
+            `🔍 ${method} Payment (POS Order): Business type is "${businessType}"`,
           );
+
+          if (businessType === "laundry") {
+            console.log(
+              `🧺 LAUNDRY BUSINESS - showing receipt modal directly for ${method} payment`,
+            );
+
+            // Prepare receipt data from created order
+            const receiptData = {
+              ...createdOrder,
+              items: orderItems.map((item: any) => ({
+                ...item,
+                productName: item.productName || getProductName?.(item.productId) || "Unknown",
+                sku: item.sku || `ITEM-${item.productId}`,
+              })),
+              exactSubtotal: receiptSubtotal,
+              exactTax: receiptTax,
+              exactTotal: receiptTotal,
+              exactDiscount: discountAmount,
+              paymentMethod: method,
+              isPreview: false,
+              isInvoice: true,
+            };
+
+            // Set receipt data for modal and show it
+            setReceiptDataForModal(receiptData);
+            setShowReceiptModal(true);
+
+            // Show success toast
+            toast({
+              title: "Thanh toán thành công",
+              description: `Đã thanh toán bằng ${getPaymentMethodName(method)}`,
+            });
+          } else {
+            console.log(
+              `🏪 RESTAURANT BUSINESS - showing E-Invoice modal for ${method} payment`,
+            );
+
+            setSelectedPaymentMethod(method);
+            setShowEInvoice(true);
+            console.log(
+              `🔥 SHOWING E-INVOICE MODAL for created POS ${method} order ${createdOrder.id}`,
+            );
+          }
         } else {
           const errorText = await createResponse.text();
           console.error(`❌ Failed to create POS ${method} order:`, errorText);
@@ -910,7 +954,7 @@ export function PaymentMethodModal({
 
         try {
           // First update the payment method and status
-          const updateResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderInfo.id}`, {
+          const updateResponse = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderInfo.id}`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -946,7 +990,7 @@ export function PaymentMethodModal({
 
               try {
                 // Check if there are any other unpaid orders on this table
-                const ordersResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+                const ordersResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
                   method: "GET",
                   headers: {
                     "Content-Type": "application/json",
@@ -989,7 +1033,7 @@ export function PaymentMethodModal({
                   );
 
                   const tableUpdateResponse = await fetch(
-                    `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${updatedOrder.tableId}/status`,
+                    `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables/${updatedOrder.tableId}/status`,
                     {
                       method: "PUT",
                       headers: {
@@ -1014,7 +1058,7 @@ export function PaymentMethodModal({
                   try {
                     const protocol =
                       window.location.protocol === "https:" ? "wss:" : "ws:";
-                    const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                    const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                     const ws = new WebSocket(wsUrl);
 
                     ws.onopen = () => {
@@ -1060,18 +1104,69 @@ export function PaymentMethodModal({
               );
             }
 
-            // Show success toast
-            toast({
-              title: "Thanh toán thành công",
-              description: `Đã thanh toán bằng ${getPaymentMethodName(method)}`,
-            });
-
-            // Set payment method and show E-Invoice modal
-            setSelectedPaymentMethod(method);
-            setShowEInvoice(true);
+            // CHECK BUSINESS TYPE - if laundry, show receipt modal directly
+            const businessType = storeSettings?.businessType;
             console.log(
-              `🔥 SHOWING E-INVOICE MODAL after successful ${method} payment`,
+              `🔍 ${method} Payment (Real Order): Business type is "${businessType}"`,
             );
+
+            if (businessType === "laundry") {
+              console.log(
+                `🧺 LAUNDRY BUSINESS - showing receipt modal directly for ${method} payment`,
+              );
+
+              // Prepare receipt data from updated order
+              const receiptData = {
+                ...updatedOrder,
+                items: orderInfo.items || receipt?.items || [],
+                exactSubtotal:
+                  receipt?.exactSubtotal ||
+                  orderInfo?.exactSubtotal ||
+                  parseFloat(updatedOrder.subtotal || "0"),
+                exactTax:
+                  receipt?.exactTax ||
+                  orderInfo?.exactTax ||
+                  parseFloat(updatedOrder.tax || "0"),
+                exactTotal:
+                  receipt?.exactTotal ||
+                  orderInfo?.exactTotal ||
+                  parseFloat(updatedOrder.total || "0"),
+                exactDiscount:
+                  receipt?.exactDiscount ||
+                  orderInfo?.exactDiscount ||
+                  parseFloat(updatedOrder.discount || "0"),
+                paymentMethod: method,
+                isPreview: false,
+                isInvoice: true,
+              };
+
+              // Set receipt data for modal and show it
+              setReceiptDataForModal(receiptData);
+              setShowReceiptModal(true);
+
+              // Show success toast
+              toast({
+                title: "Thanh toán thành công",
+                description: `Đã thanh toán bằng ${getPaymentMethodName(method)}`,
+              });
+            } else {
+              console.log(
+                `🏪 RESTAURANT BUSINESS - showing E-Invoice modal for ${method} payment`,
+              );
+
+              // Show success toast
+              toast({
+                title: "Thanh toán thành công",
+                description: `Đã thanh toán bằng ${getPaymentMethodName(method)}`,
+              });
+
+              // Set payment method and show E-Invoice modal
+              setSelectedPaymentMethod(method);
+              setShowEInvoice(true);
+              console.log(
+                `🔥 SHOWING E-INVOICE MODAL after successful ${method} payment`,
+              );
+            }
           } else {
             const errorText = await updateResponse.text();
             console.error(
@@ -1202,7 +1297,8 @@ export function PaymentMethodModal({
         orderNumber: `ORD-${Date.now()}`,
         tableId: null, // POS orders don't have tables
         salesChannel: "pos", // Mark as POS order
-        customerName: orderInfo.customerName || "Khách hàng lẻ",
+        customerName: orderInfo.customerName || receipt?.customerName || "Khách hàng lẻ",
+        customerPhone: orderInfo.customerPhone || receipt?.customerPhone || null,
         customerCount: 1,
         status: "paid", // Mark as paid immediately for QR
         paymentMethod: "qrCode",
@@ -1219,7 +1315,7 @@ export function PaymentMethodModal({
       console.log("📦 Order items:", orderItems);
 
       // Create order via API
-      const createResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+      const createResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1240,13 +1336,63 @@ export function PaymentMethodModal({
         orderForPayment.id = createdOrder.id;
         orderInfo.orderNumber = createdOrder.orderNumber;
 
-        setShowQRCode(false);
-        setQrCodeUrl("");
-        setSelectedPaymentMethod("qrCode");
-        setShowEInvoice(true);
+        // CHECK BUSINESS TYPE - if laundry, show receipt modal directly
+        const businessType = storeSettings?.businessType;
         console.log(
-          `🔥 SHOWING E-INVOICE MODAL for created POS QR order ${createdOrder.id}`,
+          `🔍 QR Payment (POS Order): Business type is "${businessType}"`,
         );
+
+        if (businessType === "laundry") {
+          console.log(
+            `🧺 LAUNDRY BUSINESS - showing receipt modal directly for QR payment`,
+          );
+
+          // Prepare receipt data from created order
+          const receiptData = {
+            ...createdOrder,
+            items: orderItems.map((item: any) => ({
+              ...item,
+              productName:
+                item.productName ||
+                getProductName?.(item.productId) ||
+                "Unknown",
+              sku: item.sku || `ITEM-${item.productId}`,
+            })),
+            exactSubtotal: receiptSubtotal,
+            exactTax: receiptTax,
+            exactTotal: receiptTotal,
+            exactDiscount: discountAmount,
+            paymentMethod: "qrCode",
+            isPreview: false,
+            isInvoice: true,
+          };
+
+          // Set receipt data for modal and show it
+          setReceiptDataForModal(receiptData);
+          setShowReceiptModal(true);
+
+          // Hide QR code display
+          setShowQRCode(false);
+          setQrCodeUrl("");
+
+          // Show success toast
+          toast({
+            title: "Thanh toán thành công",
+            description: "Đã thanh toán bằng QR Code",
+          });
+        } else {
+          console.log(
+            `🏪 RESTAURANT BUSINESS - showing E-Invoice modal for QR payment`,
+          );
+
+          setShowQRCode(false);
+          setQrCodeUrl("");
+          setSelectedPaymentMethod("qrCode");
+          setShowEInvoice(true);
+          console.log(
+            `🔥 SHOWING E-INVOICE MODAL for created POS QR order ${createdOrder.id}`,
+          );
+        }
       } else {
         const errorText = await createResponse.text();
         console.error(`❌ Failed to create POS QR order:`, errorText);
@@ -1261,7 +1407,7 @@ export function PaymentMethodModal({
       try {
         console.log(`🔥 MAKING API CALL: PUT /api/orders/${orderInfo.id}`);
 
-        const statusResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderInfo.id}`, {
+        const statusResponse = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderInfo.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -1281,6 +1427,12 @@ export function PaymentMethodModal({
           setShowQRCode(false);
           setQrCodeUrl("");
 
+          // CHECK BUSINESS TYPE - if laundry, show receipt modal directly
+          const businessType = storeSettings?.businessType;
+          console.log(
+            `🔍 QR Payment (Real Order): Business type is "${businessType}"`,
+          );
+
           // ALWAYS update table status if order has a table after QR payment
           if (data.tableId) {
             console.log(
@@ -1289,7 +1441,7 @@ export function PaymentMethodModal({
 
             try {
               // Check if there are any other unpaid orders on this table
-              const ordersResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+              const ordersResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
                 method: "GET",
                 headers: {
                   "Content-Type": "application/json",
@@ -1316,7 +1468,7 @@ export function PaymentMethodModal({
                 // If no other unpaid orders, update table to available
                 if (otherActiveOrders.length === 0) {
                   const tableUpdateResponse = await fetch(
-                    `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${data.tableId}/status`,
+                    `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables/${data.tableId}/status`,
                     {
                       method: "PUT",
                       headers: {
@@ -1337,7 +1489,7 @@ export function PaymentMethodModal({
                     try {
                       const protocol =
                         window.location.protocol === "https:" ? "wss:" : "ws:";
-                      const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                      const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                       const ws = new WebSocket(wsUrl);
 
                       ws.onopen = () => {
@@ -1366,10 +1518,57 @@ export function PaymentMethodModal({
             }
           }
 
-          // Set payment method and show E-Invoice modal
-          setSelectedPaymentMethod("qrCode");
-          setShowEInvoice(true);
-          console.log(`🔥 SHOWING E-INVOICE MODAL after successful QR payment`);
+          if (businessType === "laundry") {
+            console.log(
+              `🧺 LAUNDRY BUSINESS - showing receipt modal directly for real order QR payment`,
+            );
+
+            // Prepare receipt data from updated order
+            const receiptData = {
+              ...data,
+              items: orderInfo.items || receipt?.items || [],
+              exactSubtotal:
+                receipt?.exactSubtotal ||
+                orderInfo?.exactSubtotal ||
+                parseFloat(data.subtotal || "0"),
+              exactTax:
+                receipt?.exactTax ||
+                orderInfo?.exactTax ||
+                parseFloat(data.tax || "0"),
+              exactTotal:
+                receipt?.exactTotal ||
+                orderInfo?.exactTotal ||
+                parseFloat(data.total || "0"),
+              exactDiscount:
+                receipt?.exactDiscount ||
+                orderInfo?.exactDiscount ||
+                parseFloat(data.discount || "0"),
+              paymentMethod: "qrCode",
+              isPreview: false,
+              isInvoice: true,
+            };
+
+            // Set receipt data for modal and show it
+            setReceiptDataForModal(receiptData);
+            setShowReceiptModal(true);
+
+            // Show success toast
+            toast({
+              title: "Thanh toán thành công",
+              description: "Đã thanh toán bằng QR Code",
+            });
+          } else {
+            console.log(
+              `🏪 RESTAURANT BUSINESS - showing E-Invoice modal for QR payment`,
+            );
+
+            // Set payment method and show E-Invoice modal
+            setSelectedPaymentMethod("qrCode");
+            setShowEInvoice(true);
+            console.log(
+              `🔥 SHOWING E-INVOICE MODAL after successful QR payment`,
+            );
+          }
         } else {
           const errorText = await statusResponse.text();
           console.error(`❌ Failed to update order status:`, errorText);
@@ -1402,7 +1601,7 @@ export function PaymentMethodModal({
     // Send message to customer display to clear QR payment
     try {
       const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+      const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -1515,7 +1714,8 @@ export function PaymentMethodModal({
         orderNumber: `ORD-${Date.now()}`,
         tableId: null,
         salesChannel: "pos",
-        customerName: orderInfo.customerName || "Khách hàng lẻ",
+        customerName: orderInfo.customerName || receipt?.customerName || "Khách hàng lẻ",
+        customerPhone: orderInfo.customerPhone || receipt?.customerPhone || null,
         customerCount: 1,
         status: "paid",
         paymentMethod: JSON.stringify(selectedPaymentMethods), // Store as JSON
@@ -1528,7 +1728,7 @@ export function PaymentMethodModal({
         discount: discountAmount.toString(),
       };
 
-      const createResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+      const createResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: orderData, items: orderItems }),
@@ -1547,7 +1747,7 @@ export function PaymentMethodModal({
       }
     } else {
       // Update existing order
-      const updateResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderInfo.id}`, {
+      const updateResponse = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderInfo.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1570,7 +1770,7 @@ export function PaymentMethodModal({
 
           try {
             // Check if there are any other unpaid orders on this table
-            const ordersResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+            const ordersResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
               method: "GET",
               headers: {
                 "Content-Type": "application/json",
@@ -1611,7 +1811,7 @@ export function PaymentMethodModal({
               );
 
               const tableUpdateResponse = await fetch(
-                `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${updatedOrder.tableId}/status`,
+                `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables/${updatedOrder.tableId}/status`,
                 {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
@@ -1632,7 +1832,7 @@ export function PaymentMethodModal({
               try {
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {
@@ -1676,16 +1876,68 @@ export function PaymentMethodModal({
           console.log("ℹ️ Order has no table, skipping table status update");
         }
 
-        // Show success toast
-        toast({
-          title: "Thanh toán thành công",
-          description: "Đã thanh toán bằng nhiều phương thức",
-        });
-
         setShowMultiPayment(false);
         setSelectedPaymentMethods([]);
         setSelectedPaymentMethod("multi");
-        setShowEInvoice(true);
+
+        // CHECK BUSINESS TYPE - if laundry, show receipt modal directly
+        const businessType = storeSettings?.businessType;
+        console.log(
+          `🔍 Multi-payment (Real Order): Business type is "${businessType}"`,
+        );
+
+        if (businessType === "laundry") {
+          console.log(
+            `🧺 LAUNDRY BUSINESS - showing receipt modal directly for multi-payment`,
+          );
+
+          // Prepare receipt data from updated order
+          const receiptData = {
+            ...updatedOrder,
+            items: orderInfo.items || receipt?.items || [],
+            exactSubtotal:
+              receipt?.exactSubtotal ||
+              orderInfo?.exactSubtotal ||
+              parseFloat(updatedOrder.subtotal || "0"),
+            exactTax:
+              receipt?.exactTax ||
+              orderInfo?.exactTax ||
+              parseFloat(updatedOrder.tax || "0"),
+            exactTotal:
+              receipt?.exactTotal ||
+              orderInfo?.exactTotal ||
+              parseFloat(updatedOrder.total || "0"),
+            exactDiscount:
+              receipt?.exactDiscount ||
+              orderInfo?.exactDiscount ||
+              parseFloat(updatedOrder.discount || "0"),
+            paymentMethod: "multi",
+            isPreview: false,
+            isInvoice: true,
+          };
+
+          // Set receipt data for modal and show it
+          setReceiptDataForModal(receiptData);
+          setShowReceiptModal(true);
+
+          // Show success toast
+          toast({
+            title: "Thanh toán thành công",
+            description: "Đã thanh toán bằng nhiều phương thức",
+          });
+        } else {
+          console.log(
+            `🏪 RESTAURANT BUSINESS - showing E-Invoice modal for multi-payment`,
+          );
+
+          // Show success toast
+          toast({
+            title: "Thanh toán thành công",
+            description: "Đã thanh toán bằng nhiều phương thức",
+          });
+
+          setShowEInvoice(true);
+        }
       }
     }
   };
@@ -1841,6 +2093,7 @@ export function PaymentMethodModal({
         tableId: null, // POS orders don't have tables
         salesChannel: "pos", // Mark as POS order
         customerName: orderInfo.customerName || "Khách hàng lẻ",
+        customerPhone: orderInfo.customerPhone || null, // Add customer phone
         customerCount: 1,
         status: "paid", // Mark as paid immediately for cash
         paymentMethod: "cash",
@@ -1851,7 +2104,7 @@ export function PaymentMethodModal({
         notes: t("common.comboValues.posPaymentNote")
           .replace("{amount}", cashAmountInput)
           .replace("{change}", finalChange.toString()),
-        paidAt: new Date(),
+        paidAt: new Date().toISOString(),
         discount: discountAmount.toString(),
       };
 
@@ -1859,7 +2112,7 @@ export function PaymentMethodModal({
       console.log("📦 Order items:", orderItems);
 
       // Create order via API
-      const createResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+      const createResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1942,7 +2195,7 @@ export function PaymentMethodModal({
       try {
         console.log(`🔥 MAKING API CALL: PUT /api/orders/${orderInfo.id}`);
 
-        const statusResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderInfo.id}`, {
+        const statusResponse = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderInfo.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -1970,7 +2223,7 @@ export function PaymentMethodModal({
 
             try {
               // Check if there are any other unpaid orders on this table
-              const ordersResponse = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+              const ordersResponse = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", {
                 method: "GET",
                 headers: {
                   "Content-Type": "application/json",
@@ -2013,7 +2266,7 @@ export function PaymentMethodModal({
                 );
 
                 const tableUpdateResponse = await fetch(
-                  `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables/${updatedOrder.tableId}/status`,
+                  `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables/${updatedOrder.tableId}/status`,
                   {
                     method: "PUT",
                     headers: {
@@ -2038,7 +2291,7 @@ export function PaymentMethodModal({
                 try {
                   const protocol =
                     window.location.protocol === "https:" ? "wss:" : "ws:";
-                  const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                  const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                   const ws = new WebSocket(wsUrl);
 
                   ws.onopen = () => {
@@ -2340,7 +2593,7 @@ export function PaymentMethodModal({
         try {
           const protocol =
             window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+          const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
           const ws = new WebSocket(wsUrl);
 
           ws.onopen = () => {
@@ -2445,7 +2698,7 @@ export function PaymentMethodModal({
             try {
               const protocol =
                 window.location.protocol === "https:" ? "wss:" : "ws:";
-              const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+              const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
               const ws = new WebSocket(wsUrl);
 
               ws.onopen = () => {
@@ -2584,7 +2837,7 @@ export function PaymentMethodModal({
                     try {
                       const protocol =
                         window.location.protocol === "https:" ? "wss:" : "ws:";
-                      const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                      const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                       const ws = new WebSocket(wsUrl);
 
                       ws.onopen = () => {
@@ -2820,7 +3073,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -2866,7 +3119,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -3052,7 +3305,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {
@@ -3089,7 +3342,7 @@ export function PaymentMethodModal({
                           window.location.protocol === "https:"
                             ? "wss:"
                             : "ws:";
-                        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                         const ws = new WebSocket(wsUrl);
 
                         ws.onopen = () => {

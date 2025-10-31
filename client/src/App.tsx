@@ -25,10 +25,6 @@ import PaymentMethodsPage from "@/pages/payment-methods";
 import CustomersPage from "./pages/customers";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "wouter/use-location"; // Assuming Navigate is available or similar functionality
-import { setupFetchInterceptor } from "./setupFetchInterceptor";
-
-// Setup fetch interceptor immediately
-setupFetchInterceptor();
 
 // Define StoreSettings interface if not already defined elsewhere
 interface StoreSettings {
@@ -40,10 +36,39 @@ function Router({ onLogout }: { onLogout: () => void }) {
   const RedirectToSales = () => {
     const [, setLocation] = useLocation();
 
+    // Assuming you have a function to get your auth token
+    const getAuthToken = () => localStorage.getItem("authToken");
+    const { data: storeSettings } = useQuery<StoreSettings>({
+      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+      queryFn: async () => {
+        const token = getAuthToken();
+        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Set the token in the Authorization header
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      },
+    });
+
     useEffect(() => {
-      // Default redirect to reports page
-      setLocation("/reports", { replace: true });
-    }, [setLocation]);
+      if (storeSettings) {
+        const businessType = storeSettings.businessType;
+
+        // Route based on business type
+        if (businessType === "laundry" || businessType === "retail") {
+          // POS Giặt là or POS Bán lẻ -> Direct sales screen
+          setLocation("/pos", { replace: true });
+        } else {
+          // POS Nhà hàng or default -> Table selection screen
+          setLocation("/tables", { replace: true });
+        }
+      }
+    }, [storeSettings, setLocation]);
 
     return null;
   };
@@ -114,7 +139,10 @@ function Router({ onLogout }: { onLogout: () => void }) {
         component={() => <CashBookPage onLogout={onLogout} />}
       />
       {/* New route for customers */}
-      <Route path="/customers" component={() => <CustomersPage onLogout={onLogout} />} />
+      <Route
+        path="/customers"
+        component={() => <CustomersPage onLogout={onLogout} />}
+      />
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );
@@ -128,11 +156,53 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Xóa tất cả thông tin đăng nhập
+    sessionStorage.clear();
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("storeInfo");
+    localStorage.removeItem("currentDomain");
     setIsAuthenticated(false);
   };
 
   // Check if current path is customer display to bypass authentication
   const isCustomerDisplay = window.location.pathname === "/customer-display";
+
+  // Check for existing authentication on mount
+  useEffect(() => {
+    const currentDomain = window.location.hostname;
+    const storedDomain = localStorage.getItem("currentDomain");
+
+    // Check if domain has changed - MUST clear everything
+    if (storedDomain && storedDomain !== currentDomain) {
+      console.log(
+        `🔄 Domain changed from ${storedDomain} to ${currentDomain} - forcing complete logout`,
+      );
+
+      // Clear ALL storage to ensure clean state
+      sessionStorage.clear();
+      localStorage.clear();
+
+      // Force re-authentication
+      setIsAuthenticated(false);
+
+      console.log("✅ All auth data cleared - user must login again");
+      return;
+    }
+
+    const pinAuth = sessionStorage.getItem("pinAuthenticated");
+    const token = localStorage.getItem("authToken");
+
+    if (pinAuth === "true" && token) {
+      setIsAuthenticated(true);
+    } else {
+      // Nếu thiếu một trong hai, xóa hết và yêu cầu đăng nhập lại
+      sessionStorage.removeItem("pinAuthenticated");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("storeInfo");
+      localStorage.removeItem("currentDomain");
+      setIsAuthenticated(false);
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

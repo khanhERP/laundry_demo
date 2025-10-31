@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -99,21 +98,8 @@ function MenuReport() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [productType, setProductType] = useState<string>("all");
   const [productSearch, setProductSearch] = useState("");
-  const [storeFilter, setStoreFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Get user info from localStorage to check if admin
-  const userStr = localStorage.getItem("user");
-  const user = userStr ? JSON.parse(userStr) : null;
-  const userStoreCode = user?.storeCode;
-  const isAdmin = user?.isAdmin || user?.typeUser === 1;
-
-  // Fetch stores list for filter dropdown
-  const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
-    retry: 2,
-  });
 
   // Reset pagination when search changes
   useEffect(() => {
@@ -122,13 +108,41 @@ function MenuReport() {
 
   // Query categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories");
+        if (!response.ok) throw new Error("Failed to fetch categories");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+      }
+    },
     retry: 2,
   });
 
   // Query products - filter by search term
   const { data: products = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", selectedCategory, productType, productSearch],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products", selectedCategory, productType, productSearch],
+    queryFn: async () => {
+      try {
+        const searchParam = productSearch
+          ? encodeURIComponent(productSearch)
+          : "";
+        const response = await apiRequest(
+          "GET",
+          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${selectedCategory}/${productType}/${searchParam}`,
+        );
+        if (!response.ok) throw new Error("Failed to fetch products");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        return [];
+      }
+    },
     retry: 2,
     enabled: true, // Always enabled to reload when productSearch changes
   });
@@ -140,28 +154,26 @@ function MenuReport() {
     error: analysisError,
     refetch,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/menu-analysis", startDate, endDate, selectedCategory, productSearch, storeFilter],
+    queryKey: [
+      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/menu-analysis",
+      startDate,
+      endDate,
+      selectedCategory,
+      productSearch,
+    ],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
           startDate,
           endDate,
           ...(selectedCategory !== "all" && { categoryId: selectedCategory }),
-          ...(productSearch && productSearch.trim() !== "" && { search: productSearch.trim() }),
+          ...(productSearch &&
+            productSearch.trim() !== "" && { search: productSearch.trim() }),
         });
-
-        // Handle store filter based on conditions:
-        // 1. If "all" selected -> pass "all" to server (server will handle admin vs non-admin logic)
-        // 2. If specific store selected -> pass exact storeCode
-        if (storeFilter === "all") {
-          params.append("storeFilter", "all");
-        } else if (storeFilter) {
-          params.append("storeFilter", storeFilter);
-        }
 
         const response = await apiRequest(
           "GET",
-          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/menu-analysis?${params.toString()}`,
+          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/menu-analysis?${params.toString()}`,
         );
         if (!response.ok) {
           console.error(
@@ -257,8 +269,10 @@ function MenuReport() {
 
   const handleRefresh = () => {
     // Refresh both orders and order items data
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range"] });
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"] });
+    queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/date-range"] });
+    queryClient.invalidateQueries({
+      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items/date-range"],
+    });
   };
 
   if (analysisError) {
@@ -291,33 +305,12 @@ function MenuReport() {
           <CardTitle className="text-lg flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5" />
-              {t("reports.productAnalysisTab")}
+              {t("reports.productAnalysis") || "Phân tích sản phẩm"}
             </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div>
-              <Label className="block text-sm font-medium mb-2">
-                {t("common.storeLabel")}
-              </Label>
-              <select
-                value={storeFilter}
-                onChange={(e) => setStoreFilter(e.target.value)}
-                className="h-10 w-full px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
-              >
-                {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
-                  <option value="all">Tất cả</option>
-                )}
-                {storesData
-                  .filter((store: any) => store.typeUser !== 1)
-                  .map((store: any) => (
-                    <option key={store.id} value={store.storeCode}>
-                      {store.storeName}
-                    </option>
-                  ))}
-              </select>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
                 {t("reports.fromDate") || "Từ ngày"}
@@ -465,10 +458,11 @@ function MenuReport() {
             <div className="text-center py-12">
               <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg font-medium mb-2">
-                Không có dữ liệu biểu đồ
+                {t("reports.noCategoryData") || "No category data"}
               </p>
               <p className="text-gray-400 text-sm">
-                Chọn khoảng thời gian có dữ liệu bán hàng để xem biểu đồ
+                {t("reports.noDataDescription") ||
+                  "Select a date range with sales data to view charts"}
               </p>
               <Button
                 onClick={handleRefresh}
@@ -476,7 +470,7 @@ function MenuReport() {
                 variant="outline"
               >
                 <RefreshCw className="w-4 h-4" />
-                Làm mới dữ liệu
+                {t("common.refresh") || "Refresh"}
               </Button>
             </div>
           ) : (
@@ -498,10 +492,8 @@ function MenuReport() {
                             data={menuAnalysis.categoryStats.map(
                               (cat, index) => ({
                                 name:
-                                  cat.categoryName && cat.categoryName.length > 20
-                                    ? cat.categoryName.substring(0, 20) + "..."
-                                    : cat.categoryName || `Danh mục ${cat.categoryId}`,
-                                fullName: cat.categoryName || `Danh mục ${cat.categoryId}`,
+                                  cat.categoryName ||
+                                  `Danh mục ${cat.categoryId}`,
                                 value: Number(cat.totalRevenue || 0),
                                 fill: `hsl(${(index * 137.508) % 360}, 70%, 60%)`,
                               }),
@@ -512,7 +504,6 @@ function MenuReport() {
                             outerRadius={80}
                             paddingAngle={2}
                             dataKey="value"
-                            label={false}
                           >
                             {menuAnalysis.categoryStats.map((entry, index) => (
                               <Cell
@@ -522,9 +513,9 @@ function MenuReport() {
                             ))}
                           </Pie>
                           <Tooltip
-                            formatter={(value, name, props) => [
+                            formatter={(value) => [
                               formatCurrency(Number(value)) + " ₫",
-                              props.payload.fullName || "Doanh thu",
+                              "Doanh thu",
                             ]}
                             contentStyle={{
                               backgroundColor: "white",
@@ -535,9 +526,8 @@ function MenuReport() {
                           />
                           <Legend
                             verticalAlign="bottom"
-                            height={60}
-                            wrapperStyle={{ fontSize: "11px", lineHeight: "1.2" }}
-                            iconSize={10}
+                            height={36}
+                            wrapperStyle={{ fontSize: "12px" }}
                           />
                         </PieChart>
                       </ResponsiveContainer>
@@ -563,10 +553,8 @@ function MenuReport() {
                                 ? menuAnalysis.categoryStats.map(
                                     (cat, index) => ({
                                       name:
-                                        cat.categoryName && cat.categoryName.length > 20
-                                          ? cat.categoryName.substring(0, 20) + "..."
-                                          : cat.categoryName || `Danh mục ${cat.categoryId}`,
-                                      fullName: cat.categoryName || `Danh mục ${cat.categoryId}`,
+                                        cat.categoryName ||
+                                        `Danh mục ${cat.categoryId}`,
                                       value: Number(cat.totalQuantity || 0),
                                       fill: `hsl(${(index * 137.508 + 180) % 360}, 70%, 60%)`,
                                     }),
@@ -574,7 +562,6 @@ function MenuReport() {
                                 : [
                                     {
                                       name: "Không có dữ liệu",
-                                      fullName: "Không có dữ liệu",
                                       value: 1,
                                       fill: "#e0e0e0",
                                     },
@@ -586,28 +573,16 @@ function MenuReport() {
                             outerRadius={80}
                             paddingAngle={2}
                             dataKey="value"
-                            label={false}
                           >
                             <Cell />
                           </Pie>
                           <Tooltip
-                            formatter={(value, name, props) => [
+                            formatter={(value, name) => [
                               `${Number(value).toLocaleString()}`,
-                              props.payload.fullName || name,
+                              name,
                             ]}
-                            contentStyle={{
-                              backgroundColor: "white",
-                              border: "1px solid #e5e7eb",
-                              borderRadius: "8px",
-                              fontSize: "12px",
-                            }}
                           />
-                          <Legend
-                            verticalAlign="bottom"
-                            height={60}
-                            wrapperStyle={{ fontSize: "11px", lineHeight: "1.2" }}
-                            iconSize={10}
-                          />
+                          <Legend />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -783,7 +758,7 @@ function MenuReport() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>{t("reports.productAnalysisTab")}</span>
+            <span>{t("reports.productAnalysis") || "Phân tích sản phẩm"}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -800,7 +775,8 @@ function MenuReport() {
                 {t("common.noData") || "Không có dữ liệu bán hàng"}
               </p>
               <p className="text-sm text-gray-400 mt-2">
-                Chọn khoảng thời gian có dữ liệu bán hàng để xem phân tích
+                {t("reports.noDataDescription") ||
+                  "Select a date range with sales data to view analysis"}
               </p>
             </div>
           ) : (

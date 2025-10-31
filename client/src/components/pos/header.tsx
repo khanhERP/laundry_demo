@@ -46,7 +46,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductManagerModal } from "./product-manager-modal";
 import { PrinterConfigModal } from "./printer-config-modal";
 import { InvoiceManagementModal } from "./invoice-management-modal";
-import { UserProfileModal } from "./user-profile-modal";
 
 interface POSHeaderProps {
   onLogout?: () => void;
@@ -63,25 +62,23 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
   const [showProductManager, setShowProductManager] = useState(false);
   const [showInvoiceManagement, setShowInvoiceManagement] = useState(false);
   const [showPrinterConfig, setShowPrinterConfig] = useState(false);
-  const [showUserProfile, setShowUserProfile] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Fetch store settings
+  // Fetch store settings (will automatically use user's storeCode from token)
   const { data: storeSettings } = useQuery<StoreSettings>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
   });
 
   // Fetch employees
   const { data: employees } = useQuery<Employee[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
   });
 
   // Fetch today's attendance records
   const todayDate = new Date().toISOString().split("T")[0];
   const { data: todayAttendance } = useQuery<AttendanceRecord[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance", todayDate],
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/attendance", todayDate],
     queryFn: async () => {
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance?date=${todayDate}`);
+      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/attendance?date=${todayDate}`);
       if (!response.ok) {
         throw new Error("Failed to fetch attendance records");
       }
@@ -156,15 +153,14 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
         setPosMenuOpen(false);
         setReportsSubmenuOpen(false);
         setActiveDropdown(null);
-        setUserMenuOpen(false);
       }
     };
 
-    if (posMenuOpen || reportsSubmenuOpen || userMenuOpen) {
+    if (posMenuOpen || reportsSubmenuOpen) {
       document.addEventListener("click", handleClickOutside);
       return () => document.removeEventListener("click", handleClickOutside);
     }
-  }, [posMenuOpen, reportsSubmenuOpen, userMenuOpen]);
+  }, [posMenuOpen, reportsSubmenuOpen]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -185,77 +181,72 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
 
   const handleLogout = async () => {
     try {
-      // Gọi API logout để xóa session phía server
-      await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auth/logout", {
+      // Gọi API logout để xóa cookie authToken từ server
+      await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/auth/logout", {
         method: "POST",
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
     } catch (error) {
-      console.error("Logout API error:", error);
+      console.error("Lỗi khi đăng xuất:", error);
     }
-    
-    // Xóa toàn bộ localStorage
-    localStorage.clear();
-    
-    // Xóa toàn bộ sessionStorage
-    sessionStorage.clear();
-    
-    // Xóa tất cả cookies
-    document.cookie.split(";").forEach((c) => {
-      document.cookie = c
-        .replace(/^ +/, "")
-        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-    });
-    
-    // Xóa cache của browser (nếu có API hỗ trợ)
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        names.forEach((name) => {
-          caches.delete(name);
-        });
-      });
-    }
-    
+
+    // Xóa tất cả thông tin đăng nhập
+    sessionStorage.removeItem("pinAuthenticated");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("storeInfo");
+
     // Gọi callback onLogout nếu có
     if (onLogout) {
       onLogout();
     }
-    
-    // Chuyển về trang login và reload để xóa state
-    window.location.href = "/";
+
+    // Reload trang để quay về màn hình đăng nhập PIN
     window.location.reload();
   };
 
   return (
-    <header className="bg-background shadow-lg fixed top-0 left-0 right-0 z-50">
-      <div className="px-4 py-2 flex justify-between items-center">
+    <header className="bg-green-500 text-white shadow-lg fixed top-0 left-0 right-0 z-50">
+      <div className="px-6 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-6">
           <div className="flex items-center">
             <img
               src={logoPath}
               alt="EDPOS Logo"
-              className="h-10 cursor-pointer drop-shadow-lg"
-              style={{
-                filter: 'brightness(0) saturate(100%) invert(58%) sepia(89%) saturate(491%) hue-rotate(91deg) brightness(95%) contrast(88%)'
-              }}
+              className="h-12 cursor-pointer"
               onClick={() => (window.location.href = "/")}
             />
           </div>
           <div className="flex flex-col">
-            <div className="font-bold text-[16px] text-green-600">
-              <span className="font-extrabold">M</span>anagement
+            <div className="opacity-90 font-semibold text-[20px]">
+              {storeSettings?.storeName || ""}
+            </div>
+            <div className="text-sm opacity-75 text-right font-extrabold text-[#22c55e]">
+              {t("pos.posLocation")}: {storeSettings?.defaultFloor || "1"}
+              {t("pos.floor")}-{storeSettings?.defaultZone || "A"}
+              {storeSettings?.storeCode && ` (${storeSettings.storeCode})`}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-6">
+          <div className="text-right">
+            <div className="text-sm opacity-90">{t("pos.cashierName")}</div>
+            <div className="font-medium">
+              {currentCashier ? currentCashier.name : t("pos.beforeWork")}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm opacity-90">{t("common.time")}</div>
+            <div className="font-medium">{formatTime(currentTime)}</div>
+          </div>
           <LanguageSwitcher />
           {/* Navigation Menu */}
-          <nav className="flex items-center space-x-2">
-            {/* POS Menu Dropdown */}
-            <div className="relative pos-dropdown hidden">
+          <nav className="flex items-center space-x-4">
+            <div className="relative pos-dropdown">
               <button
-                className={`flex items-center px-3 py-1.5 rounded-full transition-all duration-200 text-sm text-gray-700 ${
+                className={`flex items-center px-4 py-2 rounded-full transition-all duration-200 ${
                   [
                     "/",
                     "/pos",
@@ -268,15 +259,15 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                     "/purchases",
                     "/settings",
                   ].includes(location)
-                    ? "bg-green-100"
-                    : "hover:bg-green-50"
+                    ? "bg-white bg-opacity-20"
+                    : "hover:bg-white hover:bg-opacity-10"
                 }`}
                 onClick={() => setPosMenuOpen(!posMenuOpen)}
               >
-                <ScanBarcode className="w-4 h-4 mr-1.5" />
+                <ScanBarcode className="w-4 h-4 mr-2" />
                 {t("nav.pos")}
                 <ChevronDown
-                  className={`w-3 h-3 ml-1 transition-transform ${posMenuOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 ml-1 transition-transform ${posMenuOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -317,7 +308,7 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                   )}
 
                   {/* Màn hình khách hàng */}
-                  <a
+                  {/* <a
                     href="#"
                     className="w-full flex items-center px-4 py-2 text-left hover:bg-blue-50 hover:text-blue-600 text-gray-700 transition-colors"
                     onClick={(e) => {
@@ -374,7 +365,7 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                   >
                     <Users className="w-4 h-4 mr-3" />
                     {t("nav.customerDisplay")}
-                  </a>
+                  </a> */}
 
                   <div className="border-t border-gray-200 my-2"></div>
 
@@ -725,20 +716,22 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                   </div>
 
                   {/* Cài đặt */}
-                  <Link href="/settings">
-                    <button
-                      className={`w-full flex items-center px-4 py-2 text-left hover:bg-green-50 transition-colors ${
-                        location === "/settings" &&
-                        window.location.search !== "?tab=categories"
-                          ? "bg-green-50 text-green-600"
-                          : "text-gray-700"
-                      }`}
-                      onClick={() => setPosMenuOpen(false)}
-                    >
-                      <SettingsIcon className="w-4 h-4 mr-3" />
-                      {t("settings.title")}
-                    </button>
-                  </Link>
+                  {storeSettings?.businessType !== "laundry" && (
+                    <Link href="/settings">
+                      <button
+                        className={`w-full flex items-center px-4 py-2 text-left hover:bg-green-50 transition-colors ${
+                          location === "/settings" &&
+                          window.location.search !== "?tab=categories"
+                            ? "bg-green-50 text-green-600"
+                            : "text-gray-700"
+                        }`}
+                        onClick={() => setPosMenuOpen(false)}
+                      >
+                        <SettingsIcon className="w-4 h-4 mr-3" />
+                        {t("settings.title")}
+                      </button>
+                    </Link>
+                  )}
 
                   <div className="border-t border-gray-200 my-2"></div>
 
@@ -756,50 +749,9 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                 </div>
               )}
             </div>
-
-            {/* User Menu Dropdown */}
-            <div className="relative pos-dropdown">
-              <button
-                className="flex items-center px-3 py-1.5 rounded-full hover:bg-green-50 transition-all duration-200 text-sm text-gray-700"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-              >
-                <User className="w-4 h-4 mr-1.5" />
-                <span className="hidden sm:inline">
-                  {currentCashier 
-                    ? currentCashier.name 
-                    : (storeSettings?.storeName || storeSettings?.userName || storeSettings?.storeCode || "Admin")}
-                </span>
-                <ChevronDown
-                  className={`w-3 h-3 ml-1 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {/* User Dropdown Menu */}
-              {userMenuOpen && (
-                <div className="absolute top-full right-0 mt-1 bg-white rounded-xl shadow-lg border border-gray-200 py-2 min-w-48 z-50">
-                  <button
-                    className="w-full flex items-center px-4 py-2 text-left hover:bg-red-50 hover:text-red-600 text-gray-700 transition-colors"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      handleLogout();
-                    }}
-                  >
-                    <LogOut className="w-4 h-4 mr-3" />
-                    Đăng xuất
-                  </button>
-                </div>
-              )}
-            </div>
           </nav>
         </div>
       </div>
-
-      {showUserProfile && (
-        <UserProfileModal
-          isOpen={showUserProfile}
-          onClose={() => setShowUserProfile(false)}
-        />
-      )}
       {showProductManager && (
         <ProductManagerModal
           isOpen={showProductManager}

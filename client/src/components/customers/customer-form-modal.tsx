@@ -22,13 +22,13 @@ const customerFormSchema = z.object({
   customerId: z.string().optional(),
   name: z.string().min(1, "Tên khách hàng là bắt buộc"),
   phone: z.string().min(1, "Số điện thoại là bắt buộc"),
-  email: z.string().optional().refine((email) => !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), {
-    message: "올바른 이메일 형식이 아닙니다"
+  email: z.string().optional().or(z.literal("")).refine((email) => !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), {
+    message: "Email không hợp lệ"
   }),
-  address: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  membershipLevel: z.enum(["Silver", "Gold", "VIP"]).optional(),
-  notes: z.string().optional(),
+  address: z.string().optional().or(z.literal("")),
+  dateOfBirth: z.string().optional().or(z.literal("")),
+  membershipLevel: z.enum(["SILVER", "GOLD", "VIP"]).optional(),
+  notes: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive"]).optional(),
 });
 
@@ -54,18 +54,22 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
       if (!customer?.id) return [];
 
       // Fetch all orders and filter by customer ID on client side
-      // since the API doesn't support customerId filter yet
-      const response = await apiRequest("GET", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders`);
+      const response = await apiRequest("GET", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders`);
       const allOrders = await response.json();
 
       // Filter orders that belong to this customer
-      // Match by customer ID, phone, or name
+      // Prioritize customerId match, then fallback to phone/name
       return allOrders.filter((order: any) => {
-        const matchesId = order.customerId === customer.id;
+        // Primary match: customerId
+        if (order.customerId === customer.id) {
+          return true;
+        }
+
+        // Fallback matches for orders created before customerId was added
         const matchesPhone = customer.phone && order.customerPhone === customer.phone;
         const matchesName = customer.name && order.customerName === customer.name;
 
-        return matchesId || matchesPhone || matchesName;
+        return matchesPhone || matchesName;
       });
     },
     enabled: isOpen && !!customer?.id,
@@ -74,7 +78,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
   // Generate customer ID for new customers
   const generateCustomerId = async () => {
     try {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/next-id");
+      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -92,7 +96,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
       email: customer?.email || "",
       address: customer?.address || "",
       dateOfBirth: customer?.dateOfBirth || "",
-      membershipLevel: customer?.membershipLevel || "Silver",
+      membershipLevel: customer?.membershipLevel || "SILVER",
       notes: customer?.notes || "",
       status: customer?.status || "active",
     },
@@ -123,7 +127,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
           email: "",
           address: "",
           dateOfBirth: "",
-          membershipLevel: "Silver",
+          membershipLevel: "SILVER",
           notes: "",
           status: "active",
         });
@@ -133,11 +137,19 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
 
   const createMutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", data);
+      // Clean data - remove empty strings and set to undefined
+      const cleanData = {
+        ...data,
+        email: data.email?.trim() || undefined,
+        address: data.address?.trim() || undefined,
+        dateOfBirth: data.dateOfBirth?.trim() || undefined,
+        notes: data.notes?.trim() || undefined,
+      };
+      const response = await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers", cleanData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
       toast({
         title: "common.success",
         description: customer ? "customers.customerUpdated" : "customers.customerAdded",
@@ -159,11 +171,19 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
       if (!customer?.id) {
         throw new Error("Customer ID is missing");
       }
-      const response = await apiRequest("PUT", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customer.id}`, data);
+      // Clean data - remove empty strings and set to undefined
+      const cleanData = {
+        ...data,
+        email: data.email?.trim() || undefined,
+        address: data.address?.trim() || undefined,
+        dateOfBirth: data.dateOfBirth?.trim() || undefined,
+        notes: data.notes?.trim() || undefined,
+      };
+      const response = await apiRequest("PUT", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/${customer.id}`, cleanData);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
       toast({
         title: t('common.success'),
         description: "Cập nhật thông tin khách hàng thành công",
@@ -182,41 +202,52 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
   });
 
   const onSubmit = async (data: CustomerFormData) => {
-    // For new customers, ensure we have a generated ID
-    let customerIdToUse = data.customerId;
-
-    if (!customer?.id && (!customerIdToUse || customerIdToUse === t('common.autoGenerated'))) {
-      // Generate new ID if not already set
-      try {
-        const response = await fetch('https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/next-id');
-        const { nextId } = await response.json();
-        customerIdToUse = nextId;
-      } catch (error) {
-        console.error("Failed to generate customer ID:", error);
-        toast({
-          title: t('common.error'),
-          description: "Không thể tạo mã khách hàng",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
-    const cleanData = {
-      ...data,
-      customerId: customerIdToUse,
-      phone: data.phone || undefined,
-      email: data.email || undefined,
-      address: data.address || undefined,
-      dateOfBirth: data.dateOfBirth || undefined,
-      notes: data.notes || undefined,
-    };
-
     // Check if we're editing an existing customer (has ID)
     if (customer?.id) {
+      // Editing existing customer - send customerId for display purposes only
+      const cleanData = {
+        ...data,
+        customerId: data.customerId,
+        phone: data.phone || undefined,
+        email: data.email || undefined,
+        address: data.address || undefined,
+        dateOfBirth: data.dateOfBirth || undefined,
+        notes: data.notes || undefined,
+      };
       console.log("Updating customer with ID:", customer.id, "Data:", cleanData);
       updateMutation.mutate(cleanData);
     } else {
+      // Creating new customer - generate customerId for display
+      let customerIdToUse = data.customerId;
+      
+      if (!customerIdToUse || customerIdToUse === t('common.autoGenerated')) {
+        try {
+          const response = await fetch('https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/next-id');
+          const { nextId } = await response.json();
+          customerIdToUse = nextId;
+        } catch (error) {
+          console.error("Failed to generate customer ID:", error);
+          toast({
+            title: t('common.error'),
+            description: "Không thể tạo mã khách hàng",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Don't send 'id' field, let database auto-generate it
+      const cleanData = {
+        name: data.name,
+        customerId: customerIdToUse,
+        phone: data.phone || undefined,
+        email: data.email || undefined,
+        address: data.address || undefined,
+        dateOfBirth: data.dateOfBirth || undefined,
+        membershipLevel: data.membershipLevel,
+        notes: data.notes || undefined,
+        status: data.status,
+      };
       console.log("Creating new customer with data:", cleanData);
       createMutation.mutate(cleanData);
     }
@@ -246,9 +277,9 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="info">Thông tin chính</TabsTrigger>
+            <TabsTrigger value="info">{t('customers.customerFormTitle')}</TabsTrigger>
             <TabsTrigger value="orders" disabled={!customer?.id}>
-              Lịch sử đơn hàng
+              {t('customers.history')}
               {orderHistory && orderHistory.length > 0 && (
                 <Badge variant="secondary" className="ml-2">{orderHistory.length}</Badge>
               )}
@@ -269,8 +300,8 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
                           <Input
                             {...field}
                             placeholder={customer?.id ? t('customers.customerId') : t('common.autoGenerated')}
-                            disabled={!customer?.id} // Disable only if it's a new customer (no ID)
-                            className={!customer?.id ? "bg-gray-50" : ""} // Apply background color for new customers
+                            disabled={true} // Always disabled, auto-generated for new or fixed for existing
+                            className="bg-gray-50"
                           />
                         </FormControl>
                         <FormMessage />
@@ -365,8 +396,8 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Silver">{t('customers.silver')}</SelectItem>
-                            <SelectItem value="Gold">{t('customers.gold')}</SelectItem>
+                            <SelectItem value="SILVER">{t('customers.silver')}</SelectItem>
+                            <SelectItem value="GOLD">{t('customers.gold')}</SelectItem>
                             <SelectItem value="VIP">{t('customers.vip')}</SelectItem>
                           </SelectContent>
                         </Select>
@@ -443,25 +474,25 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
                     <thead className="bg-gray-50 border-b sticky top-0">
                       <tr>
                         <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">
-                          No
+                          {t('common.no')}
                         </th>
                         <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-36">
-                          Ngày tạo đơn
+                          {t('orders.createdDate')}
                         </th>
                         <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-40">
-                          Số đơn bán
+                          {t('orders.orderNumber')}
                         </th>
                         <th className="px-3 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-32">
-                          Tổng tiền
+                          {t('common.total')}
                         </th>
                         <th className="px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
-                          Trạng thái
+                          {t('common.status')}
                         </th>
                         <th className="px-3 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
-                          Đã trả đồ
+                          {t('orders.paymentStatus')}
                         </th>
                         <th className="px-3 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          Ghi chú
+                          {t('common.notes')}
                         </th>
                       </tr>
                     </thead>
@@ -497,7 +528,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
                           </td>
                           <td className="px-3 py-2 text-center">
                             <Badge className={order.isPaid ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>
-                              {order.isPaid ? "Đã trả" : "Chưa trả"}
+                              {order.isPaid === true ? t('common.paid') : t('common.unpaid')}
                             </Badge>
                           </td>
                           <td className="px-3 py-2 text-sm text-gray-600 truncate max-w-xs">
@@ -515,7 +546,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <p className="text-gray-500">Khách hàng chưa có đơn hàng nào</p>
+                  <p className="text-gray-500">{t('customers.noOrderHistory')}</p>
                 </div>
               )}
             </ScrollArea>

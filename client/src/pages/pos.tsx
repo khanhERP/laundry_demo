@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { POSHeader } from "@/components/pos/header";
 import { RightSidebar } from "@/components/ui/right-sidebar";
 import { CategorySidebar } from "@/components/pos/category-sidebar";
@@ -16,10 +16,12 @@ interface POSPageProps {
 export default function POS({ onLogout }: POSPageProps) {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showProductManagerModal, setShowProductManagerModal] = useState(false);
+  const [productManagerSearchSKU, setProductManagerSearchSKU] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | "all">(
     "all",
   );
   const [searchQuery, setSearchQuery] = useState("");
+
   const [lastCartItems, setLastCartItems] = useState<any[]>([]);
   const queryClient = useQueryClient();
 
@@ -53,7 +55,7 @@ export default function POS({ onLogout }: POSPageProps) {
         const isCustomDomain = !host.includes("replit.dev");
 
         // For custom domains, ensure proper WebSocket URL
-        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
 
         console.log(
           `📡 POS: Connecting to WebSocket at ${wsUrl}, Custom domain: ${isCustomDomain}`,
@@ -90,10 +92,10 @@ export default function POS({ onLogout }: POSPageProps) {
 
               // Clear cache and force refresh
               queryClient.clear();
-              queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-              queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+              queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+              queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"] });
               queryClient.invalidateQueries({
-                queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+                queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
               });
 
               // Dispatch custom events for components
@@ -138,9 +140,9 @@ export default function POS({ onLogout }: POSPageProps) {
 
       // Force data refresh for any e-invoice related events
       queryClient.clear();
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"] });
 
       // Dispatch refresh event for components
       window.dispatchEvent(
@@ -275,47 +277,70 @@ export default function POS({ onLogout }: POSPageProps) {
     }
   };
 
+  // Add handler function to open product manager modal
+  const handleOpenProductManager = useCallback(() => {
+    setShowProductManagerModal(true);
+    setProductManagerSearchSKU("");
+  }, []);
+
+  // Dummy handlers for CategorySidebar and ShoppingCart to satisfy props before they are fully implemented
+  const handleCategorySelect = (category: number | "all") => {
+    console.log("Selected category:", category);
+    setSelectedCategory(category);
+  };
+
+  const handleAddToCart = (product: any) => {
+    console.log("Adding to cart:", product);
+    addToCart(product);
+  };
+
   try {
     return (
-      <div className="min-h-screen bg-green-50 grocery-bg">
+      <div className="min-h-screen bg-green-50 grocery-bg mt-6">
         {/* Header */}
         <POSHeader onLogout={onLogout} />
 
         {/* Right Sidebar */}
         <RightSidebar />
 
-        <div className="main-content flex h-screen pt-16">
-          {/* Category Sidebar */}
-          <CategorySidebar
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onOpenProductManager={() => setShowProductManagerModal(true)}
-            onAddToCart={(product) => addToCart(product)}
-          />
+        <div className="main-content flex flex-col lg:flex-row pt-16 min-h-screen">
+          {/* Category Sidebar - Responsive width */}
+          <div className="w-full lg:w-64 flex-shrink-0 border-b lg:border-b-0 lg:border-r">
+            <CategorySidebar
+              selectedCategory={selectedCategory}
+              onCategorySelect={handleCategorySelect}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onOpenProductManager={handleOpenProductManager}
+              onAddToCart={handleAddToCart}
+            />
+          </div>
 
-          {/* Product Grid */}
-          <ProductGrid
-            selectedCategory={selectedCategory}
-            searchQuery={searchQuery}
-            onAddToCart={(product) => addToCart(product)}
-          />
+          {/* Product Grid - Flexible center area */}
+          <div className="flex-1 min-w-0 overflow-auto">
+            <ProductGrid
+              selectedCategory={selectedCategory}
+              searchQuery={searchQuery}
+              onAddToCart={(product) => addToCart(product)}
+            />
+          </div>
 
-          {/* Shopping Cart */}
-          <ShoppingCart
-            cart={cart}
-            onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeFromCart}
-            onClearCart={clearCart}
-            onCheckout={handleCheckout}
-            isProcessing={isProcessingCheckout}
-            orders={orders}
-            activeOrderId={activeOrderId}
-            onCreateNewOrder={createNewOrder}
-            onSwitchOrder={switchOrder}
-            onRemoveOrder={removeOrder}
-          />
+          {/* Shopping Cart - Responsive width */}
+          <div className="w-full lg:w-96 xl:w-[28rem] flex-shrink-0 border-t lg:border-t-0 lg:border-l">
+            <ShoppingCart
+              cart={cart}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeFromCart}
+              onClearCart={clearCart}
+              onCheckout={handleCheckout}
+              isProcessing={isProcessingCheckout}
+              orders={orders}
+              activeOrderId={activeOrderId}
+              onCreateNewOrder={createNewOrder}
+              onSwitchOrder={switchOrder}
+              onRemoveOrder={removeOrder}
+            />
+          </div>
         </div>
 
         {/* Modals */}
@@ -351,7 +376,7 @@ export default function POS({ onLogout }: POSPageProps) {
               try {
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {
@@ -376,7 +401,12 @@ export default function POS({ onLogout }: POSPageProps) {
 
         <ProductManagerModal
           isOpen={showProductManagerModal}
-          onClose={() => setShowProductManagerModal(false)}
+          onClose={() => {
+            console.log("📦 Closing Product Manager Modal");
+            setShowProductManagerModal(false);
+            setProductManagerSearchSKU("");
+          }}
+          initialSearchSKU={productManagerSearchSKU}
         />
       </div>
     );

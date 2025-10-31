@@ -10,11 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Shield, Lock, Eye, EyeOff } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useTranslation } from "@/lib/i18n";
-import { useLocation } from "wouter";
-import { queryClient } from "@/lib/queryClient";
 
 interface PinAuthProps {
   onAuthSuccess: () => void;
@@ -22,59 +21,65 @@ interface PinAuthProps {
 
 export function PinAuth({ onAuthSuccess }: PinAuthProps) {
   const { t } = useTranslation();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [pin, setPin] = useState("");
+  const [showPin, setShowPin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+
+
+  // Check if domain has changed and clear storage if needed
+  useEffect(() => {
+    const currentDomain = window.location.hostname;
+    const storedDomain = localStorage.getItem("currentDomain");
+
+    if (storedDomain && storedDomain !== currentDomain) {
+      console.log(`🔄 Domain changed from ${storedDomain} to ${currentDomain} - clearing all auth data`);
+      // Clear all authentication data from both localStorage and sessionStorage
+      sessionStorage.clear();
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("storeInfo");
+      localStorage.removeItem("currentDomain");
+
+      // Force reload to ensure clean state
+      console.log("✅ Auth data cleared - forcing page reload");
+      window.location.reload();
+    }
+  }, []);
+
+  // Fetch store settings để lấy PIN
+  const { data: storeData } = useQuery({
+    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings");
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json(); // Chờ lấy JSON
+        console.log("Store settings:", data);
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch store settings:", error);
+        throw error; // Ném lỗi để query có thể xử lý tiếp
+      }
+    },
+  });
 
   useEffect(() => {
-    // Check if already authenticated with valid token
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      // Verify token is still valid
-      verifyToken(token);
+    // Kiểm tra nếu đã đăng nhập trong session này
+    const isAuthenticated = sessionStorage.getItem("pinAuthenticated");
+    if (isAuthenticated === "true") {
+      onAuthSuccess();
     }
   }, [onAuthSuccess]);
-
-  const verifyToken = async (token: string) => {
-    try {
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auth/verify", {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        },
-        credentials: 'include' // Send cookies
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data.typeUser === 1) {
-          onAuthSuccess();
-        } else {
-          // Token valid but not admin user
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("userData");
-        }
-      } else {
-        // Token invalid
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("userData");
-      }
-    } catch (error) {
-      console.error("Token verification failed:", error);
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("userData");
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username.trim() || !password.trim()) {
+    if (!pin.trim()) {
       toast({
         title: "Lỗi",
-        description: "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu",
+        description: "Vui lòng nhập mã PIN",
         variant: "destructive",
       });
       return;
@@ -83,69 +88,71 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
     setIsLoading(true);
 
     try {
-      console.log("Submitting login:", username);
+      // Lấy domain hiện tại từ window.location
+      const currentDomain = window.location.hostname;
 
-      // Call login API
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: 'include', // Important: Receive cookies
-        body: JSON.stringify({
-          userName: username,
-          password: password
-        })
+      console.log("Submitting PIN with domain:", {
+        pin,
+        domain: currentDomain,
+        fullUrl: window.location.href,
       });
 
-      const data = await response.json();
+      // Gọi API đăng nhập bằng PIN
+      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/auth/login-pin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pinCode: pin,
+          domain: currentDomain
+        }),
+      });
 
-      if (response.ok && data.success) {
-        // Check if user has admin rights (typeUser = 1)
-        if (data.data.user.typeUser !== 1) {
-          toast({
-            title: "Đăng nhập thất bại",
-            description: "Tài khoản không có quyền truy cập hệ thống POS",
-            variant: "destructive",
-          });
-          setPassword("");
-          return;
-        }
+      const result = await response.json();
 
-        // Save token and user data
-        localStorage.setItem("authToken", data.data.token);
-        localStorage.setItem("userData", JSON.stringify(data.data.user));
+      if (response.ok && result.success) {
+        // Lưu token vào localStorage
+        localStorage.setItem("authToken", result.data.token);
 
-        console.log("✅ Login successful, token saved");
+        // Lưu domain hiện tại để check sau này
+        const currentDomain = window.location.hostname;
+        localStorage.setItem("currentDomain", currentDomain);
+        console.log(`💾 Saved current domain: ${currentDomain}`);
 
-        // Call onAuthSuccess to update app state
-        onAuthSuccess();
+        // Lưu thông tin store vào localStorage
+        localStorage.setItem("storeInfo", JSON.stringify(result.data.store));
 
-        // CRITICAL: Reload page to ensure fresh start with new token
-        console.log("🔄 Reloading page after successful login...");
-        
-        // Small delay to ensure token is saved
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Reload the page - this will clear all cache and fetch fresh data
+        // Lưu trạng thái đăng nhập vào sessionStorage
+        sessionStorage.setItem("pinAuthenticated", "true");
+
+        // Reload page để đảm bảo token được sử dụng đúng cách
+        console.log("✅ Login successful - reloading page to apply token");
         window.location.reload();
       } else {
         toast({
-          title: "Đăng nhập thất bại",
-          description: data.message || "Tên đăng nhập hoặc mật khẩu không đúng",
+          title: "Mã PIN không đúng",
+          description: result.message || "Vui lòng kiểm tra lại mã PIN",
           variant: "destructive",
         });
-        setPassword("");
+        setPin("");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("PIN login error:", error);
       toast({
         title: "Lỗi hệ thống",
-        description: "Có lỗi xảy ra khi đăng nhập. Vui lòng thử lại.",
+        description: "Có lỗi xảy ra khi xác thực",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Chỉ cho phép số
+    if (value.length <= 6) {
+      setPin(value);
     }
   };
 
@@ -178,10 +185,10 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Đăng nhập hệ thống
+              Xác thực bảo mật
             </CardTitle>
             <CardDescription className="text-gray-600 mt-2">
-              Nhập tên đăng nhập và mật khẩu để truy cập hệ thống POS
+              Nhập mã PIN để truy cập hệ thống POS
             </CardDescription>
           </div>
         </CardHeader>
@@ -190,43 +197,22 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label
-                htmlFor="username"
+                htmlFor="pin"
                 className="text-sm font-medium text-gray-700"
               >
-                Tên đăng nhập
+                Mã PIN
               </Label>
               <div className="relative">
                 <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="pin"
+                  type={showPin ? "text" : "password"}
+                  value={pin}
+                  onChange={handlePinChange}
                   onKeyPress={handleKeyPress}
-                  placeholder="Nhập tên đăng nhập"
-                  className="pr-10"
+                  placeholder="Nhập mã PIN (4-6 chữ số)"
+                  className="pr-10 text-center text-lg tracking-widest font-mono"
+                  maxLength={6}
                   autoFocus
-                  disabled={isLoading}
-                />
-                <User className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700"
-              >
-                Mật khẩu
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Nhập mật khẩu"
-                  className="pr-10"
                   disabled={isLoading}
                 />
                 <Button
@@ -234,9 +220,9 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
                   variant="ghost"
                   size="sm"
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPin(!showPin)}
                 >
-                  {showPassword ? (
+                  {showPin ? (
                     <EyeOff className="w-4 h-4 text-gray-500" />
                   ) : (
                     <Eye className="w-4 h-4 text-gray-500" />
@@ -247,8 +233,8 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
 
             <Button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold mt-6"
-              disabled={isLoading || !username.trim() || !password.trim()}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold"
+              disabled={isLoading || pin.length < 4}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -266,8 +252,59 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
 
           <div className="text-center">
             <p className="text-xs text-gray-500">
-              Liên hệ quản trị viên nếu bạn quên mật khẩu
+              Liên hệ quản trị viên nếu bạn quên mã PIN
             </p>
+          </div>
+
+          {/* Virtual Keypad for mobile */}
+          <div className="grid grid-cols-3 gap-2 mt-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <Button
+                key={num}
+                type="button"
+                variant="outline"
+                className="h-12 text-lg font-semibold"
+                onClick={() => {
+                  if (pin.length < 6) {
+                    setPin((prev) => prev + num);
+                  }
+                }}
+                disabled={isLoading || pin.length >= 6}
+              >
+                {num}
+              </Button>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 text-lg font-semibold text-red-600"
+              onClick={() => setPin("")}
+              disabled={isLoading || pin.length === 0}
+            >
+              Xóa
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 text-lg font-semibold"
+              onClick={() => {
+                if (pin.length < 6) {
+                  setPin((prev) => prev + "0");
+                }
+              }}
+              disabled={isLoading || pin.length >= 6}
+            >
+              0
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 text-lg font-semibold text-red-600"
+              onClick={() => setPin((prev) => prev.slice(0, -1))}
+              disabled={isLoading || pin.length === 0}
+            >
+              ←
+            </Button>
           </div>
         </CardContent>
       </Card>
