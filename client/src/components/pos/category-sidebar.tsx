@@ -45,11 +45,11 @@ export function CategorySidebar({
   const { t } = useTranslation();
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["/api/categories"],
   });
 
   const { data: products = [] } = useQuery<Product[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["/api/products"],
     queryFn: async () => {
       const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products`);
       if (!response.ok) throw new Error("Failed to fetch products");

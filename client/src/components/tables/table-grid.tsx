@@ -121,8 +121,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       setSelectedReceipt(null);
 
       // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
     };
 
     window.addEventListener(
@@ -143,7 +143,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
     isLoading,
     refetch: refetchTables,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
+    queryKey: ["/api/tables"],
     staleTime: 60 * 1000, // Cache 1 phút
     gcTime: 5 * 60 * 1000, // Giữ cache 5 phút
     refetchOnWindowFocus: false,
@@ -153,7 +153,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
   });
 
   const { data: orders, refetch: refetchOrders } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
+    queryKey: ["/api/orders"],
     staleTime: 30 * 1000, // Cache 30 giây cho orders
     gcTime: 2 * 60 * 1000, // Giữ cache 2 phút
     refetchOnWindowFocus: false,
@@ -167,7 +167,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
     isLoading: orderItemsLoading,
     refetch: refetchOrderItems,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", selectedOrder?.id || "none"],
+    queryKey: ["/api/order-items", selectedOrder?.id || "none"],
     enabled: !!selectedOrder?.id && orderDetailsOpen,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -193,7 +193,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
   });
 
   const { data: products } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["/api/products"],
     staleTime: 60 * 60 * 1000, // Cache for 1 hour (products don't change often)
     gcTime: 2 * 60 * 60 * 1000, // Keep in cache for 2 hours
     refetchOnWindowFocus: false,
@@ -210,7 +210,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
   };
 
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+    queryKey: ["/api/store-settings"],
     staleTime: 2 * 60 * 60 * 1000, // Cache for 2 hours (settings rarely change)
     gcTime: 4 * 60 * 60 * 1000, // Keep in cache for 4 hours
     refetchOnWindowFocus: false,
@@ -219,7 +219,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
   });
 
   const { data: customers } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"],
+    queryKey: ["/api/customers"],
     enabled: pointsPaymentOpen,
     staleTime: 30 * 60 * 1000, // Cache for 30 minutes
     gcTime: 60 * 60 * 1000, // Keep in cache for 1 hour
@@ -266,7 +266,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
   useEffect(() => {
     if (orderDetailsOpen && selectedOrder?.id) {
       const cachedData = queryClient.getQueryData([
-        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items",
+        "/api/order-items",
         selectedOrder.id,
       ]);
       if (!cachedData) {
@@ -285,8 +285,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
 
       // Only invalidate - don't force refetch, let cache handle it
       if (!event.detail?.skipAllRefetch) {
-        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       }
     };
 
@@ -296,7 +296,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       // Only invalidate specific data that changed
       if (!event.detail?.skipAllRefetch && event.detail?.orderId) {
         queryClient.invalidateQueries({
-          queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", event.detail.orderId],
+          queryKey: ["/api/order-items", event.detail.orderId],
         });
       }
     };
@@ -596,8 +596,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       );
 
       // Clear cache and force immediate refresh for immediate UI update
-      queryClient.removeQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-      queryClient.removeQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.removeQueries({ queryKey: ["/api/tables"] });
+      queryClient.removeQueries({ queryKey: ["/api/orders"] });
 
       // Force immediate fresh data fetch
       try {
@@ -715,26 +715,26 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       try {
         // Use fetch directly with no-cache to bypass React Query entirely for immediate update
         const [freshTables, freshOrders] = await Promise.all([
-          fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables", {
+          fetch("/api/tables", {
             cache: "no-store",
             headers: { "Cache-Control": "no-cache" },
           }).then((r) => r.json()),
-          fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
+          fetch("/api/orders", {
             cache: "no-store",
             headers: { "Cache-Control": "no-cache" },
           }).then((r) => r.json()),
         ]);
 
         // Set fresh data immediately in cache
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"], freshTables);
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"], freshOrders);
+        queryClient.setQueryData(["/api/tables"], freshTables);
+        queryClient.setQueryData(["/api/orders"], freshOrders);
 
         console.log("✅ Table: Fresh data fetched and set in cache");
 
         // Force component re-render by invalidating after setting fresh data
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         }, 50);
       } catch (fetchError) {
         console.error(
@@ -787,7 +787,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       try {
         const [completedOrder, orderItemsData] = await Promise.all([
           queryClient.fetchQuery({
-            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", variables.orderId],
+            queryKey: ["/api/orders", variables.orderId],
             queryFn: async () => {
               const response = await apiRequest(
                 "GET",
@@ -797,7 +797,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
             },
           }),
           queryClient.fetchQuery({
-            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", variables.orderId],
+            queryKey: ["/api/order-items", variables.orderId],
             queryFn: async () => {
               const response = await apiRequest(
                 "GET",
@@ -902,7 +902,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       orderId: number;
     }) => {
       // First redeem points
-      await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/redeem-points", {
+      await apiRequest("POST", "/api/customers/redeem-points", {
         customerId,
         points,
       });
@@ -976,11 +976,11 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       queryClient.invalidateQueries({
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", variables.orderId],
+        queryKey: ["/api/order-items", variables.orderId],
       });
       setOrderDetailsOpen(false);
       setPointsPaymentOpen(false);
@@ -995,7 +995,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       // Fetch the completed order to get its details for receipt
       queryClient
         .fetchQuery({
-          queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", variables.orderId],
+          queryKey: ["/api/orders", variables.orderId],
           queryFn: async () => {
             const response = await apiRequest(
               "GET",
@@ -1143,7 +1143,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       paymentMethod: string;
     }) => {
       // First redeem all available points
-      await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/redeem-points", {
+      await apiRequest("POST", "/api/customers/redeem-points", {
         customerId,
         points,
       });
@@ -1217,11 +1217,11 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       queryClient.invalidateQueries({
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", variables.orderId],
+        queryKey: ["/api/order-items", variables.orderId],
       });
       setOrderDetailsOpen(false);
       setMixedPaymentOpen(false);
@@ -1238,7 +1238,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       // Fetch the completed order to get its details for receipt
       queryClient
         .fetchQuery({
-          queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", variables.orderId],
+          queryKey: ["/api/orders", variables.orderId],
           queryFn: async () => {
             const response = await apiRequest(
               "GET",
@@ -1359,10 +1359,10 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       return response;
     },
     onSuccess: (data, orderId) => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
       queryClient.invalidateQueries({
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", orderId],
+        queryKey: ["/api/order-items", orderId],
       }); // Invalidate items for the deleted order
       toast({
         title: "Xóa đơn hàng thành công",
@@ -1462,8 +1462,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
 
       // Force immediate fresh fetch with no-cache
       Promise.all([
-        fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", { cache: "no-store" }).then((r) => r.json()),
-        fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables", { cache: "no-store" }).then((r) => r.json()),
+        fetch("/api/orders", { cache: "no-store" }).then((r) => r.json()),
+        fetch("/api/tables", { cache: "no-store" }).then((r) => r.json()),
         fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/${orderId}`, { cache: "no-store" }).then((r) =>
           r.json(),
         ),
@@ -1474,7 +1474,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
           );
 
           // Force component re-render by setting a timestamp
-          queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"], (oldData: any) => {
+          queryClient.setQueryData(["/api/orders"], (oldData: any) => {
             if (!oldData || !Array.isArray(oldData)) return oldData;
 
             return oldData.map((order: any) => {
@@ -1897,7 +1897,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         // Strategy A: Direct fetch with no-cache headers
         const [freshTables, freshOrders] = await Promise.all([
           fetch(
-            "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables?" +
+            "/api/tables?" +
               new URLSearchParams({
                 _t: Date.now().toString(),
                 _force: "true",
@@ -1912,7 +1912,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
             },
           ).then((r) => r.json()),
           fetch(
-            "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders?" +
+            "/api/orders?" +
               new URLSearchParams({
                 _t: Date.now().toString(),
                 _force: "true",
@@ -1929,19 +1929,19 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         ]);
 
         // STEP 3: Set fresh data immediately in cache
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"], freshTables);
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"], freshOrders);
+        queryClient.setQueryData(["/api/tables"], freshTables);
+        queryClient.setQueryData(["/api/orders"], freshOrders);
         console.log("✅ Table Grid: Fresh data loaded and cached");
 
         // STEP 4: Force multiple re-renders with different timings
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         }, 50);
 
         setTimeout(() => {
-          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+          queryClient.refetchQueries({ queryKey: ["/api/tables"] });
+          queryClient.refetchQueries({ queryKey: ["/api/orders"] });
         }, 200);
 
         // STEP 5: Close all modals and clear states
@@ -2212,8 +2212,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
 
       // Clear cache completely
       queryClient.clear();
-      queryClient.removeQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-      queryClient.removeQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.removeQueries({ queryKey: ["/api/tables"] });
+      queryClient.removeQueries({ queryKey: ["/api/orders"] });
 
       // Force fresh fetch immediately
       try {
@@ -2226,7 +2226,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       // Send WebSocket signal for data refresh
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+        const wsUrl = 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -2595,7 +2595,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       };
 
       // Call auto-print API for both employee and kitchen printers
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auto-print", {
+      const response = await fetch("/api/auto-print", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2718,7 +2718,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       console.log("🔪 Split order mutation starting with data:", splitData);
 
       // Call split order API
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/split", {
+      const response = await apiRequest("POST", "/api/orders/split", {
         originalOrderId: splitData.originalOrderId,
         splitItems: splitData.splitItems,
       });
@@ -2731,7 +2731,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         refetchOrders(),
         refetchTables(),
         queryClient.invalidateQueries({
-          queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", splitData.originalOrderId],
+          queryKey: ["/api/order-items", splitData.originalOrderId],
         }),
       ]);
 
@@ -2767,7 +2767,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
     try {
       console.log("🔪 Split order data:", splitData);
 
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/split", splitData);
+      const response = await apiRequest("POST", "/api/orders/split", splitData);
 
       if (!response.ok) {
         throw new Error("Failed to split order");
@@ -2790,7 +2790,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
       try {
         const [freshTables, freshOrders] = await Promise.all([
           fetch(
-            "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables?" +
+            "/api/tables?" +
               new URLSearchParams({
                 _t: Date.now().toString(),
                 _force: "true",
@@ -2805,7 +2805,7 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
             },
           ).then((r) => r.json()),
           fetch(
-            "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders?" +
+            "/api/orders?" +
               new URLSearchParams({
                 _t: Date.now().toString(),
                 _force: "true",
@@ -2822,8 +2822,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
         ]);
 
         // Set fresh data immediately
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"], freshTables);
-        queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"], freshOrders);
+        queryClient.setQueryData(["/api/tables"], freshTables);
+        queryClient.setQueryData(["/api/orders"], freshOrders);
 
         console.log("✅ Fresh data loaded after split:", {
           tables: freshTables?.length || 0,
@@ -2832,8 +2832,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
 
         // Force re-render with invalidation
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
-          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
         }, 50);
       } catch (fetchError) {
         console.error("❌ Error fetching fresh data:", fetchError);
@@ -3084,10 +3084,10 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
             console.log("📋 Returning to order details list after edit");
 
             // Force refresh order data
-            queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-            queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/tables"] });
             queryClient.invalidateQueries({
-              queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", editingOrder.id],
+              queryKey: ["/api/order-items", editingOrder.id],
             });
 
             // Immediately reopen order details
@@ -3095,8 +3095,8 @@ export function TableGrid({ onTableSelect, selectedTableId }: TableGridProps) {
 
             // Additional refresh after delay to ensure UI is updated
             setTimeout(() => {
-              queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-              queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+              queryClient.refetchQueries({ queryKey: ["/api/orders"] });
+              queryClient.refetchQueries({ queryKey: ["/api/tables"] });
             }, 200);
           }
         }}

@@ -55,10 +55,10 @@ export function SalesReport() {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list", {
+        const response = await fetch("/api/store-settings/list", {
           headers: {
             "Content-Type": "application/json",
           },
@@ -82,7 +82,7 @@ export function SalesReport() {
     error: ordersError,
     refetch: refetchOrders,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list", startDate, endDate, "all", storeFilter],
+    queryKey: ["/api/orders/list", startDate, endDate, "all", storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -125,7 +125,7 @@ export function SalesReport() {
     isLoading: orderItemsLoading,
     refetch: refetchOrderItems,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/date-range", startDate, endDate, "all"],
+    queryKey: ["/api/order-items/date-range", startDate, endDate, "all"],
     queryFn: async () => {
       try {
         const response = await fetch(
@@ -328,22 +328,33 @@ export function SalesReport() {
       });
 
       // Calculate totals based on unique combined data
-      const totalRevenue = uniqueCombinedData.reduce(
+      const totalRevenue = paidOrders.reduce(
         (sum: number, order: any) => {
-          // Revenue = Subtotal (đã trừ giảm giá) + Tax
-          const subtotal = Number(order.subtotal || 0); // Thành tiền sau khi trừ giảm giá
-          const tax = Number(order.tax || 0); // Thuế
-          const revenue = subtotal + tax; // Doanh thu thực tế
+          const subtotal = Number(order.subtotal || 0); // Tạm tính từ database
+          const discount = Number(order.discount || 0); // Giảm giá từ database
+          const tax = Number(order.tax || 0); // Thuế từ database
+          const priceIncludeTax = order.priceIncludeTax === true; // Kiểm tra giá đã bao gồm thuế
+          
+          let salesRevenue = 0;
+          if (priceIncludeTax) {
+            // Nếu giá đã bao gồm thuế: Doanh số = subtotal - discount (subtotal đã có thuế)
+            salesRevenue = subtotal - discount;
+          } else {
+            // Nếu giá chưa bao gồm thuế: Doanh số = subtotal - discount + tax
+            salesRevenue = subtotal - discount + tax;
+          }
 
-          return sum + revenue;
+          return sum + salesRevenue;
         },
         0,
       );
 
       // Calculate subtotal revenue (excluding tax)
       const subtotalRevenue = paidOrders.reduce((total: number, order: any) => {
-        const subtotal = Number(order.subtotal || 0); // Subtotal đã là giá trị sau khi trừ discount
-        return total + subtotal;
+        const subtotal = Number(order.subtotal || 0); // Tạm tính từ database
+        const discount = Number(order.discount || 0); // Giảm giá từ database
+        const netRevenue = subtotal - discount; // Doanh thu thuần = subtotal - discount
+        return total + netRevenue;
       }, 0);
 
       // Total orders should be based on unique orders, not items

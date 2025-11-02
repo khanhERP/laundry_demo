@@ -157,9 +157,9 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch store settings to get user info
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+    queryKey: ["/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
+      const response = await fetch("/api/store-settings");
       if (!response.ok) throw new Error("Failed to fetch store settings");
       return response.json();
     },
@@ -167,10 +167,10 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        const response = await fetch("/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -187,7 +187,7 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch orders with authentication-based filtering for overview tab
   const { data: ordersData } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list", startDate, endDate, storeFilter],
+    queryKey: ["/api/orders/list", startDate, endDate, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams({
         startDate,
@@ -236,17 +236,42 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
     const orders = ordersData.orders.filter(
       (order: any) => order.status === "paid" || order.status === "completed",
     );
-    const todaySales = orders.reduce(
-      (sum: number, order: any) => sum + parseFloat(order.subtotal || 0),
-      0,
-    );
+    
+    // Tính doanh số bán hàng theo công thức mới
+    const todaySales = orders.reduce((sum: number, order: any) => {
+      const subtotal = parseFloat(order.subtotal || 0);
+      const discount = parseFloat(order.discount || 0);
+      const tax = parseFloat(order.tax || 0);
+      const priceIncludeTax = order.priceIncludeTax === true;
+      
+      let salesRevenue = 0;
+      if (priceIncludeTax) {
+        // Nếu giá đã bao gồm thuế: Doanh số = subtotal - discount (giá đã gồm thuế)
+        salesRevenue = subtotal - discount;
+      } else {
+        // Nếu giá chưa bao gồm thuế: Doanh số = subtotal - discount + tax (phải cộng thuế)
+        salesRevenue = subtotal - discount + tax;
+      }
+      
+      // Debug log để kiểm tra
+      console.log(`📊 [Overview] Đơn ${order.orderNumber || order.id}:`, {
+        subtotal,
+        discount,
+        tax,
+        priceIncludeTax,
+        salesRevenue,
+        công_thức: priceIncludeTax 
+          ? `${subtotal} - ${discount} = ${salesRevenue}` 
+          : `${subtotal} - ${discount} + ${tax} = ${salesRevenue}`
+      });
+      
+      return sum + salesRevenue;
+    }, 0);
+    
     const totalRevenue = todaySales;
     const netRevenue = orders.reduce((sum: number, order: any) => {
       const subtotal = parseFloat(order.subtotal || 0);
       const discount = parseFloat(order.discount || 0);
-      if (order.priceIncludeTax === true) {
-        return sum + subtotal - discount;
-      }
       return sum + (subtotal - discount);
     }, 0);
 

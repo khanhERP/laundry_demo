@@ -86,7 +86,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       });
       
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     },
     onError: (error) => {
       toast({

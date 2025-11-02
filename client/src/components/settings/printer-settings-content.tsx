@@ -85,7 +85,7 @@ export function PrinterSettingsContent() {
 
   // Fetch printer configs
   const { data: printers = [], isLoading } = useQuery<PrinterConfig[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"],
+    queryKey: ["/api/printer-configs"],
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -93,11 +93,11 @@ export function PrinterSettingsContent() {
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs", data);
+      const response = await apiRequest("POST", "/api/printer-configs", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/printer-configs"] });
       toast({ title: "Thành công", description: "Đã thêm cấu hình máy in" });
       handleCloseDialog();
     },
@@ -117,7 +117,7 @@ export function PrinterSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/printer-configs"] });
       toast({ title: "Thành công", description: "Đã cập nhật cấu hình máy in" });
       handleCloseDialog();
     },
@@ -136,7 +136,7 @@ export function PrinterSettingsContent() {
       await apiRequest("DELETE", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/printer-configs"] });
       toast({ title: "Thành công", description: "Đã xóa cấu hình máy in" });
     },
     onError: () => {
@@ -156,7 +156,7 @@ export function PrinterSettingsContent() {
     },
     onSuccess: async () => {
       await queryClient.refetchQueries({ 
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"],
+        queryKey: ["/api/printer-configs"],
         type: 'active'
       });
       toast({ title: "Thành công", description: "Đã thay đổi trạng thái máy in" });
@@ -194,7 +194,7 @@ export function PrinterSettingsContent() {
     },
     onSuccess: async () => {
       await queryClient.refetchQueries({ 
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"],
+        queryKey: ["/api/printer-configs"],
         type: 'active'
       });
       toast({ title: "Thành công", description: "Đã cập nhật trạng thái in nhân viên" });
@@ -232,7 +232,7 @@ export function PrinterSettingsContent() {
     },
     onSuccess: async () => {
       await queryClient.refetchQueries({ 
-        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printer-configs"],
+        queryKey: ["/api/printer-configs"],
         type: 'active'
       });
       toast({ title: "Thành công", description: "Đã cập nhật trạng thái in bếp" });

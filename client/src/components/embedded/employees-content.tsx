@@ -20,7 +20,7 @@ export default function EmployeesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: employeesData, isLoading: employeesLoading } = useQuery<Employee[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
+    queryKey: ["/api/employees"],
   });
 
   const handleEditEmployee = (employee: Employee) => {
@@ -35,7 +35,7 @@ export default function EmployeesPageContent() {
       const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees/${employeeId}`, { method: "DELETE" });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/employees"] });
       toast({ title: t("common.success"), description: t("employees.deleteSuccess") });
     } catch (error) {
       toast({ title: t("common.error"), description: t("employees.deleteError"), variant: "destructive" });

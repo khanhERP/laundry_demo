@@ -47,22 +47,22 @@ export function ClockInOut() {
   const { t } = useTranslation();
 
   const { data: employees } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
+    queryKey: ["/api/employees"],
   });
 
   const { data: todayAttendance, refetch: refetchTodayAttendance } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/today", selectedEmployeeId],
+    queryKey: ["/api/attendance/today", selectedEmployeeId],
     enabled: !!selectedEmployeeId,
   });
 
   const clockInMutation = useMutation({
     mutationFn: () =>
-      apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/clock-in", {
+      apiRequest("POST", "/api/attendance/clock-in", {
         employeeId: selectedEmployeeId,
         notes,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/attendance"] });
       refetchTodayAttendance();
       setNotes("");
       toast({
@@ -87,7 +87,7 @@ export function ClockInOut() {
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),
@@ -111,7 +111,7 @@ export function ClockInOut() {
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),
@@ -135,7 +135,7 @@ export function ClockInOut() {
         {},
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/attendance"] });
       refetchTodayAttendance();
       toast({
         title: t("common.success"),

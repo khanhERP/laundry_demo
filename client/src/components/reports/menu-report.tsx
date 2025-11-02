@@ -56,32 +56,35 @@ interface Category {
 
 interface MenuAnalysisData {
   totalRevenue: number;
+  totalSalesRevenue: number; // Added: Total revenue after discounts
+  totalDiscount: number; // Added: Total discount amount
+  totalTax: number; // Added: Total tax amount
   totalQuantity: number;
   categoryStats: Array<{
     categoryId: number;
     categoryName: string;
     totalQuantity: number;
-    totalRevenue: number;
+    totalRevenue: number; // Note: This might still be pre-discount if backend doesn't update it per category
     productCount: number;
   }>;
   productStats: Array<{
     productId: number;
     productName: string;
     totalQuantity: number;
-    totalRevenue: number;
+    totalRevenue: number; // Note: This might still be pre-discount per product if backend doesn't update it
     averagePrice: number;
   }>;
   topSellingProducts: Array<{
     productId: number;
     productName: string;
     totalQuantity: number;
-    totalRevenue: number;
+    totalRevenue: number; // Note: This might still be pre-discount per product if backend doesn't update it
   }>;
   topRevenueProducts: Array<{
     productId: number;
     productName: string;
     totalQuantity: number;
-    totalRevenue: number;
+    totalRevenue: number; // Note: This might still be pre-discount per product if backend doesn't update it
   }>;
 }
 
@@ -111,7 +114,7 @@ function MenuReport() {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["/api/store-settings/list"],
     retry: 2,
   });
 
@@ -120,15 +123,21 @@ function MenuReport() {
     setCurrentPage(1);
   }, [productSearch]);
 
+  // Query store settings for priceIncludeTax
+  const { data: storeSettings } = useQuery({
+    queryKey: ["/api/store-settings"],
+    retry: 2,
+  });
+
   // Query categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["/api/categories"],
     retry: 2,
   });
 
   // Query products - filter by search term
   const { data: products = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", selectedCategory, productType, productSearch],
+    queryKey: ["/api/products", selectedCategory, productType, productSearch],
     retry: 2,
     enabled: true, // Always enabled to reload when productSearch changes
   });
@@ -140,7 +149,7 @@ function MenuReport() {
     error: analysisError,
     refetch,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/menu-analysis", startDate, endDate, selectedCategory, productSearch, storeFilter],
+    queryKey: ["/api/menu-analysis", startDate, endDate, selectedCategory, productSearch, storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -173,11 +182,24 @@ function MenuReport() {
         }
 
         const data = await response.json();
-        console.log("Menu analysis data received:", data);
 
-        // Ensure data structure is correct
+        console.log("=" .repeat(80));
+        console.log("📦 [MENU ANALYSIS API] DỮ LIỆU TRẢ VỀ TỪ API");
+        console.log("=" .repeat(80));
+        console.log("📊 totalRevenue (Thành tiền từ API):", data.totalRevenue);
+        console.log("📉 totalDiscount (Giảm giá từ API):", data.totalDiscount);
+        console.log("💰 totalSalesRevenue (Doanh số từ API):", data.totalSalesRevenue);
+        console.log("📦 totalQuantity (Tổng số lượng):", data.totalQuantity);
+        console.log("🔢 Số sản phẩm:", data.productStats?.length || 0);
+        console.log("🏷️ Số danh mục:", data.categoryStats?.length || 0);
+        console.log("=" .repeat(80));
+
+        // Ensure data structure is correct, including new fields from backend changes
         return {
           totalRevenue: Number(data.totalRevenue || 0),
+          totalSalesRevenue: Number(data.totalSalesRevenue || 0), // Parse new field
+          totalDiscount: Number(data.totalDiscount || 0), // Parse new field
+          totalTax: Number(data.totalTax || 0), // Parse tax field
           totalQuantity: Number(data.totalQuantity || 0),
           categoryStats: Array.isArray(data.categoryStats)
             ? data.categoryStats
@@ -197,6 +219,9 @@ function MenuReport() {
         // Return fallback data structure
         return {
           totalRevenue: 0,
+          totalSalesRevenue: 0, // Fallback
+          totalDiscount: 0, // Fallback
+          totalTax: 0, // Fallback
           totalQuantity: 0,
           categoryStats: [],
           productStats: [],
@@ -257,8 +282,8 @@ function MenuReport() {
 
   const handleRefresh = () => {
     // Refresh both orders and order items data
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range"] });
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/orders/date-range"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/order-items"] });
   };
 
   if (analysisError) {
@@ -394,10 +419,31 @@ function MenuReport() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  {t("reports.totalRevenue")}
+                  {t("reports.salesAmount")}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(menuAnalysis?.totalRevenue || 0)} ₫
+                  {(() => {
+                    // Sử dụng totalSalesRevenue trực tiếp từ API
+                    const totalSalesRevenue = Number(menuAnalysis?.totalSalesRevenue || 0);
+                    const totalRevenue = Number(menuAnalysis?.totalRevenue || 0);
+                    const totalDiscount = Number(menuAnalysis?.totalDiscount || 0);
+                    const totalTax = Number(menuAnalysis?.totalTax || 0);
+
+                    console.log("\n" + "=" .repeat(80));
+                    console.log("🔍 [MENU REPORT] HIỂN THỊ DOANH SỐ BÁN HÀNG");
+                    console.log("=" .repeat(80));
+                    console.log("📊 GIÁ TRỊ TỪ API:");
+                    console.log("   ├─ Thành tiền (totalRevenue):", totalRevenue.toLocaleString('vi-VN'), "₫");
+                    console.log("   ├─ Giảm giá (totalDiscount):", totalDiscount.toLocaleString('vi-VN'), "₫");
+                    console.log("   ├─ Thuế (totalTax):", totalTax.toLocaleString('vi-VN'), "₫");
+                    console.log("   └─ Doanh số (totalSalesRevenue):", totalSalesRevenue.toLocaleString('vi-VN'), "₫");
+                    console.log("");
+                    console.log("✅ HIỂN THỊ DOANH SỐ:", totalSalesRevenue.toLocaleString('vi-VN'), "₫");
+                    console.log("=" .repeat(80) + "\n");
+
+                    return formatCurrency(Math.round(totalSalesRevenue));
+                  })()}{" "}
+                  ₫
                 </p>
               </div>
               <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -502,7 +548,7 @@ function MenuReport() {
                                     ? cat.categoryName.substring(0, 20) + "..."
                                     : cat.categoryName || `Danh mục ${cat.categoryId}`,
                                 fullName: cat.categoryName || `Danh mục ${cat.categoryId}`,
-                                value: Number(cat.totalRevenue || 0),
+                                value: Number(cat.totalRevenue || 0), // Note: Using totalRevenue here, assuming backend didn't update categoryStats.totalRevenue
                                 fill: `hsl(${(index * 137.508) % 360}, 70%, 60%)`,
                               }),
                             )}

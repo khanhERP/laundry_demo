@@ -74,7 +74,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
   // Generate customer ID for new customers
   const generateCustomerId = async () => {
     try {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/next-id");
+      const response = await apiRequest("GET", "/api/customers/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -133,11 +133,11 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
 
   const createMutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", data);
+      const response = await apiRequest("POST", "/api/customers", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: "common.success",
         description: customer ? "customers.customerUpdated" : "customers.customerAdded",
@@ -163,7 +163,7 @@ export function CustomerFormModal({ isOpen, onClose, customer, initialPhone }: C
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: t('common.success'),
         description: "Cập nhật thông tin khách hàng thành công",
