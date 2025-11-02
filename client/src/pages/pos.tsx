@@ -53,7 +53,7 @@ export default function POS({ onLogout }: POSPageProps) {
         const isCustomDomain = !host.includes("replit.dev");
 
         // For custom domains, ensure proper WebSocket URL
-        const wsUrl =`'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+        const wsUrl =`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
 
         console.log(
           `📡 POS: Connecting to WebSocket at ${wsUrl}, Custom domain: ${isCustomDomain}`,
