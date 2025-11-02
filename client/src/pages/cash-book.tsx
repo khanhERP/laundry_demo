@@ -285,12 +285,12 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
         return true;
       })
       .forEach((order) => {
-        // Use createdAt or updatedAt based on general settings
-        // ST-002: Use createdAt (ngày tạo đơn)
-        // ST-003 or default: Use updatedAt (ngày hoàn thành/hủy đơn)
+        // Use orderedAt or updatedAt based on general settings
+        // ST-002 = true: Use orderedAt (ngày đặt hàng/ngày tạo đơn)
+        // ST-002 = false: Use updatedAt (ngày hoàn thành/hủy đơn)
         const orderDate = useCreatedAtFilter
-          ? new Date(order.updatedAt)
-          : new Date(order.orderedAt);
+          ? new Date(order.orderedAt)
+          : new Date(order.updatedAt);
 
         // Calculate amount based on payment method filter
         let transactionAmount = parseFloat(order.total || "0");
@@ -1578,13 +1578,15 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                     `ORDER-${o.id}` === transaction.id ||
                                     `ORD-${o.id}` === transaction.id,
                                 );
-                                // Use createdAt or orderedAt based on general settings
+                                // Use orderedAt or updatedAt based on general settings
+                                // ST-002 = true: Show orderedAt (ngày đặt hàng)
+                                // ST-002 = false: Show updatedAt (ngày hoàn thành)
                                 creationDate = useCreatedAtFilter
-                                  ? order?.createdAt ||
-                                    order?.orderedAt ||
-                                    transaction.date
-                                  : order?.orderedAt ||
+                                  ? order?.orderedAt ||
                                     order?.createdAt ||
+                                    transaction.date
+                                  : order?.updatedAt ||
+                                    order?.orderedAt ||
                                     transaction.date;
                               } else if (
                                 transaction.voucherType === "purchase_receipt"
@@ -1646,9 +1648,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                     `ORDER-${o.id}` === transaction.id ||
                                     `ORD-${o.id}` === transaction.id,
                                 );
-                                // Show updatedAt when using updatedAt filter, otherwise show createdAt
+                                // ST-002 = true: Show orderedAt in completion column
+                                // ST-002 = false: Show updatedAt in completion column
                                 updatedAt = useCreatedAtFilter
-                                  ? order?.createdAt
+                                  ? order?.orderedAt
                                   : order?.updatedAt;
                               } else if (
                                 transaction.voucherType === "purchase_receipt"
