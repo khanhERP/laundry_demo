@@ -2,99 +2,54 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
 import { useTranslation } from "@/lib/i18n";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { POSHeader } from "@/components/pos/header";
 import { RightSidebar } from "@/components/ui/right-sidebar";
 import { useToast } from "@/hooks/use-toast";
-import {
-  ArrowLeft,
-  ClipboardCheck,
-  Calendar,
-  User,
-  DollarSign,
-  FileText,
-  Package,
-  ShoppingCart,
-  Upload,
-  X,
-  CheckCircle,
-  Plus,
-  Search,
-  Trash2,
-  Download,
-} from "lucide-react";
-import type {
-  PurchaseOrder,
-  PurchaseReceiptItem,
-  Supplier,
-} from "@shared/schema";
+import { ArrowLeft, ClipboardCheck, Calendar, User, DollarSign, FileText, Package, ShoppingCart, Upload, X, CheckCircle, Plus, Search, Trash2, Download } from "lucide-react";
+import type { PurchaseOrder, PurchaseReceiptItem, Supplier } from "@shared/schema";
 
 interface PurchaseViewPageProps {
   onLogout: () => void;
+  onSuccess?: () => void;
+  hideBackButton?: boolean;
+  purchaseId?: number; // Allow passing purchaseId as prop
 }
 
-export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
+export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton = false, purchaseId: propPurchaseId }: PurchaseViewPageProps) {
   const { t, currentLanguage } = useTranslation();
   const [, navigate] = useLocation();
   const [match, params] = useRoute("/purchases/view/:id");
-  const purchaseId = params?.id ? parseInt(params.id) : null;
+  const purchaseId = propPurchaseId || (params?.id ? parseInt(params.id) : null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-  const [skuSuggestions, setSkuSuggestions] = useState<Record<number, any[]>>(
-    {},
-  );
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<
-    Record<number, number>
-  >({});
+  const [skuSuggestions, setSkuSuggestions] = useState<Record<number, any[]>>({});
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState<Record<number, number>>({});
   const [uploadingFiles, setUploadingFiles] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch categories for new product form
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     select: (data: any) => data || [],
   });
 
   // Fetch payment methods from API
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -107,25 +62,21 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
     employeeId: "",
     notes: "",
     isPaid: false, // Add isPaid to form state
+    storeCode: "" // Add storeCode to form state
   });
 
   // State for editing items
-  const [editedItems, setEditedItems] = useState<
-    Record<
-      number,
-      {
-        quantity?: number;
-        unitPrice?: string;
-        discountPercent?: string;
-        productName?: string;
-        sku?: string;
-        productId?: number;
-        discountAmount?: string;
-        discountAmountInput?: string; // Temporary input for discount amount
-        isEditingDiscountAmount?: boolean; // Flag to know if user is typing discount amount
-      }
-    >
-  >({});
+  const [editedItems, setEditedItems] = useState<Record<number, {
+    quantity?: number;
+    unitPrice?: string;
+    discountPercent?: string;
+    productName?: string;
+    sku?: string;
+    productId?: number;
+    discountAmount?: string;
+    discountAmountInput?: string; // Temporary input for discount amount
+    isEditingDiscountAmount?: boolean; // Flag to know if user is typing discount amount
+  }>>({});
 
   // State for managing payment methods
   const [editPaymentMethods, setEditPaymentMethods] = useState<
@@ -142,27 +93,23 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   const paymentMethods = getPaymentMethods();
 
   // Fetch purchase receipt details
-  const {
-    data: purchaseOrder,
-    isLoading: isOrderLoading,
-    error: orderError,
-  } = useQuery<PurchaseOrder>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId],
+  const { data: purchaseOrder, isLoading: isOrderLoading, error: orderError } = useQuery<PurchaseOrder>({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
-      console.log("🔍 Fetching purchase receipt with ID:", purchaseId);
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${purchaseId}`);
+      console.log('🔍 Fetching purchase receipt with ID:', purchaseId);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${purchaseId}`);
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("Purchase receipt not found");
+          throw new Error('Purchase receipt not found');
         }
         throw new Error(`Failed to fetch purchase receipt: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("📦 Purchase receipt details:", data);
+      console.log('📦 Purchase receipt details:', data);
       return data;
     },
     enabled: !!purchaseId,
@@ -170,22 +117,18 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   });
 
   // Fetch purchase receipt items
-  const { data: purchaseItems = [], isLoading: isItemsLoading } = useQuery<
-    PurchaseReceiptItem[]
-  >({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
+  const { data: purchaseItems = [], isLoading: isItemsLoading } = useQuery<PurchaseReceiptItem[]>({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
-      const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${purchaseId}/items`,
-      );
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${purchaseId}/items`);
       if (!response.ok) {
-        throw new Error("Failed to fetch purchase receipt items");
+        throw new Error('Failed to fetch purchase receipt items');
       }
 
       const data = await response.json();
-      console.log("📦 Purchase receipt items:", data);
+      console.log('📦 Purchase receipt items:', data);
       return data;
     },
     enabled: !!purchaseId,
@@ -193,19 +136,17 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
   // Fetch attached documents
   const { data: attachedDocuments = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "documents"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
-      const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${purchaseId}/documents`,
-      );
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${purchaseId}/documents`);
       if (!response.ok) {
         return [];
       }
 
       const data = await response.json();
-      console.log("📎 Attached documents:", data);
+      console.log('📎 Attached documents:', data);
       return data;
     },
     enabled: !!purchaseId,
@@ -213,25 +154,22 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
   // Fetch suppliers for name lookup
   const { data: suppliers = [] } = useQuery<Supplier[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   // Initialize form data when purchase order loads
   useEffect(() => {
     if (purchaseOrder) {
-      console.log("📋 Loading purchase order data:", purchaseOrder);
-      console.log(
-        "📋 Purchase type from database:",
-        purchaseOrder.purchaseType,
-      );
+      console.log('📋 Loading purchase order data:', purchaseOrder);
+      console.log('📋 Purchase type from database:', purchaseOrder.purchaseType);
       setFormData({
         supplierId: purchaseOrder.supplierId?.toString() || "",
-        purchaseDate:
-          purchaseOrder.purchaseDate || purchaseOrder.actualDeliveryDate || "",
+        purchaseDate: purchaseOrder.purchaseDate || purchaseOrder.actualDeliveryDate || "",
         purchaseType: purchaseOrder.purchaseType || "",
         employeeId: purchaseOrder.employeeId?.toString() || "",
         notes: purchaseOrder.notes || "",
         isPaid: purchaseOrder.isPaid || false, // Initialize isPaid
+        storeCode: purchaseOrder.storeCode || "" // Initialize storeCode
       });
     }
   }, [purchaseOrder]);
@@ -240,10 +178,9 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   useEffect(() => {
     if (purchaseItems.length > 0) {
       const initialItems: Record<number, any> = {};
-      purchaseItems.forEach((item) => {
+      purchaseItems.forEach(item => {
         // Convert discount percent - handle both camelCase and snake_case
-        let discountPercent =
-          item.discountPercent || item.discount_percent || "0";
+        let discountPercent = item.discountPercent || item.discount_percent || '0';
         const discountValue = parseFloat(discountPercent);
         // If the value is between 0 and 1, it's likely stored as a decimal, so multiply by 100
         if (discountValue > 0 && discountValue < 1) {
@@ -251,8 +188,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         }
 
         // Get discount amount - handle both camelCase and snake_case - PRESERVE EXACT VALUE
-        const discountAmount =
-          item.discountAmount || item.discount_amount || "0";
+        const discountAmount = item.discountAmount || item.discount_amount || '0';
 
         initialItems[item.id] = {
           quantity: item.quantity,
@@ -261,7 +197,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
           productName: item.productName,
           sku: item.sku,
           discountAmount: discountAmount, // Keep as string to preserve exact value
-          productId: item.productId,
+          productId: item.productId
         };
       });
       setEditedItems(initialItems);
@@ -271,8 +207,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   // Initialize payment methods from purchaseOrder
   useEffect(() => {
     if (purchaseOrder) {
-      const paymentMethodStr =
-        purchaseOrder.paymentMethods || purchaseOrder.paymentMethod || "";
+      const paymentMethodStr = purchaseOrder.paymentMethods || purchaseOrder.paymentMethod || "";
 
       // Calculate total from items
       const itemsTotal = purchaseItems.reduce((sum: number, item: any) => {
@@ -280,76 +215,69 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         return sum + total;
       }, 0);
 
-      let initialMethod = {
-        method: "cash",
-        amount: Math.round(itemsTotal).toString(),
-      };
+      let initialMethod = { method: 'cash', amount: Math.round(itemsTotal).toString() };
 
       // Try to parse as JSON first
-      if (paymentMethodStr && paymentMethodStr.trim() !== "") {
+      if (paymentMethodStr && paymentMethodStr.trim() !== '') {
         try {
           const parsed = JSON.parse(paymentMethodStr);
           if (Array.isArray(parsed) && parsed.length > 0) {
             // Chỉ lấy phương thức đầu tiên
             initialMethod = {
-              method: parsed[0].method || "cash",
-              amount:
-                parsed[0].amount?.toString() ||
-                Math.round(itemsTotal).toString(),
+              method: parsed[0].method || 'cash',
+              amount: parsed[0].amount?.toString() || Math.round(itemsTotal).toString()
             };
-          } else if (
-            typeof parsed === "object" &&
-            parsed !== null &&
-            parsed.method
-          ) {
+          } else if (typeof parsed === 'object' && parsed !== null && parsed.method) {
             initialMethod = {
               method: parsed.method,
-              amount:
-                parsed.amount?.toString() || Math.round(itemsTotal).toString(),
+              amount: parsed.amount?.toString() || Math.round(itemsTotal).toString()
             };
           }
         } catch (e) {
           // Not JSON, treat as simple string (legacy format)
-          const amount =
-            purchaseOrder.paymentAmount || Math.round(itemsTotal).toString();
+          const amount = purchaseOrder.paymentAmount || Math.round(itemsTotal).toString();
           initialMethod = {
             method: paymentMethodStr,
-            amount: amount.toString(),
+            amount: amount.toString()
           };
         }
       }
 
       // Fallback: if no method but is paid, use cash with total amount
-      if (purchaseOrder.isPaid || formData.isPaid) {
-        if (!initialMethod.method || initialMethod.amount === "0") {
-          initialMethod = {
-            method: "cash",
-            amount: Math.round(itemsTotal).toString(),
+      if ((purchaseOrder.isPaid || formData.isPaid)) {
+        if (!initialMethod.method || initialMethod.amount === '0') {
+          initialMethod = { 
+            method: "cash", 
+            amount: Math.round(itemsTotal).toString()
           };
         }
       }
 
-      console.log("🔍 Initialized payment method:", initialMethod);
+      console.log('🔍 Initialized payment method:', initialMethod);
       setEditPaymentMethods([initialMethod]);
     }
   }, [purchaseOrder, formData.isPaid, purchaseItems]);
 
   // Fetch employees for display
   const { data: employees = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     select: (data: any[]) =>
       (data || []).map((emp: any) => ({
         id: emp.id,
-        name:
-          emp.name ||
-          `${emp.firstName || ""} ${emp.lastName || ""}`.trim() ||
-          "Unnamed Employee",
+        name: emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Unnamed Employee',
       })),
+  });
+
+  // Fetch stores data for dropdown
+  const { data: storesData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    select: (data: any[]) => 
+      (data || []).filter((store: any) => store.typeUser !== 1),
   });
 
   // Fetch products for selection
   const { data: allProducts = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
     select: (data: any[]) =>
       (data || []).map((product: any) => ({
         ...product,
@@ -382,10 +310,8 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         <RightSidebar />
         <div className="container mx-auto pt-16 px-6">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-red-600">
-              Invalid Purchase Receipt ID
-            </h1>
-            <Button onClick={() => navigate("/purchases")} className="mt-4">
+            <h1 className="text-2xl font-bold text-red-600">Invalid Purchase Receipt ID</h1>
+            <Button onClick={() => navigate('/purchases')} className="mt-4">
               Back to Purchases
             </Button>
           </div>
@@ -395,78 +321,72 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   }
 
   const getSupplierName = (supplierId: number) => {
-    const supplier = suppliers.find((s) => s.id === supplierId);
-    return supplier?.name || t("purchases.unknownSupplier");
+    const supplier = suppliers.find(s => s.id === supplierId);
+    return supplier?.name || t('purchases.unknownSupplier');
   };
 
   const getEmployeeName = (employeeId: number) => {
-    const employee = employees.find((e) => e.id === employeeId);
-    return employee?.name || "Không xác định";
+    const employee = employees.find(e => e.id === employeeId);
+    return employee?.name || 'Không xác định';
   };
 
   const formatCurrency = (amount: string) => {
-    const locale =
-      {
-        ko: "ko-KR",
-        en: "en-US",
-        vi: "vi-VN",
-      }[currentLanguage] || "en-US";
+    const locale = {
+      ko: 'ko-KR',
+      en: 'en-US',
+      vi: 'vi-VN'
+    }[currentLanguage] || 'en-US';
 
-    const currency =
-      {
-        ko: "KRW",
-        en: "USD",
-        vi: "VND",
-      }[currentLanguage] || "USD";
+    const currency = {
+      ko: 'KRW',
+      en: 'USD',
+      vi: 'VND'
+    }[currentLanguage] || 'USD';
 
     return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currency,
-    }).format(parseFloat(amount || "0"));
+      style: 'currency',
+      currency: currency
+    }).format(parseFloat(amount || '0'));
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return "-";
+    if (!dateString) return '-';
     try {
-      return new Date(dateString).toLocaleDateString(
-        {
-          ko: "ko-KR",
-          en: "en-US",
-          vi: "vi-VN",
-        }[currentLanguage] || "en-US",
-      );
+      return new Date(dateString).toLocaleDateString({
+        ko: 'ko-KR',
+        en: 'en-US',
+        vi: 'vi-VN'
+      }[currentLanguage] || 'en-US');
     } catch (error) {
-      console.error("Date parsing error:", error);
-      return "-";
+      console.error('Date parsing error:', error);
+      return '-';
     }
   };
 
   const handleItemChange = (itemId: number, field: string, value: any) => {
-    setEditedItems((prev) => ({
+    setEditedItems(prev => ({
       ...prev,
       [itemId]: {
         ...prev[itemId],
-        [field]: value,
-      },
+        [field]: value
+      }
     }));
   };
 
   const handleProductSelect = (product: any) => {
     if (selectedItemId !== null) {
       // Find the index of the item in purchaseItems array
-      const itemIndex = purchaseItems.findIndex(
-        (item) => item.id === selectedItemId,
-      );
+      const itemIndex = purchaseItems.findIndex(item => item.id === selectedItemId);
 
-      setEditedItems((prev) => ({
+      setEditedItems(prev => ({
         ...prev,
         [selectedItemId]: {
           ...prev[selectedItemId],
           productId: product.id, // CRITICAL: Save productId
           productName: product.name,
           sku: product.sku,
-          unitPrice: product.unitPrice.toString(),
-        },
+          unitPrice: product.unitPrice.toString()
+        }
       }));
       setIsProductDialogOpen(false);
       setProductSearch("");
@@ -475,9 +395,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       // Focus on product name field after selection
       setTimeout(() => {
         if (itemIndex !== -1) {
-          const productInput = document.querySelector(
-            `[data-field="product-${itemIndex}"]`,
-          ) as HTMLInputElement;
+          const productInput = document.querySelector(`[data-field="product-${itemIndex}"]`) as HTMLInputElement;
           productInput?.focus();
         }
       }, 100);
@@ -486,49 +404,45 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
   // Filter products based on SKU/name input
   const filterProductsBySku = (itemId: number, searchTerm: string) => {
-    if (!searchTerm || searchTerm.trim() === "") {
-      setSkuSuggestions((prev) => ({ ...prev, [itemId]: [] }));
+    if (!searchTerm || searchTerm.trim() === '') {
+      setSkuSuggestions(prev => ({ ...prev, [itemId]: [] }));
       return;
     }
 
-    const filtered = allProducts
-      .filter((product: any) => {
-        const search = searchTerm.toLowerCase();
-        return (
-          product.name.toLowerCase().includes(search) ||
-          product.sku?.toLowerCase().includes(search)
-        );
-      })
-      .slice(0, 5); // Limit to 5 suggestions
+    const filtered = allProducts.filter((product: any) => {
+      const search = searchTerm.toLowerCase();
+      return (
+        product.name.toLowerCase().includes(search) ||
+        product.sku?.toLowerCase().includes(search)
+      );
+    }).slice(0, 5); // Limit to 5 suggestions
 
-    setSkuSuggestions((prev) => ({ ...prev, [itemId]: filtered }));
-    setActiveSuggestionIndex((prev) => ({ ...prev, [itemId]: 0 }));
+    setSkuSuggestions(prev => ({ ...prev, [itemId]: filtered }));
+    setActiveSuggestionIndex(prev => ({ ...prev, [itemId]: 0 }));
   };
 
   // Select product from suggestions
   const selectProductFromSuggestion = (itemId: number, product: any) => {
     // Find the index of the item in purchaseItems array
-    const itemIndex = purchaseItems.findIndex((item) => item.id === itemId);
+    const itemIndex = purchaseItems.findIndex(item => item.id === itemId);
 
-    setEditedItems((prev) => ({
+    setEditedItems(prev => ({
       ...prev,
       [itemId]: {
         ...prev[itemId],
         productId: product.id,
         productName: product.name,
         sku: product.sku,
-        unitPrice: product.unitPrice.toString(),
-      },
+        unitPrice: product.unitPrice.toString()
+      }
     }));
-    setSkuSuggestions((prev) => ({ ...prev, [itemId]: [] }));
-    setActiveSuggestionIndex((prev) => ({ ...prev, [itemId]: 0 }));
+    setSkuSuggestions(prev => ({ ...prev, [itemId]: [] }));
+    setActiveSuggestionIndex(prev => ({ ...prev, [itemId]: 0 }));
 
     // Focus on product name field after selection
     setTimeout(() => {
       if (itemIndex !== -1) {
-        const productInput = document.querySelector(
-          `[data-field="product-${itemIndex}"]`,
-        ) as HTMLInputElement;
+        const productInput = document.querySelector(`[data-field="product-${itemIndex}"]`) as HTMLInputElement;
         productInput?.focus();
       }
     }, 50);
@@ -539,7 +453,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
     const newItemId = Date.now();
 
     // Sync current edited data back to purchaseItems before adding new row
-    const syncedItems = purchaseItems.map((item) => {
+    const syncedItems = purchaseItems.map(item => {
       const edited = editedItems[item.id];
       if (edited) {
         return {
@@ -550,7 +464,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
           quantity: edited.quantity ?? item.quantity,
           unitPrice: edited.unitPrice || item.unitPrice,
           discountPercent: edited.discountPercent || item.discountPercent,
-          discountAmount: edited.discountAmount || item.discountAmount, // GIỮ NGUYÊN discountAmount đã chỉnh sửa
+          discountAmount: edited.discountAmount || item.discountAmount // GIỮ NGUYÊN discountAmount đã chỉnh sửa
         };
       }
       return item;
@@ -560,42 +474,40 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       id: newItemId,
       purchaseReceiptId: purchaseId,
       productId: 0,
-      productName: "",
-      sku: "",
+      productName: '',
+      sku: '',
       quantity: 0,
       receivedQuantity: 0,
-      unitPrice: "0",
-      total: "0",
-      taxRate: "0.00",
-      discountPercent: "0",
-      discountAmount: "0",
-      notes: null,
+      unitPrice: '0',
+      total: '0',
+      taxRate: '0.00',
+      discountPercent: '0',
+      discountAmount: '0',
+      notes: null
     };
 
     // Update purchaseItems with synced data and new item
     queryClient.setQueryData(
-      ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
-      [...syncedItems, newItem],
+      ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"],
+      [...syncedItems, newItem]
     );
 
     // Initialize editedItems for the new row - GIỮ NGUYÊN dữ liệu đã chỉnh sửa của các dòng cũ
-    setEditedItems((prev) => ({
+    setEditedItems(prev => ({
       ...prev,
       [newItemId]: {
         quantity: 0,
-        unitPrice: "0",
-        discountPercent: "0",
-        discountAmount: "0",
-        productName: "",
-        sku: "",
-      },
+        unitPrice: '0',
+        discountPercent: '0',
+        discountAmount: '0',
+        productName: '',
+        sku: ''
+      }
     }));
 
     // Focus on SKU field of new row after a short delay
     setTimeout(() => {
-      const newRowSkuInput = document.querySelector(
-        `[data-field="sku-${syncedItems.length}"]`,
-      ) as HTMLInputElement;
+      const newRowSkuInput = document.querySelector(`[data-field="sku-${syncedItems.length}"]`) as HTMLInputElement;
       newRowSkuInput?.focus();
     }, 100);
   };
@@ -637,23 +549,20 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         const fileContent = await fileContentPromise;
 
         // Upload file with original filename preserved
-        const response = await fetch(
-          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${purchaseId}/documents`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              fileName: file.name,
-              originalFileName: file.name,
-              fileType: file.type,
-              fileSize: file.size,
-              description: "",
-              fileContent: fileContent,
-            }),
+        const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${purchaseId}/documents`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+          body: JSON.stringify({
+            fileName: file.name,
+            originalFileName: file.name,
+            fileType: file.type,
+            fileSize: file.size,
+            description: '',
+            fileContent: fileContent,
+          }),
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to upload ${file.name}`);
@@ -671,10 +580,10 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
       // Refresh documents list
       await queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "documents"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"]
       });
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error('Error uploading files:', error);
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -688,43 +597,33 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   // Handle file download
   const handleFileDownload = async (document: any) => {
     try {
-      console.log("📥 Starting file download:", document);
+      console.log('📥 Starting file download:', document);
 
-      const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/documents/${document.id}/download`,
-        {
-          method: "GET",
-          headers: {
-            "Cache-Control": "no-cache",
-          },
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/documents/${document.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
         },
-      );
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Download failed:", errorText);
-        throw new Error("Failed to download file");
+        console.error('Download failed:', errorText);
+        throw new Error('Failed to download file');
       }
 
       const blob = await response.blob();
-      console.log("📦 File blob received:", {
+      console.log('📦 File blob received:', {
         size: blob.size,
         type: blob.type,
-        fileName:
-          document.originalFileName ||
-          document.fileName ||
-          document.document_name,
+        fileName: document.originalFileName || document.fileName || document.document_name
       });
 
       const url = window.URL.createObjectURL(blob);
-      const a = window.document.createElement("a");
+      const a = window.document.createElement('a');
       a.href = url;
-      a.download =
-        document.originalFileName ||
-        document.fileName ||
-        document.document_name ||
-        `document_${document.id}`;
-      a.style.display = "none";
+      a.download = document.originalFileName || document.fileName || document.document_name || `document_${document.id}`;
+      a.style.display = 'none';
       window.document.body.appendChild(a);
       a.click();
 
@@ -734,14 +633,14 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         window.document.body.removeChild(a);
       }, 100);
 
-      console.log("✅ File download triggered successfully");
+      console.log('✅ File download triggered successfully');
 
       toast({
         title: "Thành công",
         description: "Đã tải xuống tệp",
       });
     } catch (error) {
-      console.error("❌ Error downloading file:", error);
+      console.error('❌ Error downloading file:', error);
       toast({
         variant: "destructive",
         title: "Lỗi",
@@ -753,24 +652,19 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   // Handle file deletion
   const handleFileDelete = async (documentId: number) => {
     try {
-      console.log("🗑️ Deleting document:", documentId);
+      console.log('🗑️ Deleting document:', documentId);
 
-      const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/documents/${documentId}`,
-        {
-          method: "DELETE",
-        },
-      );
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/documents/${documentId}`, {
+        method: 'DELETE',
+      });
 
       if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ error: "Unknown error" }));
-        console.error("Failed to delete document:", errorData);
-        throw new Error(errorData.error || "Failed to delete file");
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Failed to delete document:', errorData);
+        throw new Error(errorData.error || 'Failed to delete file');
       }
 
-      console.log("✅ Document deleted successfully");
+      console.log('✅ Document deleted successfully');
 
       toast({
         title: "Đã xóa",
@@ -779,15 +673,14 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
       // Refresh documents list
       await queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "documents"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"]
       });
     } catch (error) {
-      console.error("Error deleting file:", error);
+      console.error('Error deleting file:', error);
       toast({
         variant: "destructive",
         title: "Lỗi",
-        description:
-          error instanceof Error ? error.message : "Không thể xóa tệp",
+        description: error instanceof Error ? error.message : "Không thể xóa tệp",
       });
     }
   };
@@ -795,9 +688,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   const calculateItemValues = (itemId: number, originalItem: any) => {
     const edited = editedItems[itemId] || {};
     const quantity = edited.quantity ?? originalItem.quantity;
-    const unitPrice = parseFloat(
-      (edited.unitPrice ?? originalItem.unitPrice) || "0",
-    );
+    const unitPrice = parseFloat((edited.unitPrice ?? originalItem.unitPrice) || '0');
     const subtotal = quantity * unitPrice;
 
     let discountAmount = 0;
@@ -806,63 +697,29 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
     // Nếu ĐANG chỉnh sửa (có dữ liệu trong editedItems)
     if (Object.keys(edited).length > 0 && isEditMode) {
       // Logic chỉnh sửa
-      if (
-        (edited as any).updatedFromAmount &&
-        (edited as any).discountAmount !== undefined
-      ) {
+      if ((edited as any).updatedFromAmount && (edited as any).discountAmount !== undefined) {
         // User vừa thay đổi discountAmount → LẤY CHÍNH XÁC GIÁ TRỊ ĐÃ NHẬP, KHÔNG tính lại %CK
         discountAmount = parseFloat((edited as any).discountAmount) || 0;
         // LẤY %CK hiện tại từ edited hoặc database, KHÔNG tính lại
-        discountPercent = parseFloat(
-          edited.discountPercent ??
-            originalItem.discountPercent ??
-            originalItem.discount_percent ??
-            "0",
-        );
+        discountPercent = parseFloat(edited.discountPercent ?? originalItem.discountPercent ?? originalItem.discount_percent ?? '0');
         if (discountPercent > 0 && discountPercent < 1) {
           discountPercent = discountPercent * 100;
         }
-      } else if (
-        (edited as any).updatedFromPercent &&
-        edited.discountPercent !== undefined
-      ) {
+      } else if ((edited as any).updatedFromPercent && edited.discountPercent !== undefined) {
         // User VỪA MỚI thay đổi %CK (có flag updatedFromPercent) → tính lại discountAmount
         discountPercent = parseFloat(edited.discountPercent) || 0;
         discountAmount = subtotal * (discountPercent / 100);
-      } else if (
-        edited.quantity !== undefined ||
-        edited.unitPrice !== undefined
-      ) {
+      } else if (edited.quantity !== undefined || edited.unitPrice !== undefined) {
         // User thay đổi quantity/unitPrice → GIỮ NGUYÊN cả discountAmount VÀ %CK từ edited hoặc DB
-        discountAmount = parseFloat(
-          edited.discountAmount ??
-            (originalItem.discountAmount ||
-              originalItem.discount_amount ||
-              "0"),
-        );
-        discountPercent = parseFloat(
-          edited.discountPercent ??
-            (originalItem.discountPercent ||
-              originalItem.discount_percent ||
-              "0"),
-        );
+        discountAmount = parseFloat(edited.discountAmount ?? (originalItem.discountAmount || originalItem.discount_amount || '0'));
+        discountPercent = parseFloat(edited.discountPercent ?? (originalItem.discountPercent || originalItem.discount_percent || '0'));
         if (discountPercent > 0 && discountPercent < 1) {
           discountPercent = discountPercent * 100;
         }
       } else {
         // Vừa bật edit mode HOẶC chưa thay đổi gì → LẤY TRỰC TIẾP từ edited hoặc database
-        discountAmount = parseFloat(
-          edited.discountAmount ??
-            (originalItem.discountAmount ||
-              originalItem.discount_amount ||
-              "0"),
-        );
-        discountPercent = parseFloat(
-          edited.discountPercent ??
-            (originalItem.discountPercent ||
-              originalItem.discount_percent ||
-              "0"),
-        );
+        discountAmount = parseFloat(edited.discountAmount ?? (originalItem.discountAmount || originalItem.discount_amount || '0'));
+        discountPercent = parseFloat(edited.discountPercent ?? (originalItem.discountPercent || originalItem.discount_percent || '0'));
         // If stored as decimal (0.1), convert to percentage (10)
         if (discountPercent > 0 && discountPercent < 1) {
           discountPercent = discountPercent * 100;
@@ -870,11 +727,8 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       }
     } else {
       // KHÔNG chỉnh sửa → LẤY TRỰC TIẾP từ database, KHÔNG tính toán
-      discountAmount = parseFloat(
-        originalItem.discountAmount || originalItem.discount_amount || "0",
-      );
-      let dbDiscountPercent =
-        originalItem.discountPercent || originalItem.discount_percent || "0";
+      discountAmount = parseFloat(originalItem.discountAmount || originalItem.discount_amount || '0');
+      let dbDiscountPercent = originalItem.discountPercent || originalItem.discount_percent || '0';
       discountPercent = parseFloat(dbDiscountPercent);
 
       // If stored as decimal (0.1), convert to percentage (10)
@@ -885,49 +739,24 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
     const total = subtotal - discountAmount;
 
-    return {
-      quantity,
-      unitPrice,
-      discountPercent,
-      subtotal,
-      discountAmount,
-      total,
-    };
+    return { quantity, unitPrice, discountPercent, subtotal, discountAmount, total };
   };
 
   // Handle keyboard navigation
-  const handleKeyDown = (
-    e: React.KeyboardEvent,
-    index: number,
-    fieldType: string,
-  ) => {
-    const fieldOrder = [
-      "sku",
-      "product",
-      "quantity",
-      "unitPrice",
-      "subtotal",
-      "discountPercent",
-      "discountAmount",
-      "total",
-    ];
+  const handleKeyDown = (e: React.KeyboardEvent, index: number, fieldType: string) => {
+    const fieldOrder = ['sku', 'product', 'quantity', 'unitPrice', 'subtotal', 'discountPercent', 'discountAmount', 'total'];
     const currentFieldIndex = fieldOrder.indexOf(fieldType);
 
     // Enter or Tab - move to next field
-    if (e.key === "Enter" || e.key === "Tab") {
+    if (e.key === 'Enter' || e.key === 'Tab') {
       e.preventDefault();
 
-      if (
-        fieldType === "total" ||
-        currentFieldIndex === fieldOrder.length - 1
-      ) {
+      if (fieldType === 'total' || currentFieldIndex === fieldOrder.length - 1) {
         // At the last field
         if (index < purchaseItems.length - 1) {
           // Not the last row, move to first field of next row
           setTimeout(() => {
-            const nextRowInput = document.querySelector(
-              `[data-field="${fieldOrder[0]}-${index + 1}"]`,
-            ) as HTMLInputElement;
+            const nextRowInput = document.querySelector(`[data-field="${fieldOrder[0]}-${index + 1}"]`) as HTMLInputElement;
             nextRowInput?.focus();
           }, 50);
         } else if (index === purchaseItems.length - 1 && isEditMode) {
@@ -938,59 +767,49 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         // Move to next field in same row
         const nextFieldType = fieldOrder[currentFieldIndex + 1];
         setTimeout(() => {
-          const nextInput = document.querySelector(
-            `[data-field="${nextFieldType}-${index}"]`,
-          ) as HTMLInputElement;
+          const nextInput = document.querySelector(`[data-field="${nextFieldType}-${index}"]`) as HTMLInputElement;
           nextInput?.focus();
         }, 50);
       }
     }
     // Arrow Right - move to next field
-    else if (e.key === "ArrowRight") {
+    else if (e.key === 'ArrowRight') {
       e.preventDefault();
       if (currentFieldIndex < fieldOrder.length - 1) {
         const nextFieldType = fieldOrder[currentFieldIndex + 1];
         setTimeout(() => {
-          const nextInput = document.querySelector(
-            `[data-field="${nextFieldType}-${index}"]`,
-          ) as HTMLInputElement;
+          const nextInput = document.querySelector(`[data-field="${nextFieldType}-${index}"]`) as HTMLInputElement;
           nextInput?.focus();
         }, 50);
       }
     }
     // Arrow Left - move to previous field
-    else if (e.key === "ArrowLeft") {
+    else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       if (currentFieldIndex > 0) {
         const prevFieldType = fieldOrder[currentFieldIndex - 1];
         setTimeout(() => {
-          const prevInput = document.querySelector(
-            `[data-field="${prevFieldType}-${index}"]`,
-          ) as HTMLInputElement;
+          const prevInput = document.querySelector(`[data-field="${prevFieldType}-${index}"]`) as HTMLInputElement;
           prevInput?.focus();
         }, 50);
       }
     }
     // Arrow Down - move to same field in next row
-    else if (e.key === "ArrowDown") {
+    else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (index < purchaseItems.length - 1) {
         setTimeout(() => {
-          const nextRowInput = document.querySelector(
-            `[data-field="${fieldType}-${index + 1}"]`,
-          ) as HTMLInputElement;
+          const nextRowInput = document.querySelector(`[data-field="${fieldType}-${index + 1}"]`) as HTMLInputElement;
           nextRowInput?.focus();
         }, 50);
       }
     }
     // Arrow Up - move to same field in previous row
-    else if (e.key === "ArrowUp") {
+    else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (index > 0) {
         setTimeout(() => {
-          const prevRowInput = document.querySelector(
-            `[data-field="${fieldType}-${index - 1}"]`,
-          ) as HTMLInputElement;
+          const prevRowInput = document.querySelector(`[data-field="${fieldType}-${index - 1}"]`) as HTMLInputElement;
           prevRowInput?.focus();
         }, 50);
       }
@@ -1013,7 +832,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
   }
 
   if (orderError) {
-    console.error("❌ Error loading purchase receipt:", orderError);
+    console.error('❌ Error loading purchase receipt:', orderError);
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-900 dark:to-gray-800">
         <POSHeader />
@@ -1021,15 +840,17 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         <div className="container mx-auto pt-16 px-6">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-red-600">
-              {orderError.message === "Purchase receipt not found"
-                ? "Purchase Receipt Not Found"
-                : "Error Loading Purchase Receipt"}
+              {orderError.message === 'Purchase receipt not found' 
+                ? 'Purchase Receipt Not Found' 
+                : 'Error Loading Purchase Receipt'}
             </h1>
             <p className="text-gray-600 mt-2">
               Purchase Receipt ID: {purchaseId}
             </p>
-            <p className="text-sm text-gray-500 mt-1">{orderError.message}</p>
-            <Button onClick={() => navigate("/purchases")} className="mt-4">
+            <p className="text-sm text-gray-500 mt-1">
+              {orderError.message}
+            </p>
+            <Button onClick={() => navigate('/purchases')} className="mt-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Purchases
             </Button>
@@ -1046,13 +867,11 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         <RightSidebar />
         <div className="container mx-auto pt-16 px-6">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-red-600">
-              Purchase Receipt Not Found
-            </h1>
+            <h1 className="text-2xl font-bold text-red-600">Purchase Receipt Not Found</h1>
             <p className="text-gray-600 mt-2">
               Purchase Receipt ID: {purchaseId}
             </p>
-            <Button onClick={() => navigate("/purchases")} className="mt-4">
+            <Button onClick={() => navigate('/purchases')} className="mt-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Purchases
             </Button>
@@ -1069,7 +888,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       console.log("🔍 Frontend: Starting purchase receipt update process");
 
       // Validate required fields
-      if (!formData.supplierId || formData.supplierId === "") {
+      if (!formData.supplierId || formData.supplierId === '') {
         toast({
           variant: "destructive",
           title: "Lỗi validation",
@@ -1079,7 +898,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         return;
       }
 
-      if (!formData.purchaseDate || formData.purchaseDate === "") {
+      if (!formData.purchaseDate || formData.purchaseDate === '') {
         toast({
           variant: "destructive",
           title: "Lỗi validation",
@@ -1091,11 +910,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
       // Validate payment method if isPaid = true
       if (formData.isPaid) {
-        if (
-          !editPaymentMethods ||
-          editPaymentMethods.length === 0 ||
-          !editPaymentMethods[0].method
-        ) {
+        if (!editPaymentMethods || editPaymentMethods.length === 0 || !editPaymentMethods[0].method) {
           toast({
             variant: "destructive",
             title: "Lỗi validation",
@@ -1105,7 +920,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
           return;
         }
 
-        const paymentAmount = parseFloat(editPaymentMethods[0].amount || "0");
+        const paymentAmount = parseFloat(editPaymentMethods[0].amount || '0');
         if (paymentAmount <= 0) {
           toast({
             variant: "destructive",
@@ -1118,11 +933,11 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       }
 
       // Validate at least one valid item
-      const validItems = purchaseItems.filter((item) => {
+      const validItems = purchaseItems.filter(item => {
         const edited = editedItems[item.id] || {};
-        const productName = edited.productName || item.productName || "";
+        const productName = edited.productName || item.productName || '';
         const productId = edited.productId || item.productId;
-        return productName.trim() !== "" && productId;
+        return productName.trim() !== '' && productId;
       });
 
       if (validItems.length === 0) {
@@ -1144,7 +959,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         const firstMethod = editPaymentMethods[0];
         paymentMethodData = JSON.stringify({
           method: firstMethod.method,
-          amount: parseFloat(firstMethod.amount || "0"),
+          amount: parseFloat(firstMethod.amount || '0')
         });
 
         paymentAmountData = firstMethod.amount;
@@ -1154,7 +969,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         isPaid: formData.isPaid,
         paymentMethod: paymentMethodData,
         paymentAmount: paymentAmountData,
-        rawMethods: editPaymentMethods,
+        rawMethods: editPaymentMethods
       });
 
       // Update basic order information WITH payment data
@@ -1162,43 +977,33 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         supplierId: parseInt(formData.supplierId),
         purchaseDate: formData.purchaseDate,
         actualDeliveryDate: formData.purchaseDate || null,
-        purchaseType: formData.purchaseType || "raw_materials",
+        purchaseType: formData.purchaseType || 'raw_materials',
         employeeId: formData.employeeId ? parseInt(formData.employeeId) : null,
-        notes: formData.notes || "",
+        notes: formData.notes || '',
         isPaid: formData.isPaid,
         paymentMethod: paymentMethodData, // CRITICAL: Include payment method
-        paymentAmount: paymentAmountData, // CRITICAL: Include payment amount
+        paymentAmount: paymentAmountData  // CRITICAL: Include payment amount
       };
 
-      console.log(
-        "📝 Updating purchase receipt with payment info:",
-        orderUpdateData,
-      );
+      console.log("📝 Updating purchase receipt with payment info:", orderUpdateData);
 
       // Update purchase receipt
-      const receiptResponse = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${purchaseId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(orderUpdateData),
-        },
-      );
+      const receiptResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${purchaseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderUpdateData)
+      });
 
       if (!receiptResponse.ok) {
-        const errorData = await receiptResponse.json().catch(() => ({
-          error: "Lỗi không xác định",
-          message: `HTTP ${receiptResponse.status}: ${receiptResponse.statusText}`,
+        const errorData = await receiptResponse.json().catch(() => ({ 
+          error: 'Lỗi không xác định',
+          message: `HTTP ${receiptResponse.status}: ${receiptResponse.statusText}`
         }));
-        console.error(
-          "❌ Frontend: Failed to update purchase receipt",
-          errorData,
-        );
+        console.error('❌ Frontend: Failed to update purchase receipt', errorData);
         toast({
           variant: "destructive",
           title: "Lỗi cập nhật phiếu nhập",
-          description:
-            errorData.error || errorData.message || "Vui lòng thử lại",
+          description: errorData.error || errorData.message || 'Vui lòng thử lại',
         });
         setIsSaving(false);
         return;
@@ -1209,13 +1014,13 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       // GIỮ NGUYÊN THỨ TỰ: Xóa tất cả items cũ và tạo lại theo đúng thứ tự từ UI
       const MAX_VALID_ID = 1000000000; // IDs above this are temporary timestamps
       const existingItemIds = purchaseItems
-        .filter((item) => item.id && item.id < MAX_VALID_ID)
-        .map((item) => item.id);
+        .filter(item => item.id && item.id < MAX_VALID_ID)
+        .map(item => item.id);
 
-      console.log("📊 Items to process:", {
+      console.log("📊 Items to process:", { 
         totalItems: purchaseItems.length,
         validItems: validItems.length,
-        existingItemsToDelete: existingItemIds.length,
+        existingItemsToDelete: existingItemIds.length
       });
 
       // Bước 1: Xóa tất cả items cũ
@@ -1223,17 +1028,12 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
         for (const itemId of existingItemIds) {
           try {
             console.log(`🗑️ Deleting old item: ${itemId}`);
-            const response = await fetch(
-              `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-order-items/${itemId}`,
-              {
-                method: "DELETE",
-              },
-            );
+            const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-order-items/${itemId}`, {
+              method: 'DELETE'
+            });
 
             if (!response.ok) {
-              console.warn(
-                `⚠️ Failed to delete item ${itemId}, but continuing...`,
-              );
+              console.warn(`⚠️ Failed to delete item ${itemId}, but continuing...`);
             } else {
               console.log(`✅ Deleted item: ${itemId}`);
             }
@@ -1252,9 +1052,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
         // Get basic values
         const quantity = edited.quantity ?? item.quantity;
-        const unitPrice = parseFloat(
-          (edited.unitPrice ?? item.unitPrice) || "0",
-        );
+        const unitPrice = parseFloat((edited.unitPrice ?? item.unitPrice) || '0');
         const subtotal = quantity * unitPrice;
 
         // LẤY TRỰC TIẾP giá trị từ edited hoặc item
@@ -1263,105 +1061,74 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
         if (edited.discountAmount !== undefined) {
           discountAmount = parseFloat(edited.discountAmount) || 0;
-        } else if (
-          item.discountAmount !== undefined ||
-          item.discount_amount !== undefined
-        ) {
-          discountAmount = parseFloat(
-            item.discountAmount || item.discount_amount || "0",
-          );
+        } else if (item.discountAmount !== undefined || item.discount_amount !== undefined) {
+          discountAmount = parseFloat(item.discountAmount || item.discount_amount || '0');
         }
 
         if (edited.discountPercent !== undefined) {
           discountPercent = parseFloat(edited.discountPercent) || 0;
-        } else if (
-          item.discountPercent !== undefined ||
-          item.discount_percent !== undefined
-        ) {
-          discountPercent = parseFloat(
-            item.discountPercent || item.discount_percent || "0",
-          );
+        } else if (item.discountPercent !== undefined || item.discount_percent !== undefined) {
+          discountPercent = parseFloat(item.discountPercent || item.discount_percent || '0');
         }
 
         const total = subtotal - discountAmount;
 
         // Skip if product not selected
-        const productName = edited.productName || item.productName || "";
+        const productName = edited.productName || item.productName || '';
         const productId = edited.productId || item.productId;
 
-        if (!productName || productName.trim() === "" || !productId) {
-          console.log(
-            `⏭️ Skipping item at position ${index + 1} without valid product`,
-          );
+        if (!productName || productName.trim() === '' || !productId) {
+          console.log(`⏭️ Skipping item at position ${index + 1} without valid product`);
           continue;
         }
 
         // Tính toán lại các giá trị cuối cùng từ UI để đảm bảo chính xác
-        const {
-          quantity: finalQuantity,
-          unitPrice: finalUnitPrice,
-          discountPercent: finalDiscountPercent,
-          discountAmount: finalDiscountAmount,
-          total: finalTotal,
-        } = calculateItemValues(item.id, item);
+        const { quantity: finalQuantity, unitPrice: finalUnitPrice, discountPercent: finalDiscountPercent, discountAmount: finalDiscountAmount, total: finalTotal } = calculateItemValues(item.id, item);
 
         const newItemData = {
           purchaseReceiptId: purchaseId,
           productId: productId,
           productName: productName.trim(),
-          sku: edited.sku || item.sku || "",
+          sku: edited.sku || item.sku || '',
           quantity: Math.max(0, finalQuantity),
           receivedQuantity: item.receivedQuantity || 0,
           unitPrice: Math.max(0, finalUnitPrice).toFixed(2),
           total: Math.max(0, finalTotal).toFixed(2),
-          taxRate: item.taxRate || "0.00",
+          taxRate: item.taxRate || '0.00',
           discountPercent: Math.max(0, finalDiscountPercent).toFixed(2),
           discountAmount: Math.max(0, finalDiscountAmount).toFixed(2),
           notes: item.notes || null,
-          rowOrder: index + 1,
+          rowOrder: index + 1
         };
 
         try {
-          console.log(
-            `📝 Creating item at position ${index + 1}:`,
-            newItemData,
-          );
+          console.log(`📝 Creating item at position ${index + 1}:`, newItemData);
 
-          const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-order-items", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newItemData),
+          const response = await fetch('https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-order-items', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newItemData)
           });
 
           if (!response.ok) {
-            const errorData = await response.json().catch(() => ({
-              error: "Lỗi không xác định",
-              message: `HTTP ${response.status}`,
+            const errorData = await response.json().catch(() => ({ 
+              error: 'Lỗi không xác định',
+              message: `HTTP ${response.status}`
             }));
-            console.error(
-              `❌ Failed to create item at position ${index + 1}:`,
-              errorData,
-            );
-            throw new Error(
-              `Không thể tạo sản phẩm dòng ${index + 1}: ${errorData.error || errorData.message}`,
-            );
+            console.error(`❌ Failed to create item at position ${index + 1}:`, errorData);
+            throw new Error(`Không thể tạo sản phẩm dòng ${index + 1}: ${errorData.error || errorData.message}`);
           }
 
           const result = await response.json();
           console.log(`✅ Created item at position ${index + 1}:`, result);
           createdCount++;
         } catch (itemError) {
-          console.error(
-            `❌ Error creating item at position ${index + 1}:`,
-            itemError,
-          );
+          console.error(`❌ Error creating item at position ${index + 1}:`, itemError);
           throw itemError;
         }
       }
 
-      console.log(
-        `✅ Frontend: Update successful - Created ${createdCount} items`,
-      );
+      console.log(`✅ Frontend: Update successful - Created ${createdCount} items`);
 
       toast({
         title: "Thành công!",
@@ -1372,16 +1139,20 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
       setIsEditMode(false);
 
       // Refresh the data
-      await queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId],
+      await queryClient.invalidateQueries({ 
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
+      await queryClient.invalidateQueries({ 
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
       });
+
+      // Call onSuccess callback if provided (for dialog mode)
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
-      console.error("❌ Frontend: Error updating purchase receipt:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Lỗi không xác định";
+      console.error('❌ Frontend: Error updating purchase receipt:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Lỗi không xác định';
       toast({
         variant: "destructive",
         title: "Có lỗi xảy ra",
@@ -1399,25 +1170,27 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
       <div className="container mx-auto px-4 pt-24 pb-6 max-w-7xl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/purchases")}
-              className="shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("common.back")}
-            </Button>
-            <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                {t("purchases.viewPurchaseOrder")}
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                {t("purchases.viewOrderDescription")}
-              </p>
-            </div>
+        <div className="mb-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center gap-4 mb-2">
+            {!hideBackButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/purchases")}
+                className="shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t("common.back")}
+              </Button>
+            )}
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+              {t("purchases.viewPurchaseOrder")}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              {t("purchases.viewOrderDescription")}
+            </p>
           </div>
         </div>
 
@@ -1433,34 +1206,57 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                 {t("purchases.orderDetailsDescription")}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Supplier */}
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Store Selection */}
                 <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium">
-                    {t("purchases.supplier")}{" "}
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <span>{t("purchases.storeLabel")}</span>
                     <span className="text-red-500">*</span>
                   </label>
-                  <Select
-                    disabled={!isEditMode}
+                  {isEditMode ? (
+                    <Select 
+                      disabled={!isEditMode} 
+                      value={formData.storeCode || purchaseOrder?.storeCode}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, storeCode: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("purchases.allStores")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {storesData?.map((store: any) => (
+                          <SelectItem key={store.id} value={store.storeCode}>
+                            {store.storeName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={storesData?.find((s: any) => s.storeCode === (formData.storeCode || purchaseOrder?.storeCode))?.storeName || t("purchases.allStores")}
+                      disabled
+                      className="text-sm bg-gray-100"
+                    />
+                  )}
+                </div>
+
+                {/* Supplier Selection */}
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <span>{t("purchases.supplier")}</span>
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <Select 
+                    disabled={!isEditMode} 
                     value={formData.supplierId}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, supplierId: value }))
-                    }
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, supplierId: value }))}
                   >
-                    <SelectTrigger className="h-9 sm:h-10">
-                      <SelectValue
-                        placeholder={getSupplierName(
-                          parseInt(formData.supplierId),
-                        )}
-                      />
+                    <SelectTrigger>
+                      <SelectValue placeholder={getSupplierName(parseInt(formData.supplierId))} />
                     </SelectTrigger>
                     <SelectContent>
                       {suppliers.map((supplier: any) => (
-                        <SelectItem
-                          key={supplier.id}
-                          value={supplier.id.toString()}
-                        >
+                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
                           {supplier.name}
                         </SelectItem>
                       ))}
@@ -1470,100 +1266,68 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
                 {/* Receipt Number */}
                 <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium">
-                    {t("purchases.receiptNumberLabel")}{" "}
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <span>{t("purchases.receiptNumber")}</span>
                     <span className="text-red-500">*</span>
                   </label>
                   <Input
-                    value={
-                      purchaseOrder.receiptNumber ||
-                      purchaseOrder.poNumber ||
-                      `PR-${purchaseOrder.id}`
-                    }
+                    value={purchaseOrder.receiptNumber || purchaseOrder.poNumber || `PR-${purchaseOrder.id}`}
                     disabled
-                    className="h-9 sm:h-10 text-sm bg-gray-100"
+                    className="text-sm bg-gray-100"
                   />
                 </div>
 
                 {/* Purchase Date */}
                 <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium">
-                    {t("purchases.purchaseDate")}{" "}
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <span>{t("purchases.purchaseDate")}</span>
                     <span className="text-red-500">*</span>
                   </label>
                   <Input
                     type="date"
                     value={formData.purchaseDate}
                     disabled={!isEditMode}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        purchaseDate: e.target.value,
-                      }))
-                    }
-                    className="h-9 sm:h-10 text-sm"
+                    onChange={(e) => setFormData(prev => ({ ...prev, purchaseDate: e.target.value }))}
+                    className="text-sm"
                   />
                 </div>
 
                 {/* Purchase Type */}
                 <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium">
-                    {t("purchases.purchaseType")}{" "}
+                  <label className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    <span>{t("purchases.purchaseType")}</span>
                     <span className="text-red-500">*</span>
                   </label>
-                  <Select
-                    disabled={!isEditMode}
+                  <Select 
+                    disabled={!isEditMode} 
                     value={formData.purchaseType}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, purchaseType: value }))
-                    }
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, purchaseType: value }))}
                   >
-                    <SelectTrigger className="h-9 sm:h-10">
-                      <SelectValue
-                        placeholder={formData.purchaseType || "Không xác định"}
-                      />
+                    <SelectTrigger>
+                      <SelectValue placeholder={formData.purchaseType || "Không xác định"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="raw_materials">
-                        {t("purchases.rawMaterials")}
-                      </SelectItem>
-                      <SelectItem value="expenses">
-                        {t("purchases.expenses")}
-                      </SelectItem>
-                      <SelectItem value="others">
-                        {t("purchases.others")}
-                      </SelectItem>
+                      <SelectItem value="raw_materials">{t("purchases.rawMaterials")}</SelectItem>
+                      <SelectItem value="expenses">{t("purchases.expenses")}</SelectItem>
+                      <SelectItem value="others">{t("purchases.others")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Employee Assignment */}
                 <div className="space-y-2">
-                  <label className="text-xs sm:text-sm font-medium">
-                    {t("purchases.assignedTo")}
-                  </label>
-                  <Select
-                    disabled={!isEditMode}
+                  <label className="text-xs sm:text-sm font-medium">{t("purchases.assignedTo")}</label>
+                  <Select 
+                    disabled={!isEditMode} 
                     value={formData.employeeId}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, employeeId: value }))
-                    }
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, employeeId: value }))}
                   >
-                    <SelectTrigger className="h-9 sm:h-10">
-                      <SelectValue
-                        placeholder={
-                          formData.employeeId
-                            ? getEmployeeName(parseInt(formData.employeeId))
-                            : "Không xác định"
-                        }
-                      />
+                    <SelectTrigger>
+                      <SelectValue placeholder={formData.employeeId ? getEmployeeName(parseInt(formData.employeeId)) : "Không xác định"} />
                     </SelectTrigger>
                     <SelectContent>
                       {employees.map((employee: any) => (
-                        <SelectItem
-                          key={employee.id}
-                          value={employee.id.toString()}
-                        >
+                        <SelectItem key={employee.id} value={employee.id.toString()}>
                           {employee.name}
                         </SelectItem>
                       ))}
@@ -1571,129 +1335,90 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                   </Select>
                 </div>
 
-                {/* File Attachments - Same position as in purchase-form */}
+                {/* File Attachments */}
                 <div className="space-y-2">
                   <label className="text-xs sm:text-sm font-medium flex items-center gap-2">
-                    <Upload className="h-3 w-3 sm:h-4 sm:w-4" />
-                    {t("purchases.attachedFilesCount")} (
-                    {attachedDocuments?.length || 0})
+                    <Upload className="h-4 w-4" />
+                    {t("purchases.attachDocuments")}
                   </label>
                   {isEditMode ? (
-                    <div>
-                      <div
-                        className="border border-dashed border-gray-300 rounded-md p-2 text-center bg-gray-50/50 h-9 sm:h-10 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
-                        onClick={() =>
-                          document.getElementById("file-upload-edit")?.click()
+                    <div
+                      className="border border-dashed border-gray-300 rounded-md p-3 hover:border-gray-400 transition-colors cursor-pointer bg-gray-50/50 min-h-[42px] flex flex-col"
+                      onClick={(e) => {
+                        if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.upload-prompt')) {
+                          document.getElementById('file-upload-edit')?.click();
                         }
-                      >
-                        <div className="flex items-center gap-2">
-                          <Upload className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
-                          <span className="text-xs sm:text-sm text-gray-600">
-                            {uploadingFiles
-                              ? t("purchases.uploadingFiles")
-                              : t("purchases.dragOrClickToUpload")}
+                      }}
+                    >
+                      {attachedDocuments && attachedDocuments.length === 0 ? (
+                        <div className="upload-prompt flex items-center justify-center gap-2">
+                          <Upload className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-600">
+                            {uploadingFiles ? t("purchases.uploadingFiles") : t("purchases.dragOrClickToUpload")}
                           </span>
                         </div>
-                        <input
-                          id="file-upload-edit"
-                          type="file"
-                          multiple
-                          accept=".pdf,.jpg,.jpeg,.png,.gif,.txt,.doc,.docx"
-                          className="hidden"
-                          onChange={(e) => handleFileUpload(e.target.files)}
-                          disabled={uploadingFiles}
-                        />
-                      </div>
-                      {attachedDocuments && attachedDocuments.length > 0 && (
-                        <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                      ) : (
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
                           {attachedDocuments.map((doc: any, index: number) => (
-                            <div
-                              key={doc.id || index}
-                              className="flex items-center justify-between bg-white border border-gray-200 rounded p-1.5 text-xs"
-                            >
-                              <FileText className="h-3 w-3 text-gray-500 shrink-0 mr-1" />
-                              <span className="truncate flex-1">
-                                {doc.originalFileName || doc.fileName}
-                              </span>
+                            <div key={doc.id || index} className="flex items-center justify-between bg-white border border-gray-200 rounded p-1.5 hover:bg-gray-50 transition-colors" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <FileText className="h-4 w-4 text-gray-500 shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-medium text-gray-900 truncate" title={doc.originalFileName || doc.fileName}>
+                                    {doc.originalFileName || doc.fileName}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : ''}
+                                  </p>
+                                </div>
+                              </div>
                               <div className="flex items-center gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0 text-blue-500 hover:text-blue-700"
-                                  onClick={() => handleFileDownload(doc)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => handleFileDownload(doc)} className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700 hover:bg-blue-50 shrink-0">
                                   <Download className="h-3 w-3" />
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-5 w-5 p-0 text-red-500 hover:text-red-700"
-                                  onClick={() => handleFileDelete(doc.id)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => handleFileDelete(doc.id)} className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0">
                                   <X className="h-3 w-3" />
                                 </Button>
                               </div>
                             </div>
                           ))}
+                          <button type="button" className="upload-prompt w-full text-xs text-blue-600 hover:text-blue-700 py-1 flex items-center justify-center gap-1" onClick={() => document.getElementById('file-upload-edit')?.click()}>
+                            <Plus className="h-3 w-3" />
+                            {t("purchases.addItem")}
+                          </button>
                         </div>
                       )}
+                      <input
+                        id="file-upload-edit"
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png,.gif,.txt,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => handleFileUpload(e.target.files)}
+                        disabled={uploadingFiles}
+                      />
                     </div>
                   ) : (
                     <div>
                       {attachedDocuments && attachedDocuments.length > 0 ? (
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                        <div className="space-y-1">
                           {attachedDocuments.map((doc: any, index: number) => (
-                            <div
-                              key={doc.id || index}
-                              className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3 hover:bg-blue-100 transition-colors"
-                            >
-                              <FileText className="h-5 w-5 text-blue-600 shrink-0" />
+                            <div key={doc.id || index} className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded p-2 hover:bg-blue-100 transition-colors">
+                              <FileText className="h-4 w-4 text-blue-600 shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 text-sm truncate">
-                                  {doc.originalFileName || doc.fileName}
-                                </div>
-                                <div className="text-gray-500 text-xs mt-1">
-                                  {doc.fileSize
-                                    ? `${(doc.fileSize / 1024).toFixed(1)} KB`
-                                    : ""}
-                                  {doc.fileType ? ` • ${doc.fileType}` : ""}
-                                </div>
+                                <p className="text-xs font-medium text-gray-900 truncate">{doc.originalFileName || doc.fileName}</p>
+                                <p className="text-xs text-gray-500">{doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : ''}</p>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-200"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleFileDownload(doc);
-                                  }}
-                                  title="Tải xuống"
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                                {isEditMode && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleFileDelete(doc.id);
-                                    }}
-                                    title="Xóa tệp"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
+                              <Button variant="ghost" size="sm" onClick={() => handleFileDownload(doc)} className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-200">
+                                <Download className="h-3 w-3" />
+                              </Button>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="border border-gray-300 rounded-md p-4 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
-                          <FileText className="h-5 w-5 mr-2 text-gray-400" />
-                          {t("purchases.noAttachedFiles")}
+                        <div className="border border-gray-300 rounded-md p-3 bg-gray-50 flex items-center justify-center text-sm text-gray-500">
+                          <FileText className="h-4 w-4 mr-2 text-gray-400" />
+                          Không có tệp đính kèm
                         </div>
                       )}
                     </div>
@@ -1703,218 +1428,158 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
               {/* Notes - Full width */}
               <div className="space-y-2">
-                <label className="text-xs sm:text-sm font-medium">
-                  {t("purchases.notes")}
-                </label>
+                <label className="text-xs sm:text-sm font-medium">{t("purchases.notes")}</label>
                 <Textarea
                   value={formData.notes}
                   disabled={!isEditMode}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
+                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                   placeholder={t("purchases.notesPlaceholder")}
                   rows={3}
                   className="text-sm resize-none"
                 />
               </div>
 
-              {/* Payment Status and Methods - Same Row */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Payment Status Checkbox */}
-                <div className="md:col-span-5">
-                  <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 h-full">
-                    <input
-                      type="checkbox"
-                      checked={formData.isPaid} // Use formData.isPaid for editing
-                      disabled={!isEditMode}
-                      onChange={(e) => {
-                        // Update form data when checkbox changes
-                        setFormData((prev) => ({
-                          ...prev,
-                          isPaid: e.target.checked,
-                        }));
-                      }}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <div className="space-y-1 leading-none">
-                      <label className="text-sm font-medium">
-                        Đã thanh toán
-                      </label>
-                      <p className="text-sm text-muted-foreground">
-                        Đánh dấu nếu phiếu nhập đã được thanh toán
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    {/* Payment Status and Methods - Same Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      {/* Payment Status Checkbox */}
+                      <div className="md:col-span-5">
+                        <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 h-full">
+                          <input
+                            type="checkbox"
+                            checked={formData.isPaid} // Use formData.isPaid for editing
+                            disabled={!isEditMode}
+                            onChange={(e) => {
+                              // Update form data when checkbox changes
+                              setFormData(prev => ({ ...prev, isPaid: e.target.checked }));
+                            }}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <div className="space-y-1 leading-none">
+                            <label className="text-sm font-medium">
+                              {t("purchases.paid")}
+                            </label>
+                            <p className="text-sm text-muted-foreground">
+                              {t("purchases.markAsPaidDescription")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                {/* Payment Method & Amount - Single payment method only */}
-                {(purchaseOrder?.isPaid || formData.isPaid) && (
-                  <div className="md:col-span-5">
-                    <div className="border rounded-lg p-3 bg-blue-50 h-full">
-                      <h4 className="font-semibold mb-2 text-sm">
-                        Phương thức thanh toán
-                      </h4>
+                      {/* Payment Method & Amount - Single payment method only */}
+                      {(purchaseOrder?.isPaid || formData.isPaid) && (
+                        <div className="md:col-span-5">
+                          <div className="border rounded-lg p-3 bg-blue-50 h-full">
+                            <h4 className="font-semibold mb-2 text-sm">{t("common.paymentMethodLabel")}</h4>
 
-                      {(() => {
-                        const getMethodName = (method: string) => {
-                          const names: Record<string, string> = {
-                            cash: "Tiền mặt",
-                            bank_transfer: "Chuyển khoản",
-                            credit_card: "Thẻ tín dụng",
-                            other: "Khác",
-                          };
-                          return names[method] || method;
-                        };
-
-                        // Tính tổng tiền từ items
-                        const itemsTotal = purchaseItems.reduce(
-                          (sum: number, item: any) => {
-                            const { total } = calculateItemValues(
-                              item.id,
-                              item,
-                            );
-                            return sum + total;
-                          },
-                          0,
-                        );
-
-                        const updatePaymentMethod = (
-                          field: "method" | "amount",
-                          value: string,
-                        ) => {
-                          const currentMethod = editPaymentMethods[0] || {
-                            method: "cash",
-                            amount: Math.round(itemsTotal).toString(),
-                          };
-                          const updated = [
-                            { ...currentMethod, [field]: value },
-                          ];
-                          setEditPaymentMethods(updated);
-                          setFormData((prev) => ({
-                            ...prev,
-                            paymentMethod: JSON.stringify(updated[0]),
-                          }));
-                        };
-
-                        const currentMethod = editPaymentMethods[0] || {
-                          method: "cash",
-                          amount: Math.round(itemsTotal).toString(),
-                        };
-
-                        return (
-                          <div className="space-y-2">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 bg-white rounded border text-xs">
-                              <div className="space-y-1">
-                                <label className="text-xs font-medium">
-                                  Phương thức
-                                </label>
-                                {isEditMode ? (
-                                  <Select
-                                    value={currentMethod.method || "cash"}
-                                    onValueChange={(value) =>
-                                      updatePaymentMethod("method", value)
-                                    }
-                                  >
-                                    <SelectTrigger className="h-8 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {paymentMethods.map((method: any) => (
-                                        <SelectItem
-                                          key={method.id}
-                                          value={method.nameKey}
-                                        >
-                                          {method.name} {method.icon}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : (
-                                  <div className="h-8 px-2 py-1 bg-blue-50 border border-blue-200 rounded flex items-center">
-                                    <span className="font-medium text-blue-900 text-xs">
-                                      {(() => {
-                                        // Get the payment method key from currentMethod or purchaseOrder
-                                        const methodKey =
-                                          currentMethod.method ||
-                                          purchaseOrder.paymentMethod;
-                                        if (!methodKey) return "-";
-
-                                        // Try to parse if it's JSON
-                                        try {
-                                          const parsed = JSON.parse(methodKey);
-                                          const key =
-                                            parsed.method || methodKey;
-                                          const foundMethod =
-                                            paymentMethods.find(
-                                              (m: any) => m.nameKey === key,
-                                            );
-                                          return foundMethod
-                                            ? `${foundMethod.icon} ${foundMethod.name}`
-                                            : key;
-                                        } catch {
-                                          // Not JSON, treat as plain string
-                                          const foundMethod =
-                                            paymentMethods.find(
-                                              (m: any) =>
-                                                m.nameKey === methodKey,
-                                            );
-                                          return foundMethod
-                                            ? `${foundMethod.icon} ${foundMethod.name}`
-                                            : methodKey;
-                                        }
-                                      })()}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="space-y-1">
-                                <label className="text-xs font-medium">
-                                  Số tiền
-                                </label>
-                                <div className="h-8 px-2 py-1 bg-green-50 border border-green-200 rounded flex items-center justify-end">
-                                  <span className="font-semibold text-green-800 text-xs">
-                                    {Math.round(itemsTotal).toLocaleString(
-                                      "vi-VN",
-                                    )}{" "}
-                                    ₫
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Payment status display */}
                             {(() => {
-                              const paymentAmount = Number(
-                                currentMethod.amount || 0,
-                              );
-                              const difference = itemsTotal - paymentAmount;
-                              const isExact = Math.abs(difference) < 1;
-                              const isUnderpaid = difference > 1;
+                              const getMethodName = (method: string) => {
+                                const names: Record<string, string> = {
+                                  'cash': 'Tiền mặt',
+                                  'bank_transfer': 'Chuyển khoản',
+                                  'credit_card': 'Thẻ tín dụng',
+                                  'other': 'Khác'
+                                };
+                                return names[method] || method;
+                              };
+
+                              // Tính tổng tiền từ items
+                              const itemsTotal = purchaseItems.reduce((sum: number, item: any) => {
+                                const { total } = calculateItemValues(item.id, item);
+                                return sum + total;
+                              }, 0);
+
+                              const updatePaymentMethod = (field: 'method' | 'amount', value: string) => {
+                                const currentMethod = editPaymentMethods[0] || { method: 'cash', amount: Math.round(itemsTotal).toString() };
+                                const updated = [{ ...currentMethod, [field]: value }];
+                                setEditPaymentMethods(updated);
+                                setFormData(prev => ({ ...prev, paymentMethod: JSON.stringify(updated[0]) }));
+                              };
+
+                              const currentMethod = editPaymentMethods[0] || { method: 'cash', amount: Math.round(itemsTotal).toString() };
 
                               return (
-                                <div className="space-y-1 mt-2">
-                                  <div className="flex justify-between items-center pt-2 border-t">
-                                    <span className="font-semibold text-sm">
-                                      Tổng cần thanh toán:
-                                    </span>
-                                    <span className="text-base font-bold text-gray-900">
-                                      {Math.round(itemsTotal).toLocaleString(
-                                        "vi-VN",
-                                      )}{" "}
-                                      ₫
-                                    </span>
+                                <div className="space-y-2">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 bg-white rounded border text-xs">
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-medium">{t("common.paymentMethodLabel")}</label>
+                                      {isEditMode ? (
+                                        <Select 
+                                          value={currentMethod.method || "cash"}
+                                          onValueChange={(value) => updatePaymentMethod('method', value)}
+                                        >
+                                          <SelectTrigger className="h-8 text-xs">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {paymentMethods.map((method: any) => (
+                                              <SelectItem key={method.id} value={method.nameKey}>
+                                                {method.name} {method.icon}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      ) : (
+                                        <div className="h-8 px-2 py-1 bg-blue-50 border border-blue-200 rounded flex items-center">
+                                          <span className="font-medium text-blue-900 text-xs">
+                                            {(() => {
+                                              // Get the payment method key from currentMethod or purchaseOrder
+                                              const methodKey = currentMethod.method || purchaseOrder.paymentMethod;
+                                              if (!methodKey) return "-";
+                                              
+                                              // Try to parse if it's JSON
+                                              try {
+                                                const parsed = JSON.parse(methodKey);
+                                                const key = parsed.method || methodKey;
+                                                const foundMethod = paymentMethods.find((m: any) => m.nameKey === key);
+                                                return foundMethod ? `${foundMethod.icon} ${foundMethod.name}` : key;
+                                              } catch {
+                                                // Not JSON, treat as plain string
+                                                const foundMethod = paymentMethods.find((m: any) => m.nameKey === methodKey);
+                                                return foundMethod ? `${foundMethod.icon} ${foundMethod.name}` : methodKey;
+                                              }
+                                            })()}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <div className="space-y-1">
+                                      <label className="text-xs font-medium">{t("common.amount")}</label>
+                                      <div className="h-8 px-2 py-1 bg-green-50 border border-green-200 rounded flex items-center justify-end">
+                                        <span className="font-semibold text-green-800 text-xs">
+                                          {Math.round(itemsTotal).toLocaleString('vi-VN')} ₫
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
+
+                                  {/* Payment status display */}
+                                  {(() => {
+                                    const paymentAmount = Number(currentMethod.amount || 0);
+                                    const difference = itemsTotal - paymentAmount;
+                                    const isExact = Math.abs(difference) < 1;
+                                    const isUnderpaid = difference > 1;
+
+                                    return (
+                                      <div className="space-y-1 mt-2">
+                                        <div className="flex justify-between items-center pt-2 border-t">
+                                          <span className="font-semibold text-sm">{t("purchases.totalPayment")}:</span>
+                                          <span className="text-base font-bold text-gray-900">
+                                            {Math.round(itemsTotal).toLocaleString('vi-VN')} ₫
+                                          </span>
+                                        </div>
+
+
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               );
                             })()}
                           </div>
-                        );
-                      })()}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-              </div>
             </CardContent>
           </Card>
 
@@ -1946,47 +1611,47 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="overflow-x-auto border rounded-lg">
-                  <Table className="min-w-[800px]">
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="w-12 sm:w-16 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          STT
-                        </TableHead>
-                        <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.productCodeColumn")}
-                        </TableHead>
-                        <TableHead className="min-w-[120px] sm:min-w-[180px] p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.itemNameColumn")}
-                        </TableHead>
-                        <TableHead className="w-12 sm:w-20 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.unit")}
-                        </TableHead>
-                        <TableHead className="w-16 sm:w-24 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.quantity")}
-                        </TableHead>
-                        <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.unitPrice")}
-                        </TableHead>
-                        <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.subtotalAmount")}
-                        </TableHead>
-                        <TableHead className="w-12 sm:w-20 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.discountPercent")}
-                        </TableHead>
-                        <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.discountAmount")}
-                        </TableHead>
-                        <TableHead className="w-24 sm:w-32 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                          {t("purchases.totalAmount")}
-                        </TableHead>
-                        {isEditMode && (
-                          <TableHead className="w-12 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
-                            {t("common.delete")}
+                  <div className="overflow-x-auto border rounded-lg">
+                    <Table className="min-w-[800px]">
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="w-12 sm:w-16 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            STT
                           </TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
+                          <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.productCodeColumn")}
+                          </TableHead>
+                          <TableHead className="min-w-[120px] sm:min-w-[180px] p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.itemNameColumn")}
+                          </TableHead>
+                          <TableHead className="w-12 sm:w-20 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.unit")}
+                          </TableHead>
+                          <TableHead className="w-16 sm:w-24 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.quantity")}
+                          </TableHead>
+                          <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.unitPrice")}
+                          </TableHead>
+                          <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.subtotalAmount")}
+                          </TableHead>
+                          <TableHead className="w-12 sm:w-20 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.discountPercent")}
+                          </TableHead>
+                          <TableHead className="w-20 sm:w-28 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.discountAmount")}
+                          </TableHead>
+                          <TableHead className="w-24 sm:w-32 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                            {t("purchases.totalAmount")}
+                          </TableHead>
+                          {isEditMode && (
+                            <TableHead className="w-12 text-center p-1 sm:p-2 font-bold text-xs sm:text-sm">
+                              {t("common.delete")}
+                            </TableHead>
+                          )}
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {purchaseItems.length === 0 ? (
                         <TableRow>
@@ -2004,14 +1669,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                         </TableRow>
                       ) : (
                         purchaseItems.map((item, index) => {
-                          const {
-                            quantity,
-                            unitPrice,
-                            discountPercent,
-                            subtotal,
-                            discountAmount,
-                            total,
-                          } = calculateItemValues(item.id, item);
+                          const { quantity, unitPrice, discountPercent, subtotal, discountAmount, total } = calculateItemValues(item.id, item);
 
                           return (
                             <TableRow
@@ -2031,76 +1689,51 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                   <div className="relative">
                                     <Input
                                       type="text"
-                                      value={
-                                        editedItems[item.id]?.sku ??
-                                        item.sku ??
-                                        ""
-                                      }
+                                      value={editedItems[item.id]?.sku ?? item.sku ?? ''}
                                       onChange={(e) => {
                                         const value = e.target.value;
-                                        handleItemChange(item.id, "sku", value);
+                                        handleItemChange(item.id, 'sku', value);
                                         filterProductsBySku(item.id, value);
                                       }}
                                       onKeyDown={(e) => {
-                                        const suggestions =
-                                          skuSuggestions[item.id] || [];
-                                        const activeIndex =
-                                          activeSuggestionIndex[item.id] || 0;
-                                        const hasSelectedProduct =
-                                          editedItems[item.id]?.productId &&
-                                          editedItems[item.id]?.productId > 0;
-                                        const hasSuggestions =
-                                          suggestions.length > 0;
+                                        const suggestions = skuSuggestions[item.id] || [];
+                                        const activeIndex = activeSuggestionIndex[item.id] || 0;
+                                        const hasSelectedProduct = editedItems[item.id]?.productId && editedItems[item.id]?.productId > 0;
+                                        const hasSuggestions = suggestions.length > 0;
 
                                         // Arrow Down/Up - Navigate suggestions
-                                        if (e.key === "ArrowDown") {
+                                        if (e.key === 'ArrowDown') {
                                           if (hasSuggestions) {
                                             e.preventDefault();
-                                            setActiveSuggestionIndex(
-                                              (prev) => ({
-                                                ...prev,
-                                                [item.id]: Math.min(
-                                                  activeIndex + 1,
-                                                  suggestions.length - 1,
-                                                ),
-                                              }),
-                                            );
+                                            setActiveSuggestionIndex(prev => ({
+                                              ...prev,
+                                              [item.id]: Math.min(activeIndex + 1, suggestions.length - 1)
+                                            }));
                                           } else if (hasSelectedProduct) {
                                             // Move to same field in next row
-                                            handleKeyDown(e, index, "sku");
+                                            handleKeyDown(e, index, 'sku');
                                           }
-                                        } else if (e.key === "ArrowUp") {
+                                        } else if (e.key === 'ArrowUp') {
                                           if (hasSuggestions) {
                                             e.preventDefault();
-                                            setActiveSuggestionIndex(
-                                              (prev) => ({
-                                                ...prev,
-                                                [item.id]: Math.max(
-                                                  activeIndex - 1,
-                                                  0,
-                                                ),
-                                              }),
-                                            );
+                                            setActiveSuggestionIndex(prev => ({
+                                              ...prev,
+                                              [item.id]: Math.max(activeIndex - 1, 0)
+                                            }));
                                           } else if (hasSelectedProduct) {
                                             // Move to same field in previous row
-                                            handleKeyDown(e, index, "sku");
+                                            handleKeyDown(e, index, 'sku');
                                           }
                                         }
                                         // Enter - Select suggestion OR open dialog OR move next
-                                        else if (e.key === "Enter") {
+                                        else if (e.key === 'Enter') {
                                           e.preventDefault();
 
                                           if (hasSuggestions) {
                                             // Case 1: Has suggestions - select from list
-                                            selectProductFromSuggestion(
-                                              item.id,
-                                              suggestions[activeIndex],
-                                            );
+                                            selectProductFromSuggestion(item.id, suggestions[activeIndex]);
                                             setTimeout(() => {
-                                              const nextInput =
-                                                document.querySelector(
-                                                  `[data-field="product-${index}"]`,
-                                                ) as HTMLInputElement;
+                                              const nextInput = document.querySelector(`[data-field="product-${index}"]`) as HTMLInputElement;
                                               nextInput?.focus();
                                             }, 50);
                                           } else if (!hasSelectedProduct) {
@@ -2109,27 +1742,18 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                           } else {
                                             // Case 3: Product already selected - move to next field
                                             setTimeout(() => {
-                                              const nextInput =
-                                                document.querySelector(
-                                                  `[data-field="product-${index}"]`,
-                                                ) as HTMLInputElement;
+                                              const nextInput = document.querySelector(`[data-field="product-${index}"]`) as HTMLInputElement;
                                               nextInput?.focus();
                                             }, 50);
                                           }
                                         }
                                         // Tab - Same logic as Enter but respect Tab behavior
-                                        else if (e.key === "Tab") {
+                                        else if (e.key === 'Tab') {
                                           if (hasSuggestions) {
                                             e.preventDefault();
-                                            selectProductFromSuggestion(
-                                              item.id,
-                                              suggestions[activeIndex],
-                                            );
+                                            selectProductFromSuggestion(item.id, suggestions[activeIndex]);
                                             setTimeout(() => {
-                                              const nextInput =
-                                                document.querySelector(
-                                                  `[data-field="product-${index}"]`,
-                                                ) as HTMLInputElement;
+                                              const nextInput = document.querySelector(`[data-field="product-${index}"]`) as HTMLInputElement;
                                               nextInput?.focus();
                                             }, 50);
                                           } else if (!hasSelectedProduct) {
@@ -2139,36 +1763,28 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                           // If product selected, allow normal Tab (don't prevent)
                                         }
                                         // Arrow Right - Move to next field if product selected
-                                        else if (e.key === "ArrowRight") {
+                                        else if (e.key === 'ArrowRight') {
                                           if (hasSelectedProduct) {
                                             e.preventDefault();
                                             setTimeout(() => {
-                                              const nextInput =
-                                                document.querySelector(
-                                                  `[data-field="product-${index}"]`,
-                                                ) as HTMLInputElement;
+                                              const nextInput = document.querySelector(`[data-field="product-${index}"]`) as HTMLInputElement;
                                               nextInput?.focus();
                                             }, 50);
                                           }
                                         }
                                         // Arrow Left - Move to previous field if exists
-                                        else if (e.key === "ArrowLeft") {
+                                        else if (e.key === 'ArrowLeft') {
                                           if (index > 0) {
                                             e.preventDefault();
                                             setTimeout(() => {
-                                              const prevInput =
-                                                document.querySelector(
-                                                  `[data-field="total-${index - 1}"]`,
-                                                ) as HTMLInputElement;
+                                              const prevInput = document.querySelector(`[data-field="total-${index - 1}"]`) as HTMLInputElement;
                                               prevInput?.focus();
                                             }, 50);
                                           }
                                         }
                                       }}
                                       onClick={() => {
-                                        const hasSelectedProduct =
-                                          editedItems[item.id]?.productId &&
-                                          editedItems[item.id]?.productId > 0;
+                                        const hasSelectedProduct = editedItems[item.id]?.productId && editedItems[item.id]?.productId > 0;
                                         if (!hasSelectedProduct) {
                                           openProductSelector(item.id);
                                         }
@@ -2176,63 +1792,40 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                       tabIndex={0}
                                       data-field={`sku-${index}`}
                                       className="w-20 sm:w-28 text-center text-xs sm:text-sm h-8 bg-white"
-                                      placeholder={t(
-                                        "purchases.skuPlaceholder",
-                                      )}
+                                      placeholder="Nhập mã/tên SP"
                                     />
                                     <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
 
                                     {/* Suggestions dropdown */}
-                                    {skuSuggestions[item.id] &&
-                                      skuSuggestions[item.id].length > 0 && (
-                                        <div className="absolute z-50 w-64 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                          {skuSuggestions[item.id].map(
-                                            (product: any, idx: number) => (
-                                              <div
-                                                key={product.id}
-                                                className={`px-3 py-2 cursor-pointer text-xs ${
-                                                  idx ===
-                                                  (activeSuggestionIndex[
-                                                    item.id
-                                                  ] || 0)
-                                                    ? "bg-blue-50 text-blue-700"
-                                                    : "hover:bg-gray-50"
-                                                }`}
-                                                onClick={() => {
-                                                  selectProductFromSuggestion(
-                                                    item.id,
-                                                    product,
-                                                  );
-                                                  setTimeout(() => {
-                                                    const nextInput =
-                                                      document.querySelector(
-                                                        `[data-field="product-${index}"]`,
-                                                      ) as HTMLInputElement;
-                                                    nextInput?.focus();
-                                                  }, 50);
-                                                }}
-                                              >
-                                                <div className="font-medium">
-                                                  {product.name}
-                                                </div>
-                                                <div className="text-gray-500">
-                                                  SKU: {product.sku}
-                                                </div>
-                                                <div className="text-gray-600">
-                                                  {product.unitPrice?.toLocaleString(
-                                                    "vi-VN",
-                                                  )}{" "}
-                                                  ₫
-                                                </div>
-                                              </div>
-                                            ),
-                                          )}
-                                        </div>
-                                      )}
+                                    {skuSuggestions[item.id] && skuSuggestions[item.id].length > 0 && (
+                                      <div className="absolute z-50 w-64 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                        {skuSuggestions[item.id].map((product: any, idx: number) => (
+                                          <div
+                                            key={product.id}
+                                            className={`px-3 py-2 cursor-pointer text-xs ${
+                                              idx === (activeSuggestionIndex[item.id] || 0)
+                                                ? 'bg-blue-50 text-blue-700'
+                                                : 'hover:bg-gray-50'
+                                            }`}
+                                            onClick={() => {
+                                              selectProductFromSuggestion(item.id, product);
+                                              setTimeout(() => {
+                                                const nextInput = document.querySelector(`[data-field="product-${index}"]`) as HTMLInputElement;
+                                                nextInput?.focus();
+                                              }, 50);
+                                            }}
+                                          >
+                                            <div className="font-medium">{product.name}</div>
+                                            <div className="text-gray-500">SKU: {product.sku}</div>
+                                            <div className="text-gray-600">{product.unitPrice?.toLocaleString('vi-VN')} ₫</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
                                   <span className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                                    {item.sku || "-"}
+                                    {item.sku || '-'}
                                   </span>
                                 )}
                               </TableCell>
@@ -2242,17 +1835,12 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                 {isEditMode ? (
                                   <Input
                                     type="text"
-                                    value={
-                                      editedItems[item.id]?.productName ??
-                                      item.productName
-                                    }
+                                    value={editedItems[item.id]?.productName ?? item.productName}
                                     tabIndex={0}
                                     data-field={`product-${index}`}
-                                    onKeyDown={(e) =>
-                                      handleKeyDown(e, index, "product")
-                                    }
+                                    onKeyDown={(e) => handleKeyDown(e, index, 'product')}
                                     className="w-full text-xs sm:text-sm h-8 bg-gray-100"
-                                    placeholder={t("purchases.productName")}
+                                    placeholder="Tên sản phẩm"
                                     readOnly
                                   />
                                 ) : (
@@ -2282,38 +1870,36 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                   onFocus={(e) => {
                                     // Clear value if it's 0 when user focuses on the input
                                     if (quantity === 0) {
-                                      e.target.value = "";
+                                      e.target.value = '';
                                     }
                                   }}
                                   onChange={(e) => {
                                     const value = e.target.value;
                                     const newQuantity = parseInt(value) || 0;
 
-                                    setEditedItems((prev) => ({
+                                    setEditedItems(prev => ({
                                       ...prev,
                                       [item.id]: {
                                         ...prev[item.id],
                                         quantity: newQuantity,
-                                        updatedFromAmount: false, // Clear flag - cho phép tính lại từ %CK
-                                      },
+                                        updatedFromAmount: false // Clear flag - cho phép tính lại từ %CK
+                                      }
                                     }));
                                   }}
                                   onBlur={(e) => {
                                     // If user leaves field empty, set to 0
-                                    if (e.target.value === "") {
-                                      setEditedItems((prev) => ({
+                                    if (e.target.value === '') {
+                                      setEditedItems(prev => ({
                                         ...prev,
                                         [item.id]: {
                                           ...prev[item.id],
                                           quantity: 0,
-                                          updatedFromAmount: false,
-                                        },
+                                          updatedFromAmount: false
+                                        }
                                       }));
                                     }
                                   }}
-                                  onKeyDown={(e) =>
-                                    handleKeyDown(e, index, "quantity")
-                                  }
+                                  onKeyDown={(e) => handleKeyDown(e, index, 'quantity')}
                                   className="w-16 text-center text-sm h-8"
                                 />
                               </TableCell>
@@ -2322,27 +1908,22 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                               <TableCell className="p-1 sm:p-2">
                                 <Input
                                   type="text"
-                                  value={unitPrice.toLocaleString("vi-VN")}
+                                  value={unitPrice.toLocaleString('vi-VN')}
                                   disabled={!isEditMode}
                                   data-field={`unitPrice-${index}`}
                                   onChange={(e) => {
-                                    const rawValue = e.target.value.replace(
-                                      /\./g,
-                                      "",
-                                    );
+                                    const rawValue = e.target.value.replace(/\./g, '');
 
-                                    setEditedItems((prev) => ({
+                                    setEditedItems(prev => ({
                                       ...prev,
                                       [item.id]: {
                                         ...prev[item.id],
                                         unitPrice: rawValue,
-                                        updatedFromAmount: false, // Clear flag - cho phép tính lại từ %CK
-                                      },
+                                        updatedFromAmount: false // Clear flag - cho phép tính lại từ %CK
+                                      }
                                     }));
                                   }}
-                                  onKeyDown={(e) =>
-                                    handleKeyDown(e, index, "unitPrice")
-                                  }
+                                  onKeyDown={(e) => handleKeyDown(e, index, 'unitPrice')}
                                   className="w-28 text-right text-sm h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </TableCell>
@@ -2351,27 +1932,16 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                               <TableCell className="p-1 sm:p-2">
                                 <Input
                                   type="text"
-                                  value={subtotal.toLocaleString("vi-VN")}
+                                  value={subtotal.toLocaleString('vi-VN')}
                                   disabled={!isEditMode}
                                   data-field={`subtotal-${index}`}
                                   onChange={(e) => {
-                                    const rawValue = e.target.value.replace(
-                                      /\./g,
-                                      "",
-                                    );
-                                    const newSubtotal =
-                                      parseFloat(rawValue) || 0;
-                                    const newUnitPrice =
-                                      quantity > 0 ? newSubtotal / quantity : 0;
-                                    handleItemChange(
-                                      item.id,
-                                      "unitPrice",
-                                      newUnitPrice.toString(),
-                                    );
+                                    const rawValue = e.target.value.replace(/\./g, '');
+                                    const newSubtotal = parseFloat(rawValue) || 0;
+                                    const newUnitPrice = quantity > 0 ? newSubtotal / quantity : 0;
+                                    handleItemChange(item.id, 'unitPrice', newUnitPrice.toString());
                                   }}
-                                  onKeyDown={(e) =>
-                                    handleKeyDown(e, index, "subtotal")
-                                  }
+                                  onKeyDown={(e) => handleKeyDown(e, index, 'subtotal')}
                                   className="w-28 text-right font-medium text-sm h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </TableCell>
@@ -2384,60 +1954,43 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                   disabled={!isEditMode}
                                   data-field={`discountPercent-${index}`}
                                   onChange={(e) => {
-                                    const rawValue = e.target.value.replace(
-                                      /\./g,
-                                      "",
-                                    );
-                                    const newDiscountPercent =
-                                      parseInt(rawValue) || 0;
+                                    const rawValue = e.target.value.replace(/\./g, '');
+                                    const newDiscountPercent = parseInt(rawValue) || 0;
 
                                     // Cập nhật %CK và TỰ ĐỘNG tính lại tiền chiết khấu
-                                    setEditedItems((prev) => ({
+                                    setEditedItems(prev => ({
                                       ...prev,
                                       [item.id]: {
                                         ...prev[item.id],
-                                        discountPercent:
-                                          newDiscountPercent.toString(),
+                                        discountPercent: newDiscountPercent.toString(),
                                         updatedFromPercent: true, // Flag để tính lại từ %CK
                                         updatedFromAmount: false, // Clear flag amount
-                                        discountAmount: undefined, // Clear để tính lại
-                                      },
+                                        discountAmount: undefined // Clear để tính lại
+                                      }
                                     }));
                                   }}
                                   onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === "Tab") {
+                                    if (e.key === 'Enter' || e.key === 'Tab') {
                                       e.preventDefault();
                                       // Giữ nguyên giá trị hiện tại - KHÔNG tính lại
-                                      const {
-                                        discountPercent: currentPercent,
-                                        discountAmount: currentAmount,
-                                      } = calculateItemValues(item.id, item);
-                                      setEditedItems((prev) => ({
+                                      const { discountPercent: currentPercent, discountAmount: currentAmount } = calculateItemValues(item.id, item);
+                                      setEditedItems(prev => ({
                                         ...prev,
                                         [item.id]: {
                                           ...prev[item.id],
-                                          discountPercent:
-                                            currentPercent.toString(),
-                                          discountAmount:
-                                            currentAmount.toString(),
+                                          discountPercent: currentPercent.toString(),
+                                          discountAmount: currentAmount.toString(),
                                           updatedFromPercent: false, // Clear flag - không tính lại
-                                          updatedFromAmount: false,
-                                        },
+                                          updatedFromAmount: false
+                                        }
                                       }));
                                       // Di chuyển sang field tiếp theo
                                       setTimeout(() => {
-                                        const nextInput =
-                                          document.querySelector(
-                                            `[data-field="discountAmount-${index}"]`,
-                                          ) as HTMLInputElement;
+                                        const nextInput = document.querySelector(`[data-field="discountAmount-${index}"]`) as HTMLInputElement;
                                         nextInput?.focus();
                                       }, 50);
                                     } else {
-                                      handleKeyDown(
-                                        e,
-                                        index,
-                                        "discountPercent",
-                                      );
+                                      handleKeyDown(e, index, 'discountPercent');
                                     }
                                   }}
                                   className="w-20 text-center text-sm h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -2448,41 +2001,33 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                               <TableCell className="p-1 sm:p-2">
                                 <Input
                                   type="text"
-                                  value={discountAmount.toLocaleString("vi-VN")}
+                                  value={discountAmount.toLocaleString('vi-VN')}
                                   disabled={!isEditMode}
                                   data-field={`discountAmount-${index}`}
                                   onChange={(e) => {
-                                    const rawValue = e.target.value.replace(
-                                      /\D/g,
-                                      "",
-                                    );
-                                    const newDiscountAmount =
-                                      parseFloat(rawValue) || 0;
+                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                    const newDiscountAmount = parseFloat(rawValue) || 0;
 
                                     // Lưu CHÍNH XÁC discountAmount từ UI và flag để KHÔNG tính lại %CK
-                                    setEditedItems((prev) => ({
+                                    setEditedItems(prev => ({
                                       ...prev,
                                       [item.id]: {
                                         ...prev[item.id],
-                                        discountAmount:
-                                          newDiscountAmount.toString(), // Lưu chính xác giá trị
-                                        updatedFromAmount: true, // Flag để biết đang nhập discount amount
-                                      },
+                                        discountAmount: newDiscountAmount.toString(), // Lưu chính xác giá trị
+                                        updatedFromAmount: true // Flag để biết đang nhập discount amount
+                                      }
                                     }));
                                   }}
                                   onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === "Tab") {
+                                    if (e.key === 'Enter' || e.key === 'Tab') {
                                       e.preventDefault();
                                       // Di chuyển sang field tiếp theo
                                       setTimeout(() => {
-                                        const nextInput =
-                                          document.querySelector(
-                                            `[data-field="total-${index}"]`,
-                                          ) as HTMLInputElement;
+                                        const nextInput = document.querySelector(`[data-field="total-${index}"]`) as HTMLInputElement;
                                         nextInput?.focus();
                                       }, 50);
                                     } else {
-                                      handleKeyDown(e, index, "discountAmount");
+                                      handleKeyDown(e, index, 'discountAmount');
                                     }
                                   }}
                                   className="w-28 text-right font-medium text-sm h-8 border-red-300 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -2493,41 +2038,28 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                               <TableCell className="text-right font-bold text-green-600 text-sm p-2">
                                 <Input
                                   type="text"
-                                  value={Math.round(total).toLocaleString(
-                                    "vi-VN",
-                                  )}
+                                  value={Math.round(total).toLocaleString('vi-VN')}
                                   disabled={!isEditMode}
                                   data-field={`total-${index}`}
                                   onChange={(e) => {
-                                    const rawValue = e.target.value.replace(
-                                      /\./g,
-                                      "",
-                                    );
+                                    const rawValue = e.target.value.replace(/\./g, '');
                                     const newTotal = parseFloat(rawValue) || 0;
-                                    const newDiscountAmount =
-                                      subtotal - newTotal;
-                                    const newDiscountPercent =
-                                      subtotal > 0
-                                        ? (newDiscountAmount / subtotal) * 100
-                                        : 0;
+                                    const newDiscountAmount = subtotal - newTotal;
+                                    const newDiscountPercent = subtotal > 0 ? (newDiscountAmount / subtotal) * 100 : 0;
 
                                     // Cập nhật cả discountAmount và discountPercent, set flag để không tính lại
-                                    setEditedItems((prev) => ({
+                                    setEditedItems(prev => ({
                                       ...prev,
                                       [item.id]: {
                                         ...prev[item.id],
-                                        discountAmount:
-                                          newDiscountAmount.toString(),
-                                        discountPercent:
-                                          newDiscountPercent.toString(),
+                                        discountAmount: newDiscountAmount.toString(),
+                                        discountPercent: newDiscountPercent.toString(),
                                         updatedFromAmount: true, // Flag để giữ nguyên discount amount
-                                        updatedFromPercent: false,
-                                      },
+                                        updatedFromPercent: false
+                                      }
                                     }));
                                   }}
-                                  onKeyDown={(e) =>
-                                    handleKeyDown(e, index, "total")
-                                  }
+                                  onKeyDown={(e) => handleKeyDown(e, index, 'total')}
                                   className="w-32 text-right font-bold text-green-600 bg-green-50 border-green-300 text-sm h-8 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </TableCell>
@@ -2541,51 +2073,36 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                     size="sm"
                                     onClick={async () => {
                                       // Only allow deletion if the item has a valid ID (i.e., it's not a new, unsaved item)
-                                      if (item.id && item.id < 1000000000) {
-                                        // Assuming valid IDs are smaller than temporary IDs
+                                      if (item.id && item.id < 1000000000) { // Assuming valid IDs are smaller than temporary IDs
                                         try {
-                                          const response = await fetch(
-                                            `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-order-items/${item.id}`,
-                                            {
-                                              method: "DELETE",
-                                            },
-                                          );
+                                          const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-order-items/${item.id}`, {
+                                            method: 'DELETE',
+                                          });
 
                                           if (!response.ok) {
-                                            throw new Error(
-                                              "Failed to delete item",
-                                            );
+                                            throw new Error('Failed to delete item');
                                           }
 
                                           toast({
                                             title: "Đã xóa",
-                                            description:
-                                              "Xóa sản phẩm thành công",
+                                            description: "Xóa sản phẩm thành công",
                                           });
 
                                           // Refresh the items list
-                                          await queryClient.invalidateQueries({
-                                            queryKey: [
-                                              "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts",
-                                              purchaseId,
-                                              "items",
-                                            ],
+                                          await queryClient.invalidateQueries({ 
+                                            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                                           });
                                         } catch (error) {
-                                          console.error(
-                                            "Error deleting item:",
-                                            error,
-                                          );
+                                          console.error('Error deleting item:', error);
                                           toast({
                                             variant: "destructive",
                                             title: "Lỗi",
-                                            description:
-                                              "Không thể xóa sản phẩm",
+                                            description: "Không thể xóa sản phẩm",
                                           });
                                         }
                                       } else {
                                         // If it's a new item (temporary ID), just remove it from the state
-                                        setEditedItems((prev) => {
+                                        setEditedItems(prev => {
                                           const newState = { ...prev };
                                           delete newState[item.id];
                                           return newState;
@@ -2598,15 +2115,12 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                                         // For now, assuming `purchaseItems` is only populated from server initially.
                                         toast({
                                           title: "Đã xóa",
-                                          description:
-                                            "Đã xóa sản phẩm tạm thời",
+                                          description: "Đã xóa sản phẩm tạm thời",
                                         });
                                       }
                                     }}
                                     className="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 p-0 rounded-full"
-                                    disabled={
-                                      item.id < 1000000000 ? false : false
-                                    } // Only allow delete for real items, temporary items are handled differently.
+                                    disabled={item.id < 1000000000 ? false : false} // Only allow delete for real items, temporary items are handled differently.
                                   >
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
@@ -2629,9 +2143,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
                           {/* SKU - empty for summary */}
                           <TableCell className="text-center p-1 sm:p-2">
-                            <span className="text-xs sm:text-sm text-blue-600">
-                              -
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-600">-</span>
                           </TableCell>
 
                           {/* Total Label */}
@@ -2641,19 +2153,14 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
                           {/* Unit */}
                           <TableCell className="text-center p-1 sm:p-2">
-                            <span className="text-xs sm:text-sm text-blue-600">
-                              -
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-600">-</span>
                           </TableCell>
 
                           {/* Total Quantity */}
                           <TableCell className="p-1 sm:p-2">
                             <div className="w-16 text-center font-bold text-blue-800 bg-blue-100 border border-blue-300 rounded px-1.5 py-0.5 text-xs sm:text-sm">
                               {purchaseItems.reduce((sum, item) => {
-                                const { quantity } = calculateItemValues(
-                                  item.id,
-                                  item,
-                                );
+                                const { quantity } = calculateItemValues(item.id, item);
                                 return sum + quantity;
                               }, 0)}
                             </div>
@@ -2661,43 +2168,31 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
                           {/* Unit Price - not displayed */}
                           <TableCell className="p-1 sm:p-2">
-                            <span className="text-xs sm:text-sm text-blue-600">
-                              -
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-600">-</span>
                           </TableCell>
 
                           {/* Total Subtotal */}
                           <TableCell className="p-1 sm:p-2">
                             <div className="w-28 text-right font-bold text-blue-800 bg-blue-100 border border-blue-300 rounded px-1.5 py-0.5 text-xs sm:text-sm">
-                              {purchaseItems
-                                .reduce((sum, item) => {
-                                  const { subtotal } = calculateItemValues(
-                                    item.id,
-                                    item,
-                                  );
-                                  return sum + subtotal;
-                                }, 0)
-                                .toLocaleString("ko-KR")}
+                              {purchaseItems.reduce((sum, item) => {
+                                const { subtotal } = calculateItemValues(item.id, item);
+                                return sum + subtotal;
+                              }, 0).toLocaleString("ko-KR")}
                             </div>
                           </TableCell>
 
                           {/* Discount Percent - not displayed */}
                           <TableCell className="p-1 sm:p-2">
-                            <span className="text-xs sm:text-sm text-blue-600">
-                              -
-                            </span>
+                            <span className="text-xs sm:text-sm text-blue-600">-</span>
                           </TableCell>
 
                           {/* Total Discount */}
                           <TableCell className="p-1 sm:p-2">
                             <div className="w-28 text-right font-bold text-red-800 bg-red-100 border border-red-300 rounded px-1.5 py-0.5 text-xs sm:text-sm">
-                              {purchaseItems
-                                .reduce((sum, item) => {
-                                  const { discountAmount } =
-                                    calculateItemValues(item.id, item);
-                                  return sum + discountAmount;
-                                }, 0)
-                                .toLocaleString("ko-KR")}
+                              {purchaseItems.reduce((sum, item) => {
+                                const { discountAmount } = calculateItemValues(item.id, item);
+                                return sum + discountAmount;
+                              }, 0).toLocaleString("ko-KR")}
                             </div>
                           </TableCell>
 
@@ -2705,19 +2200,11 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                           <TableCell className="p-1 sm:p-2">
                             <div className="w-32 text-right font-bold text-green-800 bg-green-100 border border-green-300 rounded px-1.5 py-0.5 text-xs sm:text-sm">
                               {(() => {
-                                const finalTotal = purchaseItems.reduce(
-                                  (sum, item) => {
-                                    const { total } = calculateItemValues(
-                                      item.id,
-                                      item,
-                                    );
-                                    return sum + total;
-                                  },
-                                  0,
-                                );
-                                return Math.round(finalTotal).toLocaleString(
-                                  "vi-VN",
-                                );
+                                const finalTotal = purchaseItems.reduce((sum, item) => {
+                                  const { total } = calculateItemValues(item.id, item);
+                                  return sum + total;
+                                }, 0);
+                                return Math.round(finalTotal).toLocaleString('vi-VN');
                               })()}
                             </div>
                           </TableCell>
@@ -2737,7 +2224,18 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
 
           {/* Action Buttons */}
           <div className="flex gap-4 justify-end">
-            <Button variant="outline" onClick={() => navigate("/purchases")}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (onSuccess) {
+                  // Dialog mode - call onSuccess to close
+                  onSuccess();
+                } else {
+                  // Standalone mode - navigate back
+                  navigate('/purchases');
+                }
+              }}
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("common.back")}
             </Button>
@@ -2745,26 +2243,22 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
               <Button
                 onClick={async () => {
                   // Tải lại dữ liệu từ server trước khi cho phép chỉnh sửa
-                  await queryClient.invalidateQueries({
-                    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId],
+                  await queryClient.invalidateQueries({ 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                   });
-                  await queryClient.invalidateQueries({
-                    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
+                  await queryClient.invalidateQueries({ 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                   });
-                  await queryClient.invalidateQueries({
-                    queryKey: [
-                      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts",
-                      purchaseId,
-                      "documents",
-                    ],
+                  await queryClient.invalidateQueries({ 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"] 
                   });
 
                   // Đợi dữ liệu load xong (refetch data)
-                  await queryClient.refetchQueries({
-                    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId],
+                  await queryClient.refetchQueries({ 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                   });
-                  await queryClient.refetchQueries({
-                    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
+                  await queryClient.refetchQueries({ 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                   });
 
                   // Bật chế độ chỉnh sửa
@@ -2783,48 +2277,38 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                     setIsEditMode(false);
 
                     // Reload all data from server
-                    await queryClient.invalidateQueries({
-                      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId],
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                     });
-                    await queryClient.invalidateQueries({
-                      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", purchaseId, "items"],
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                     });
-                    await queryClient.invalidateQueries({
-                      queryKey: [
-                        "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts",
-                        purchaseId,
-                        "documents",
-                      ],
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"] 
                     });
 
                     // Reset form data to original values
                     if (purchaseOrder) {
                       setFormData({
                         supplierId: purchaseOrder.supplierId?.toString() || "",
-                        purchaseDate:
-                          purchaseOrder.purchaseDate ||
-                          purchaseOrder.actualDeliveryDate ||
-                          "",
+                        purchaseDate: purchaseOrder.purchaseDate || purchaseOrder.actualDeliveryDate || "",
                         purchaseType: purchaseOrder.purchaseType || "",
                         employeeId: purchaseOrder.employeeId?.toString() || "",
                         notes: purchaseOrder.notes || "",
-                        isPaid: purchaseOrder.isPaid || false, // Reset isPaid
+                        isPaid: purchaseOrder.isPaid || false // Reset isPaid
                       });
                     }
                     // Reset edited items to original values
                     if (purchaseItems.length > 0) {
                       const initialItems: Record<number, any> = {};
-                      purchaseItems.forEach((item) => {
+                      purchaseItems.forEach(item => {
                         initialItems[item.id] = {
                           quantity: item.quantity,
                           unitPrice: item.unitPrice,
-                          discountPercent:
-                            item.discountPercent ||
-                            item.discount_percent ||
-                            "0",
+                          discountPercent: item.discountPercent || item.discount_percent || '0',
                           productName: item.productName,
                           sku: item.sku,
-                          discountAmount: item.discountAmount, // Reset discountAmount
+                          discountAmount: item.discountAmount // Reset discountAmount
                         };
                       });
                       setEditedItems(initialItems);
@@ -2871,37 +2355,25 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "ArrowDown") {
+                  if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    setSelectedProductIndex((prev) =>
-                      prev < products.length - 1 ? prev + 1 : prev,
+                    setSelectedProductIndex(prev => 
+                      prev < products.length - 1 ? prev + 1 : prev
                     );
                     // Scroll to selected item
                     setTimeout(() => {
-                      const element = document.querySelector(
-                        `[data-product-index="${selectedProductIndex + 1}"]`,
-                      );
-                      element?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                      });
+                      const element = document.querySelector(`[data-product-index="${selectedProductIndex + 1}"]`);
+                      element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }, 0);
-                  } else if (e.key === "ArrowUp") {
+                  } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
-                    setSelectedProductIndex((prev) =>
-                      prev > 0 ? prev - 1 : 0,
-                    );
+                    setSelectedProductIndex(prev => prev > 0 ? prev - 1 : 0);
                     // Scroll to selected item
                     setTimeout(() => {
-                      const element = document.querySelector(
-                        `[data-product-index="${selectedProductIndex - 1}"]`,
-                      );
-                      element?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "nearest",
-                      });
+                      const element = document.querySelector(`[data-product-index="${selectedProductIndex - 1}"]`);
+                      element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     }, 0);
-                  } else if (e.key === "Enter" && products.length > 0) {
+                  } else if (e.key === 'Enter' && products.length > 0) {
                     e.preventDefault();
                     handleProductSelect(products[selectedProductIndex]);
                   }
@@ -2918,49 +2390,34 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                   <TableRow>
                     <TableHead>{t("purchases.productName")}</TableHead>
                     <TableHead>{t("purchases.sku")}</TableHead>
-                    <TableHead className="text-right">
-                      {t("purchases.unitPrice")}
-                    </TableHead>
-                    <TableHead className="text-center">
-                      {t("inventory.stock")}
-                    </TableHead>
+                    <TableHead className="text-right">{t("purchases.unitPrice")}</TableHead>
+                    <TableHead className="text-center">{t("inventory.stock")}</TableHead>
                     <TableHead className="w-20"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={5}
-                        className="text-center py-8 text-gray-500"
-                      >
+                      <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                         {t("purchases.noItems")}
                       </TableCell>
                     </TableRow>
                   ) : (
                     products.map((product: any, index: number) => (
-                      <TableRow
+                      <TableRow 
                         key={product.id}
                         data-product-index={index}
                         className={`cursor-pointer transition-colors ${
-                          index === selectedProductIndex
-                            ? "bg-blue-50 border-l-4 border-l-blue-500"
-                            : "hover:bg-gray-50"
+                          index === selectedProductIndex 
+                            ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                            : 'hover:bg-gray-50'
                         }`}
                         onClick={() => handleProductSelect(product)}
                       >
-                        <TableCell className="font-medium">
-                          {product.name}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-600">
-                          {product.sku || "-"}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {product.unitPrice.toLocaleString("ko-KR")}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {product.stock || 0}
-                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell className="text-sm text-gray-600">{product.sku || '-'}</TableCell>
+                        <TableCell className="text-right">{product.unitPrice.toLocaleString('ko-KR')}</TableCell>
+                        <TableCell className="text-center">{product.stock || 0}</TableCell>
                         <TableCell>
                           <Button
                             size="sm"
@@ -2969,11 +2426,7 @@ export default function PurchaseViewPage({ onLogout }: PurchaseViewPageProps) {
                               e.stopPropagation();
                               handleProductSelect(product);
                             }}
-                            className={
-                              index === selectedProductIndex
-                                ? "text-blue-600"
-                                : ""
-                            }
+                            className={index === selectedProductIndex ? 'text-blue-600' : ''}
                           >
                             <CheckCircle className="h-4 w-4" />
                           </Button>

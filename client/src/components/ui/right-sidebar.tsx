@@ -33,6 +33,9 @@ interface MenuItem {
 // Menu items will be translated using the hook inside the component
 
 export function RightSidebar() {
+  // Return null to completely hide the sidebar
+  return null;
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isNavCollapsed, setIsNavCollapsed] = useState(true);
   const [location] = useLocation();
@@ -40,9 +43,9 @@ export function RightSidebar() {
 
   // Query store settings to get business type
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       return response.json();
     },
   });
@@ -113,13 +116,6 @@ export function RightSidebar() {
       item.href === "/tables" &&
       (storeSettings?.businessType === "retail" ||
         storeSettings?.businessType === "laundry")
-    ) {
-      return false;
-    }
-    // Hide settings for laundry business type
-    if (
-      item.href === "/settings" &&
-      storeSettings?.businessType === "laundry"
     ) {
       return false;
     }

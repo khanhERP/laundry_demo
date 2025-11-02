@@ -12,66 +12,26 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: any,
-  options: RequestInit = {},
-) {
-  // Log payment method tracking for order status updates
-  if (
-    url.includes("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/") &&
-    url.includes("/status") &&
-    method === "PUT"
-  ) {
-    console.log(
-      "🔍 apiRequest: Payment method tracking for order status update:",
-      {
-        method,
-        url,
-        data,
-        hasPaymentMethod: data && "paymentMethod" in data,
-        paymentMethodValue: data?.paymentMethod,
-        paymentMethodType: typeof data?.paymentMethod,
-        paymentMethodIsNull: data?.paymentMethod === null,
-        paymentMethodIsUndefined: data?.paymentMethod === undefined,
-        paymentMethodIsEmpty: data?.paymentMethod === "",
-        fullRequestData: data,
-        timestamp: new Date().toISOString(),
-      },
-    );
-  }
-
-  const config: RequestInit = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
+): Promise<Response> {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
   };
 
-  if (data && (method === "POST" || method === "PUT" || method === "PATCH")) {
-    config.body = JSON.stringify(data);
+  const options: RequestInit = {
+    method,
+    headers,
+    credentials: "include",
+  };
 
-    // Additional logging for payment method requests
-    if (
-      url.includes("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/") &&
-      url.includes("/status") &&
-      method === "PUT"
-    ) {
-      console.log("🔍 apiRequest: Final request body for payment:", {
-        url,
-        requestBodyString: JSON.stringify(data),
-        parsedBack: JSON.parse(JSON.stringify(data)),
-        timestamp: new Date().toISOString(),
-      });
-    }
+  if (data) {
+    options.body = JSON.stringify(data);
+    console.log(`🌐 API Request: ${method} ${url}`, {
+      payload: data,
+      stringified: JSON.stringify(data),
+    });
   }
 
-  const response = await fetch(url, config);
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response;
+  return fetch(url, options);
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -80,9 +40,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    const res = await fetch(queryKey.join("/") as string);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
@@ -92,25 +50,25 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
- export const queryClient = new QueryClient({
-	  defaultOptions: {
-		queries: {
-		  queryFn: defaultFetcher, // 👈 set mặc định ở đây
-		  // queryFn: getQueryFn({ on401: "throw" }),
-		  refetchInterval: false,
-		  refetchOnWindowFocus: true,
-		  staleTime: 0, // No cache
-		  gcTime: 0, // Don't keep in memory
-		  retry: 1,
-		  refetchOnMount: true,
-		  refetchOnReconnect: true,
-		  networkMode: "online",
-		},
-		mutations: {
-		  retry: false,
-		  onError: (error) => {
-			console.error("Mutation error:", error);
-		  },
-		},
-	  },
-	});
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: defaultFetcher, // 👈 set mặc định ở đây
+      //queryFn: getQueryFn({ on401: "throw" }),
+      refetchInterval: false,
+      refetchOnWindowFocus: true,
+      staleTime: 0, // No cache - always fetch fresh
+      gcTime: 0, // Don't keep in memory
+      retry: 1,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      networkMode: "online",
+    },
+    mutations: {
+      retry: false,
+      onError: (error) => {
+        console.error("Mutation error:", error);
+      },
+    },
+  },
+});

@@ -34,9 +34,9 @@ export function Toaster() {
                 if (translated && translated !== description) {
                   translatedDescription = translated;
                 } else {
-                  // Fallback: try to provide a meaningful message
-                  console.warn(`Missing translation for key: ${description}`);
-                  translatedDescription = description.split('.').pop() || description;
+                  // Fallback: if translation not found, keep the original description as-is
+                  // This allows API error messages to pass through
+                  translatedDescription = description;
                 }
               } catch (error) {
                 console.error(`Translation error for key: ${description}`, error);
@@ -47,6 +47,13 @@ export function Toaster() {
             else if (description.includes('Failed to create product')) {
               translatedDescription = 'Không thể tạo sản phẩm. Vui lòng kiểm tra lại thông tin và thử lại.';
             }
+            // Handle JSON parsing errors from API
+            else if (description.includes('Unexpected token') && description.includes('not valid JSON')) {
+              translatedDescription = 'Lỗi hệ thống. Vui lòng thử lại sau hoặc liên hệ quản trị viên.';
+              console.error('API returned HTML instead of JSON:', description);
+            }
+            // If description already looks like a proper Vietnamese message, use it as-is
+            // (This handles direct error messages from API like "Không thể xóa sản phẩm...")
           }
         }
 

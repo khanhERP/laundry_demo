@@ -132,88 +132,19 @@ export function OrderManagement() {
       setSelectedReceipt(null);
 
       // Refresh data
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] });
-    };
-
-    const handlePaymentCompleted = async (event: CustomEvent) => {
-      console.log(
-        "📋 Order Management: Payment completed event received, refreshing orders",
-        event.detail
-      );
-
-      // Force immediate refresh
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-      ]);
-    };
-
-    const handleOrderStatusUpdated = async (event: CustomEvent) => {
-      console.log(
-        "📋 Order Management: Order status updated event received, refreshing orders",
-        event.detail
-      );
-
-      // Force immediate refresh
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-      ]);
-    };
-
-    const handleForceRefresh = async (event: CustomEvent) => {
-      console.log(
-        "📋 Order Management: Force refresh event received",
-        event.detail
-      );
-
-      // Force immediate refresh
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-      ]);
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
     };
 
     window.addEventListener(
       "printCompleted",
       handlePrintCompleted as EventListener,
     );
-    window.addEventListener(
-      "paymentCompleted",
-      handlePaymentCompleted as EventListener,
-    );
-    window.addEventListener(
-      "orderStatusUpdated",
-      handleOrderStatusUpdated as EventListener,
-    );
-    window.addEventListener(
-      "forceRefresh",
-      handleForceRefresh as EventListener,
-    );
 
     return () => {
       window.removeEventListener(
         "printCompleted",
         handlePrintCompleted as EventListener,
-      );
-      window.removeEventListener(
-        "paymentCompleted",
-        handlePaymentCompleted as EventListener,
-      );
-      window.removeEventListener(
-        "orderStatusUpdated",
-        handleOrderStatusUpdated as EventListener,
-      );
-      window.removeEventListener(
-        "forceRefresh",
-        handleForceRefresh as EventListener,
       );
     };
   }, [queryClient]);
@@ -284,16 +215,15 @@ export function OrderManagement() {
 
   // Query orders by date range - filter only table orders
   const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders", "table"],
-    refetchInterval: 1000, // Very fast polling - every 1 second for real-time updates
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", "table"],
+    refetchInterval: 2000, // Faster polling - every 2 seconds
     refetchOnWindowFocus: true, // Refetch when window regains focus
     refetchIntervalInBackground: true, // Continue refetching in background
-    refetchOnMount: true, // Always refetch on mount
     staleTime: 0, // Always consider data fresh to force immediate updates
     queryFn: async () => {
       const response = await apiRequest(
         "GET",
-        "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders?salesChannel=table",
+        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders?salesChannel=table",
       );
       if (!response.ok) {
         throw new Error("Failed to fetch table orders");
@@ -325,28 +255,28 @@ export function OrderManagement() {
   });
 
   const { data: tables } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
   });
 
   const { data: products } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const { data: customers } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"],
     enabled: pointsPaymentOpen,
   });
 
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       return response.json();
     },
   });
 
   const { data: orderItems, isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items", selectedOrder?.id],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", selectedOrder?.id],
     enabled: !!selectedOrder?.id && orderDetailsOpen,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
@@ -358,7 +288,7 @@ export function OrderManagement() {
       try {
         const response = await apiRequest(
           "GET",
-          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items/${selectedOrder.id}`,
+          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/${selectedOrder.id}`,
         );
         if (!response.ok) {
           console.error(
@@ -377,10 +307,10 @@ export function OrderManagement() {
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: ({ orderId, status }: { orderId: number; status: string }) =>
-      apiRequest("PUT", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`, { status }),
+      apiRequest("PUT", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
       toast({
         title: t("common.success"),
         description: t("orders.orderStatusUpdated"),
@@ -431,10 +361,10 @@ export function OrderManagement() {
 
       // Force immediate refresh
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
       ]);
 
       // Don't show toast immediately to avoid conflicts with receipt modal
@@ -514,13 +444,13 @@ export function OrderManagement() {
       remainingAmount?: number;
     }) => {
       // First redeem points
-      await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/redeem-points", {
+      await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/redeem-points", {
         customerId,
         points,
       });
 
       // Then mark order as paid
-      await apiRequest("PUT", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`, {
+      await apiRequest("PUT", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`, {
         status: "paid",
         paymentMethod: paymentMethod || "points",
         customerId,
@@ -528,9 +458,9 @@ export function OrderManagement() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
       setOrderDetailsOpen(false);
       setPointsPaymentOpen(false);
       setSelectedCustomer(null);
@@ -563,22 +493,22 @@ export function OrderManagement() {
       paymentMethod: string;
     }) => {
       // First redeem all available points
-      await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/redeem-points", {
+      await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/redeem-points", {
         customerId,
         points,
       });
 
       // Then mark order as paid with mixed payment
-      await apiRequest("PUT", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`, {
+      await apiRequest("PUT", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`, {
         status: "paid",
         paymentMethod: `points + ${paymentMethod}`,
         customerId,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
       setOrderDetailsOpen(false);
       setMixedPaymentOpen(false);
       setMixedPaymentData(null);
@@ -673,7 +603,7 @@ export function OrderManagement() {
       );
 
       console.log("🔍 API Call Details:", {
-        url: `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`,
+        url: `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`,
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "paid" }),
@@ -681,7 +611,7 @@ export function OrderManagement() {
 
       const statusResponse = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`,
         { status: "paid" },
       );
 
@@ -711,7 +641,7 @@ export function OrderManagement() {
       // Step 2: Update additional payment details
       console.log("📋 Step 2: Updating payment details for order:", orderId);
 
-      const paymentDetailsResponse = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}`, {
+      const paymentDetailsResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -738,10 +668,10 @@ export function OrderManagement() {
       // Force immediate refresh with multiple attempts (5 times)
       for (let i = 0; i < 5; i++) {
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
         ]);
 
         if (i < 4) {
@@ -754,8 +684,8 @@ export function OrderManagement() {
       intervals.forEach((delay, index) => {
         setTimeout(async () => {
           await Promise.all([
-            queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-            queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+            queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+            queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
           ]);
           console.log(
             `🔄 Delayed refresh ${index + 1} completed after ${delay}ms`,
@@ -863,7 +793,7 @@ export function OrderManagement() {
         try {
           const response = await apiRequest(
             "GET",
-            `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items/${currentOrderId}`,
+            `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/${currentOrderId}`,
           );
           currentOrderItems = await response.json();
           console.log(
@@ -1164,7 +1094,7 @@ export function OrderManagement() {
       const startTime = Date.now();
       const response = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/${orderId}/status`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/${orderId}/status`,
         { status: newStatus },
       );
       const endTime = Date.now();
@@ -1201,10 +1131,10 @@ export function OrderManagement() {
 
         // Invalidate and refetch queries immediately
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
         ]);
 
         console.log(`✅ Queries refreshed after status update`);
@@ -1284,7 +1214,7 @@ export function OrderManagement() {
       // Fetch order items
       const orderItemsResponse = await apiRequest(
         "GET",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items/${order.id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/${order.id}`,
       );
 
       if (!orderItemsResponse.ok) {
@@ -1447,10 +1377,10 @@ export function OrderManagement() {
       try {
         // Force immediate refresh
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-          queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+          queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
         ]);
 
         // Close all modals immediately and prevent any reopening
@@ -1512,10 +1442,10 @@ export function OrderManagement() {
 
       // Force immediate UI refresh
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
       ]);
 
       // Close all modals immediately - no receipt display for direct payments
@@ -1959,7 +1889,7 @@ export function OrderManagement() {
           // Fetch order items for calculation
           const response = await apiRequest(
             "GET",
-            `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items/${order.id}`,
+            `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/${order.id}`,
           );
           if (!response.ok) {
             console.warn(
@@ -3465,10 +3395,10 @@ export function OrderManagement() {
 
               // Step 2: Force data refresh before clearing states
               await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-                queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
-                queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"] }),
-                queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"] }),
+                queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+                queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+                queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+                queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
               ]);
 
               // Step 3: Clear modal states gradually to prevent white screen

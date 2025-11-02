@@ -44,19 +44,50 @@ export function TableReport() {
   const [endDate, setEndDate] = useState<string>(
     new Date().toISOString().split("T")[0],
   );
+  const [storeFilter, setStoreFilter] = useState<string>("all");
 
-  // Fetch data using EXACT same pattern as other reports
-  const { data: orders = [], isLoading: ordersLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders"],
+  // Fetch stores list for filter dropdown
+  const { data: storesData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch stores");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        return [];
+      }
+    },
+    retry: 2,
+  });
+
+  // Query orders by date range with store filter
+  const { data: orders = [], isLoading: ordersLoading } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, storeFilter],
+    queryFn: async () => {
+      try {
+        const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDate}/${endDate}/all`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         console.log("Table Report - Orders loaded:", data?.length || 0);
-        return Array.isArray(data) ? data : [];
+
+        // Filter by store if not "all"
+        let filteredData = Array.isArray(data) ? data : [];
+        if (storeFilter !== "all") {
+          filteredData = filteredData.filter((order: any) => order.storeCode === storeFilter);
+          console.log(`Table Report - Filtered to ${filteredData.length} orders for store ${storeFilter}`);
+        }
+
+        return filteredData;
       } catch (error) {
         console.error("Table Report - Error fetching orders:", error);
         return [];
@@ -67,10 +98,10 @@ export function TableReport() {
   });
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoices"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoices"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoices");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoices");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -87,10 +118,10 @@ export function TableReport() {
   });
 
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transactions"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transactions");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -107,10 +138,10 @@ export function TableReport() {
   });
 
   const { data: tables = [], isLoading: tablesLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -128,10 +159,10 @@ export function TableReport() {
 
   // Fetch order items and transaction items for detailed analysis
   const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -149,10 +180,10 @@ export function TableReport() {
 
   const { data: transactionItems = [], isLoading: transactionItemsLoading } =
     useQuery({
-      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transaction-items"],
+      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transaction-items"],
       queryFn: async () => {
         try {
-          const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transaction-items");
+          const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transaction-items");
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
@@ -520,7 +551,8 @@ export function TableReport() {
     transactionsLoading ||
     tablesLoading ||
     orderItemsLoading ||
-    transactionItemsLoading;
+    transactionItemsLoading ||
+    !storesData;
 
   if (isLoading) {
     return (
@@ -546,56 +578,77 @@ export function TableReport() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Utensils className="w-5 h-5" />
-                {t("reports.tableAnalysis")}
-              </CardTitle>
-              <CardDescription>
-                {t("reports.analyzeTableRevenueTrend")}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-4">
-              <Select value={dateRange} onValueChange={handleDateRangeChange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">{t("reports.toDay")}</SelectItem>
-                  <SelectItem value="week">{t("reports.lastWeek")}</SelectItem>
-                  <SelectItem value="month">
-                    {t("reports.lastMonth")}
-                  </SelectItem>
-                  <SelectItem value="custom">{t("reports.custom")}</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {dateRange === "custom" && (
-                <>
-                  <div className="flex items-center gap-2">
-                    <Label>{t("reports.startDate")}:</Label>
-                    <Input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-auto"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label>{t("reports.endDate")}:</Label>
-                    <Input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-auto"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Utensils className="w-5 h-5" />
+            {t("reports.tableAnalysis")}
+          </CardTitle>
+          <CardDescription>
+            {t("reports.analyzeTableRevenueTrend")}
+          </CardDescription>
         </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-center gap-4">
+            {storesData && storesData.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Label className="whitespace-nowrap text-sm font-medium">{t("common.storeFilterLabel")}</Label>
+                <Select value={storeFilter} onValueChange={setStoreFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder={t("common.allStores")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
+                      <SelectItem value="all">Tất cả</SelectItem>
+                    )}
+                    {storesData
+                      .filter((store: any) => store.typeUser !== 1)
+                      .map((store: any) => (
+                        <SelectItem key={store.id} value={store.storeCode}>
+                          {store.storeName}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <Select value={dateRange} onValueChange={handleDateRangeChange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">{t("reports.toDay")}</SelectItem>
+                <SelectItem value="week">{t("reports.lastWeek")}</SelectItem>
+                <SelectItem value="month">
+                  {t("reports.lastMonth")}
+                </SelectItem>
+                <SelectItem value="custom">{t("reports.custom")}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {dateRange === "custom" && (
+              <>
+                <div className="flex items-center gap-2">
+                  <Label>{t("reports.startDate")}:</Label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-auto"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label>{t("reports.endDate")}:</Label>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-auto"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
       </Card>
 
       {/* Overview Cards */}

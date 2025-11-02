@@ -182,7 +182,6 @@ export const posTranslations: { [key: string]: POSTranslations } = {
     cashierName: "계산원 이름",
     beforeWork: "근무자 출근전",
     defaultCashier: "김담당자",
-    thankYouAndComeAgain: "감사합니다. 또 뵙겠습니다!",
     currentlyOutOfStock: "현재 품절입니다",
     outOfStock: "품절",
     inStock: "재고 있음",
@@ -539,7 +538,6 @@ export const posTranslations: { [key: string]: POSTranslations } = {
     customerRequired: "Customer selection is required before placing an order.",
     orderPlacedSuccess: "Order successfully placed.",
     orderPlacedSuccessDesc: "The order has been saved with a 'placed' status.",
-    thankYouAndComeAgain: "Thank you for your purchase and see you again!",
   },
   vi: {
     title: "Hệ thống POS",
@@ -548,7 +546,6 @@ export const posTranslations: { [key: string]: POSTranslations } = {
     defaultCashier: "Thu ngân mặc định",
     currentlyOutOfStock: "Hiện tại hết hàng",
     outOfStock: "Hết hàng",
-    thankYouAndComeAgain: "Xin cảm ơn Quý khách và Hẹn gặp lại !",
     inStock: "Còn hàng",
     addedToCart: "Đã thêm vào giỏ",
     categories: "Danh mục",

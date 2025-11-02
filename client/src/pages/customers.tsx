@@ -1,13 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { POSHeader } from "@/components/pos/header";
 import { RightSidebar } from "@/components/ui/right-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, Users, CreditCard, Plus, Edit, Trash2, Search, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { UserCheck, Users, CreditCard, Plus, Edit, Trash2, Search, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,13 +35,48 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [showPointsManagementModal, setShowPointsManagementModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [storeFilter, setStoreFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  // Fetch customers
-  const { data: customersData, isLoading: customersLoading } = useQuery<Customer[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"],
+  // Fetch store settings to get user's store info
+  const { data: userStore } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
   });
+
+  // Fetch store list for admin users
+  const { data: storesData, isLoading: storesLoading } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+  });
+
+  const isAdmin = userStore?.isAdmin || false;
+
+  // Fetch customers with server-side pagination
+  const { data: customersResponse, isLoading: customersLoading, refetch: refetchCustomers } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", currentPage, pageSize, customerSearchTerm, storeFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        search: customerSearchTerm,
+        storeFilter: storeFilter,
+      });
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch customers');
+      return response.json();
+    },
+    staleTime: 30000,
+    gcTime: 60000,
+  });
+
+  const customersData = customersResponse?.customers || [];
+  const pagination = customersResponse?.pagination || {
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNext: false,
+    hasPrev: false,
+  };
 
   const handleEditCustomer = (customer: Customer) => {
     setEditingCustomer(customer);
@@ -51,7 +87,7 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
     if (!confirm(t("customers.confirmDelete"))) return;
 
     try {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/${customerId}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerId}`, {
         method: "DELETE",
       });
 
@@ -59,7 +95,7 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
 
       toast({
         title: t("common.success"),
@@ -85,21 +121,10 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
     setEditingCustomer(null);
   };
 
-  // Filter customers based on search term
-  const filteredCustomers = customersData
-    ? customersData.filter(
-        (customer: Customer) =>
-          customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-          customer.customerId.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-          (customer.phone && customer.phone.includes(customerSearchTerm)),
-      )
-    : [];
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedCustomers = filteredCustomers.slice(startIndex, endIndex);
+  // Use server-side filtered and paginated data
+  const filteredCustomers = customersData;
+  const totalPages = pagination.totalPages;
+  const allFilteredCustomers = customersData; // For total count display
 
   return (
     <div className="min-h-screen bg-green-50 grocery-bg">
@@ -229,6 +254,28 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
                     value={customerSearchTerm}
                     onChange={(e) => setCustomerSearchTerm(e.target.value)}
                   />
+                  {isAdmin && (
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm whitespace-nowrap">Chi nhánh:</Label>
+                      <Select
+                        value={storeFilter}
+                        onValueChange={setStoreFilter}
+                        disabled={storesLoading}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Tất cả chi nhánh" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tất cả chi nhánh</SelectItem>
+                          {storesData?.filter((store: any) => store.typeUser !== 1).map((store: any) => (
+                            <SelectItem key={store.id} value={store.storeCode}>
+                              {store.storeName || store.storeCode}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <Button variant="outline" size="sm">
                     <Search className="w-4 h-4 mr-2" />
                     {t("common.search")}
@@ -259,7 +306,7 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
                   </div>
 
                   <div className="divide-y">
-                    {paginatedCustomers.map((customer) => (
+                    {filteredCustomers.map((customer) => (
                       <div key={customer.id} className="grid grid-cols-8 gap-4 p-4 items-center">
                         <div className="font-mono text-sm">{customer.customerId}</div>
                         <div className="font-medium">{customer.name}</div>
@@ -331,11 +378,14 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
                 </div>
               )}
 
-              {/* Pagination Controls */}
-              {filteredCustomers.length > 0 && (
-                <div className="flex items-center justify-between space-x-6 py-4 border-t">
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">{t("common.show")} </p>
+              <div className="flex justify-between items-center mt-6">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm text-gray-600">
+                    {t("customers.total")} {pagination.totalCount}{" "}
+                    {t("customers.totalCustomersRegistered")}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{t("common.show")}</span>
                     <Select
                       value={pageSize.toString()}
                       onValueChange={(value) => {
@@ -354,71 +404,67 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
                         <SelectItem value="100">100</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-sm font-medium"> {t("common.rows")}</p>
+                    <span className="text-sm font-medium">{t("common.rows")}</span>
                   </div>
-
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">
-                      {t("common.page")} {currentPage} / {totalPages}
-                    </p>
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={() => setCurrentPage(1)}
-                        disabled={currentPage === 1}
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        <ChevronLeft className="h-4 w-4 -ml-3" />
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage(totalPages)}
-                        disabled={currentPage === totalPages}
-                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                        <ChevronRight className="h-4 w-4 -ml-3" />
-                      </button>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {t("common.page")} {currentPage} / {totalPages}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => setCurrentPage(1)}
+                          disabled={!pagination.hasPrev}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
+                        >
+                          «
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage((prev) => prev - 1)}
+                          disabled={!pagination.hasPrev}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage((prev) => prev + 1)}
+                          disabled={!pagination.hasNext}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
+                        >
+                          ›
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(totalPages)}
+                          disabled={!pagination.hasNext}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 w-8"
+                        >
+                          »
+                        </button>
+                      </div>
                     </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowMembershipModal(true)}
+                    >
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      {t("customers.membershipManagement")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPointsManagementModal(true)}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {t("customers.pointsManagement")}
+                    </Button>
                   </div>
-                </div>
-              )}
-
-              <div className="flex justify-between items-center mt-6">
-                <div className="text-sm text-gray-600">
-                  {t("customers.total")} {filteredCustomers.length}{" "}
-                  {t("customers.totalCustomersRegistered")}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMembershipModal(true)}
-                  >
-                    <UserCheck className="w-4 h-4 mr-2" />
-                    {t("customers.membershipManagement")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPointsManagementModal(true)}
-                  >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    {t("customers.pointsManagement")}
-                  </Button>
                 </div>
               </div>
             </CardContent>

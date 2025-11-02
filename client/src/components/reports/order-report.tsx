@@ -58,14 +58,37 @@ export function OrderReport() {
   const [productSearch, setProductSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedEmployee, setSelectedEmployee] = useState("all");
+  const [storeFilter, setStoreFilter] = useState("all");
+
+  // Fetch store settings list
+  const { data: storesData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        if (!response.ok) throw new Error("Failed to fetch stores");
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        return [];
+      }
+    },
+    retry: 2,
+  });
 
   // Query orders by date range
   const { data: orders = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/date-range", startDate, endDate, "all"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, "all"],
     queryFn: async () => {
       try {
         const response = await fetch(
-          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/date-range/${startDate}/${endDate}/all`,
+          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDate}/${endDate}/all`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -81,11 +104,11 @@ export function OrderReport() {
 
   // Query transactions by date range
   const { data: transactions = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transactions", startDate, endDate],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions", startDate, endDate],
     queryFn: async () => {
       try {
         const response = await fetch(
-          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transactions/${startDate}/${endDate}`,
+          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions/${startDate}/${endDate}`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -100,21 +123,28 @@ export function OrderReport() {
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   const { data: employees = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
   });
 
   const getFilteredData = () => {
     if (!orders || !Array.isArray(orders)) return [];
 
-    const filteredOrders = orders.filter((order: any) => {
+    let filteredOrders = orders;
+
+    // Filter by store
+    if (storeFilter !== "all") {
+      filteredOrders = filteredOrders.filter((order: any) => order.storeCode === storeFilter);
+    }
+
+    filteredOrders = filteredOrders.filter((order: any) => {
       const statusMatch =
         orderStatus === "all" ||
         (orderStatus === "draft" && order.status === "pending") ||
@@ -379,6 +409,28 @@ export function OrderReport() {
       <Card>
         <CardContent className="space-y-4 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {/* Store Filter */}
+            <div>
+              <Label>Cửa hàng</Label>
+              <Select value={storeFilter} onValueChange={setStoreFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
+                    <SelectItem value="all">Tất cả</SelectItem>
+                  )}
+                  {storesData
+                    .filter((store: any) => store.typeUser !== 1)
+                    .map((store: any) => (
+                      <SelectItem key={store.id} value={store.storeCode}>
+                        {store.storeName}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Concern Type */}
             <div>
               <Label>Loại báo cáo</Label>

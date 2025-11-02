@@ -87,8 +87,6 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     tableDeleteError: "테이블 삭제 중 오류가 발생했습니다",
 
     statusPlaceholder: "상태를 선택하세요",
-    unit: "단위",
-    selectUnit: "단위 선택",
     unitPrice: "단가",
     taxRate: "세율",
     productName: "상품명",
@@ -197,8 +195,6 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     tableDeleteError: "Error deleting table",
 
     statusPlaceholder: "Select status",
-    unit: "Unit",
-    selectUnit: "Select Unit",
     confirmDeleteProduct: "Are you sure you want to delete this product?",
     productNameRequired: "Product name is required",
     skuRequired: "SKU is required",
@@ -307,8 +303,6 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     tableUpdateError: "Lỗi khi cập nhật bàn",
     tableDeleteError: "Lỗi khi xóa bàn",
     statusPlaceholder: "Chọn trạng thái",
-    unit: "Đơn vị tính",
-    selectUnit: "Chọn đơn vị",
     // Product Management
     productManagement: "Quản lý sản phẩm",
     addNewProduct: "Thêm sản phẩm mới",
@@ -320,7 +314,7 @@ export const tablesTranslations: { [key: string]: TablesTranslations } = {
     price: "Giá",
     stock: "Tồn kho",
     editProduct: "Sửa sản phẩm",
-    viewProductInfo: "Xem thông tin sản phẩm",
+    deleteProduct: "Xóa sản phẩm",
     productName: "Tên sản phẩm",
     productPrice: "Giá sản phẩm",
     productStock: "Tồn kho sản phẩm",

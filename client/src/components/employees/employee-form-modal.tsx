@@ -67,7 +67,7 @@ export function EmployeeFormModal({
   // Generate employee ID for new employees
   const generateEmployeeId = async () => {
     try {
-      const response = await apiRequest("GET", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees/next-id");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -92,34 +92,36 @@ export function EmployeeFormModal({
 
   // Set employee ID for new employees or populate form for edit
   React.useEffect(() => {
-    if (mode === "create" && !employee?.employeeId) {
-      generateEmployeeId().then((nextId) => {
-        form.reset({
-          employeeId: nextId,
-          name: "",
-          email: "",
-          phone: null,
-          role: "cashier",
-          isActive: true,
-          hireDate: new Date(),
+    if (isOpen) {
+      if (mode === "create") {
+        generateEmployeeId().then((nextId) => {
+          form.reset({
+            employeeId: nextId,
+            name: "",
+            email: "",
+            phone: null,
+            role: "cashier",
+            isActive: true,
+            hireDate: new Date(),
+          });
         });
-      });
-    } else if (mode === "edit" && employee) {
-      form.reset({
-        employeeId: employee.employeeId,
-        name: employee.name,
-        email: employee.email || "",
-        phone: employee.phone || null,
-        role: employee.role,
-        isActive: employee.isActive ?? true,
-        hireDate: employee.hireDate ? new Date(employee.hireDate) : new Date(),
-      });
+      } else if (mode === "edit" && employee) {
+        form.reset({
+          employeeId: employee.employeeId,
+          name: employee.name,
+          email: employee.email || "",
+          phone: employee.phone || null,
+          role: employee.role,
+          isActive: employee.isActive ?? true,
+          hireDate: employee.hireDate ? new Date(employee.hireDate) : new Date(),
+        });
+      }
     }
-  }, [mode, employee, form]);
+  }, [isOpen, mode, employee?.id]);
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertEmployee) => {
-      const response = await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees", data);
       if (!response.ok) {
         const errorData = await response.json();
         throw errorData;
@@ -127,7 +129,7 @@ export function EmployeeFormModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"] });
       toast({
         title: t("common.successTitle"),
         description: t("employees.addEmployeeSuccess"),
@@ -173,7 +175,7 @@ export function EmployeeFormModal({
     mutationFn: async (data: InsertEmployee) => {
       const response = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees/${employee?.id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees/${employee?.id}`,
         data,
       );
       if (!response.ok) {
@@ -183,7 +185,7 @@ export function EmployeeFormModal({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"] });
       toast({
         title: t("common.successTitle"),
         description: t("employees.updateEmployeeSuccess"),

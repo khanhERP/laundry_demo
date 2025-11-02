@@ -9,7 +9,6 @@ import {
   Trash2,
   Link,
   FileImage,
-  Pencil, // Import Pencil icon
 } from "lucide-react";
 import {
   Dialog,
@@ -55,12 +54,14 @@ interface ProductManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialSearchSKU?: string;
+  product?: Product | null; // Add product prop for editing
 }
 
 export function ProductManagerModal({
   isOpen,
   onClose,
   initialSearchSKU = "",
+  product = null,
 }: ProductManagerModalProps) {
   const { t } = useTranslation();
 
@@ -68,11 +69,11 @@ export function ProductManagerModal({
     categoryId: z.number().min(1, t("tables.categoryRequired")),
     price: z
       .string()
-      .min(1, "Price is required")
       .refine((val) => {
         const num = parseFloat(val.replace(/\./g, ""));
-        return !isNaN(num) && num > 0 && num < 100000000; // Max 99,999,999 (8 digits)
-      }, "Price must be a valid positive number and less than 100,000,000"),
+        return !isNaN(num) && num >= 0 && num < 100000000;
+      }, "Price must be a valid non-negative number and less than 100,000,000")
+      .default("0"),
     sku: z.string().optional(),
     name: z.string().min(1, t("tables.productNameRequired")),
     productType: z.number().min(1, t("tables.productTypeRequired")),
@@ -87,8 +88,8 @@ export function ProductManagerModal({
         if (!val || val === undefined) return true; // Optional field
         const numVal =
           typeof val === "string" ? parseFloat(val.replace(/\./g, "")) : val;
-        return !isNaN(numVal) && numVal > 0 && numVal < 100000000;
-      }, "After tax price must be a valid positive number and less than 100,000,000"),
+        return !isNaN(numVal) && numVal >= 0 && numVal < 100000000; // Allowing 0
+      }, "After tax price must be a valid non-negative number and less than 100,000,000"),
     floor: z.string().optional(),
     zone: z.string().optional(),
   });
@@ -117,17 +118,17 @@ export function ProductManagerModal({
     isLoading,
     refetch,
   } = useQuery<Product[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
     enabled: isOpen,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     enabled: isOpen,
   });
 
-  const { data: units = [] } = useQuery<string[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/units"],
+  const { data: productUnits = [] } = useQuery<string[]>({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/units"],
     enabled: isOpen,
   });
 
@@ -147,7 +148,7 @@ export function ProductManagerModal({
       }
 
       console.log("Sending product data:", finalData);
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -161,8 +162,8 @@ export function ProductManagerModal({
       return response.json();
     },
     onSuccess: (newProduct) => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
 
       toast({
         title: "✅ Tạo sản phẩm thành công",
@@ -170,12 +171,13 @@ export function ProductManagerModal({
         duration: 3000,
       });
 
-      // Small delay to show toast before closing form
+      // Close modal completely after success
       setTimeout(() => {
         setShowAddForm(false);
         resetForm();
         setSelectedImageFile(null);
         setImageInputMethod("url");
+        onClose(); // Close the entire modal
       }, 500);
     },
     onError: (error: Error) => {
@@ -227,7 +229,7 @@ export function ProductManagerModal({
         }
       }
 
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -246,8 +248,8 @@ export function ProductManagerModal({
       return result;
     },
     onSuccess: (updatedProduct) => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
 
       toast({
         title: "✅ Cập nhật thành công",
@@ -255,13 +257,14 @@ export function ProductManagerModal({
         duration: 3000,
       });
 
-      // Small delay to show toast before closing form
+      // Small delay to show toast before closing modal
       setTimeout(() => {
         setEditingProduct(null);
         setShowAddForm(false);
         resetForm();
         setSelectedImageFile(null);
         setImageInputMethod("url");
+        onClose(); // Close the entire modal
       }, 500);
     },
     onError: (error: Error) => {
@@ -276,15 +279,15 @@ export function ProductManagerModal({
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete product");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
       toast({
         title: "Success",
         description: "Product deleted successfully",
@@ -304,7 +307,7 @@ export function ProductManagerModal({
     defaultValues: {
       name: "",
       sku: "",
-      price: "",
+      price: "0", // Default price set to "0"
       stock: 0,
       categoryId: 0,
       productType: 1,
@@ -384,7 +387,7 @@ export function ProductManagerModal({
     const cleanPrice = data.price.replace(/[^0-9]/g, ""); // Remove all non-numeric characters
     const priceNum = parseInt(cleanPrice);
 
-    if (!cleanPrice || isNaN(priceNum) || priceNum <= 0) {
+    if (isNaN(priceNum) || priceNum < 0) {
       toast({
         title: "Error",
         description: "Please enter a valid price",
@@ -503,7 +506,7 @@ export function ProductManagerModal({
     }
   };
 
-  const handleEditProduct = (product: Product) => {
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
 
     // IMPORTANT: taxRateName is the source of truth for dropdown selection
@@ -599,7 +602,7 @@ export function ProductManagerModal({
     form.reset({
       name: "",
       sku: "",
-      price: "",
+      price: "0", // Default price set to "0"
       stock: 0,
       categoryId: categories.length > 0 ? categories[0].id : 0,
       productType: 1,
@@ -710,21 +713,25 @@ export function ProductManagerModal({
       if (initialSearchSKU) {
         setSearchTerm(initialSearchSKU);
       }
-      // Reset form completely when opening modal
-      if (!editingProduct) {
-        // 새 상품 추가 시 초기화
+
+      // If product prop is provided (editing mode), open form with product data
+      if (product) {
+        handleEdit(product);
+      } else if (!editingProduct) {
+        // If no product and no editing product, show form for new product
+        setShowAddForm(true);
         setSelectedImageFile(null);
         setImageInputMethod("url");
         form.reset({
           name: "",
           sku: "",
-          price: "",
+          price: "0", // Default price set to "0"
           stock: 0,
           categoryId: 0,
           productType: 1,
           imageUrl: "",
           trackInventory: true,
-          taxRate: "8", // 8% tax rate as integer
+          taxRate: "8",
           priceIncludesTax: false,
           afterTaxPrice: "",
           floor: "1",
@@ -732,17 +739,21 @@ export function ProductManagerModal({
           unit: "Cái",
         });
       } else {
-        // 편집 모드에서 기존 이미지 URL이 있는지 확인
+        // Editing mode - check image URL
         if (editingProduct.imageUrl && editingProduct.imageUrl.trim() !== "") {
           setImageInputMethod("url");
           setSelectedImageFile(null);
         } else {
-          setImageInputMethod("url"); // 기본은 URL 방식
+          setImageInputMethod("url");
           setSelectedImageFile(null);
         }
       }
+    } else {
+      // Reset when modal closes
+      setShowAddForm(false);
+      setEditingProduct(null);
     }
-  }, [isOpen, refetch, editingProduct, initialSearchSKU]);
+  }, [isOpen, refetch, editingProduct, initialSearchSKU, product]);
 
   // Add keyboard support for closing modal
   useEffect(() => {
@@ -768,7 +779,7 @@ export function ProductManagerModal({
     form.reset({
       name: "",
       sku: "",
-      price: "",
+      price: "0", // Default price set to "0"
       stock: 0,
       categoryId: 0,
       productType: 1,
@@ -785,15 +796,8 @@ export function ProductManagerModal({
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          handleModalClose();
-        }
-      }}
-    >
-      <DialogContent className="max-w-4xl w-full max-h-screen overflow-y-auto z-[9999]">
+    <Dialog open={isOpen} onOpenChange={handleModalClose}>
+      <DialogContent className="max-w-4xl w-full max-h-screen overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("tables.productManagement")}</DialogTitle>
         </DialogHeader>
@@ -803,6 +807,21 @@ export function ProductManagerModal({
             <>
               <div className="flex flex-col space-y-4 mb-6">
                 <div className="flex space-x-4">
+                  <Button
+                    onClick={() => setShowAddForm(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200"
+                  >
+                    <Plus className="mr-2" size={16} />
+                    {t("tables.addNewProduct")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-orange-500 text-orange-700 hover:bg-orange-100 hover:border-orange-600"
+                    onClick={() => setShowBulkImport(true)}
+                  >
+                    <Upload className="mr-2" size={16} />
+                    {t("tables.bulkImport")}
+                  </Button>
                   <Button
                     variant="outline"
                     className="border-green-500 text-green-700 hover:bg-green-100 hover:border-green-600"
@@ -939,12 +958,19 @@ export function ProductManagerModal({
                             <div className="flex space-x-2">
                               <Button
                                 size="sm"
-                                variant="outline"
-                                onClick={() => handleEditProduct(product)}
+                                variant="ghost"
+                                onClick={() => handleEdit(product)}
                                 className="text-blue-600 hover:text-blue-800"
                               >
-                                <Pencil size={16} className="mr-1" />
-                                {t("common.view")}
+                                <Edit size={16} />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDelete(product.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 size={16} />
                               </Button>
                             </div>
                           </td>
@@ -1237,19 +1263,19 @@ export function ProductManagerModal({
                       name="unit"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t("tables.unit") || "Đơn vị tính"}</FormLabel>
+                          <FormLabel>Đơn vị tính</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || "Cái"}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder={t("tables.selectUnit") || "Chọn đơn vị"} />
+                                <SelectValue placeholder="Chọn đơn vị" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {units && units.length > 0 ? (
-                                units.map((unit) => (
+                              {productUnits.length > 0 ? (
+                                productUnits.map((unit) => (
                                   <SelectItem key={unit} value={unit}>
                                     {unit}
                                   </SelectItem>
@@ -1551,13 +1577,66 @@ export function ProductManagerModal({
                     />
                   </div>
 
+                  {/* Debug: Show productUnits data */}
+                  {productUnits.length > 0 && (
+                    <div className="text-xs text-gray-500">
+                      ✅ Đã tải {productUnits.length} đơn vị từ API
+                    </div>
+                  )}
+
                   <div className="flex justify-end space-x-2">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={resetForm}
+                      onClick={() => {
+                        resetForm();
+                        handleModalClose();
+                      }}
+                      disabled={
+                        createProductMutation.isPending ||
+                        updateProductMutation.isPending
+                      }
                     >
                       {t("common.cancel")}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={
+                        createProductMutation.isPending ||
+                        updateProductMutation.isPending
+                      }
+                      onClick={(e) => {
+                        console.log("🔘 Submit button clicked!");
+                        console.log("Form values:", form.getValues());
+                        console.log("Form errors:", form.formState.errors);
+                        console.log("Is form valid?", form.formState.isValid);
+
+                        // Log detailed errors
+                        const errors = form.formState.errors;
+                        if (Object.keys(errors).length > 0) {
+                          console.log("❌ Validation errors found:");
+                          Object.keys(errors).forEach(key => {
+                            console.log(`  - ${key}:`, errors[key]?.message);
+                          });
+                        }
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white font-medium transition-colors duration-200 min-w-[120px]"
+                    >
+                      {createProductMutation.isPending ||
+                      updateProductMutation.isPending ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>
+                            {editingProduct ? "Đang cập nhật..." : "Đang tạo..."}
+                          </span>
+                        </div>
+                      ) : (
+                        <span>
+                          {editingProduct
+                            ? t("tables.updateProduct")
+                            : t("common.comboValues.createProduct")}
+                        </span>
+                      )}
                     </Button>
                   </div>
                 </form>

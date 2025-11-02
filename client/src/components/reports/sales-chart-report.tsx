@@ -60,7 +60,7 @@ import { Button } from "@/components/ui/button";
 // Import the ProductManagerModal component
 import { ProductManagerModal } from "../pos/product-manager-modal"; // Assuming the path
 
-export function SalesChartReport() {
+export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
@@ -78,6 +78,9 @@ export function SalesChartReport() {
   const [salesMethod, setSalesMethod] = useState("all");
   const [salesChannel, setSalesChannel] = useState("all");
 
+  // State for store filter
+  const [storeFilter, setStoreFilter] = useState<string>("all");
+
   // Additional filters from legacy reports
   const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
   const [customerSearch, setCustomerSearch] = useState("");
@@ -88,6 +91,7 @@ export function SalesChartReport() {
   const [customerStatus, setCustomerStatus] = useState("all");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [selectedFloor, setSelectedFloor] = useState<string>("all"); // State for floor filter
+  const [selectedShop, setSelectedShop] = useState<string>("all"); // State for floor filter
 
   // Pagination state for product report
   const [productCurrentPage, setProductCurrentPage] = useState(1);
@@ -106,10 +110,10 @@ export function SalesChartReport() {
   const [searchSKU, setSearchSKU] = useState("");
 
   // Query store settings for priceIncludesTax
-  const { data: storeSettings } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+  const { data: storeSettings, isLoading: storesLoading } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -123,15 +127,19 @@ export function SalesChartReport() {
     data: orders = [],
     isLoading: ordersLoading,
     error: ordersError,
+    refetch: refetchOrders,
   } = useQuery({
     queryKey: [
-      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/date-range",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range",
       startDate,
       endDate,
       startTime,
       endTime,
       selectedFloor, // Include floor filter in query key
       orderStatusFilter, // Include status filter in query key
+      storeFilter, // Include store filter in query key - this will trigger refetch when changed
+      storeSettings?.isAdmin, // Include admin status in query key
+      storeSettings?.parent, // Include parent stores in query key
     ],
     queryFn: async () => {
       try {
@@ -147,6 +155,17 @@ export function SalesChartReport() {
         const startDateTimeISO = startDateTimeLocal.toISOString();
         const endDateTimeISO = endDateTimeLocal.toISOString();
 
+        // Construct URL with floor filter if it's not 'all'
+        const floorFilter =
+          selectedFloor !== "all" ? `/${selectedFloor}` : "/all";
+
+        // Add storeFilter query parameter - ALWAYS include it
+        const params = new URLSearchParams();
+        params.append("storeFilter", storeFilter || "all");
+
+        const queryString = params.toString();
+        const url = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDateTimeISO}/${endDateTimeISO}${floorFilter}?${queryString}`;
+
         console.log("Sales Chart - Fetching orders with date range:", {
           startDate,
           endDate,
@@ -160,15 +179,14 @@ export function SalesChartReport() {
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           selectedFloor,
           orderStatusFilter,
+          storeFilter,
+          isAdmin: storeSettings?.isAdmin,
+          parentStores: storeSettings?.parent,
+          floorFilter,
+          finalURL: url,
         });
 
-        // Construct URL with floor filter if it's not 'all'
-        const floorFilter =
-          selectedFloor !== "all" ? `/${selectedFloor}` : "/all";
-
-        const response = await fetch(
-          `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/orders/date-range/${startDateTimeISO}/${endDateTimeISO}${floorFilter}`,
-        );
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -196,40 +214,116 @@ export function SalesChartReport() {
           });
         }
 
+        // Apply store filter logic based on admin status and selection
+        console.log("Sales Chart - Store filter logic:", {
+          storeFilter,
+          isAdmin: storeSettings?.isAdmin,
+          parentStores: storeSettings?.parent,
+          beforeFilterCount: filteredData.length,
+        });
+
+        if (storeFilter === "all") {
+          // Case: "Tất cả" (All) selected
+          if (storeSettings?.isAdmin === true) {
+            // Case 1: isAdmin = true + "all" selected => Load ALL orders
+            console.log("Sales Chart - Admin 'All' filter: Loading all orders");
+            // No filtering needed - use all data
+          } else {
+            // Case 2: isAdmin = false + "all" selected => Load orders from parent stores only
+            const parentStores =
+              storeSettings?.parent?.split(",").map((s: string) => s.trim()) ||
+              [];
+            if (parentStores.length > 0) {
+              filteredData = filteredData.filter((order: any) =>
+                parentStores.includes(order.storeCode),
+              );
+              console.log(
+                "Sales Chart - Non-admin 'All' filter: Loading parent store orders only:",
+                {
+                  parentStores,
+                  filteredCount: filteredData.length,
+                },
+              );
+            } else {
+              console.log(
+                "Sales Chart - Non-admin 'All' filter: No parent stores defined, returning empty",
+              );
+              filteredData = [];
+            }
+          }
+        } else if (storeFilter && storeFilter !== "all") {
+          // Case 3: Specific store selected => Load orders for that store only
+          filteredData = filteredData.filter(
+            (order: any) => order.storeCode === storeFilter,
+          );
+          console.log("Sales Chart - Specific store filter applied:", {
+            storeFilter,
+            beforeCount: data?.length || 0,
+            afterCount: filteredData.length,
+            sampleStoreCode: filteredData[0]?.storeCode,
+          });
+        }
+
         console.log("Sales Chart - Orders loaded with datetime:", {
           count: filteredData?.length || 0,
           totalCount: data?.length || 0,
           startDateTimeISO,
           endDateTimeISO,
           orderStatusFilter,
+          storeFilter,
+          isAdmin: storeSettings?.isAdmin,
+          afterServerFilter: true,
           sampleOrder: filteredData?.[0]
             ? {
                 id: filteredData[0].id,
                 orderNumber: filteredData[0].orderNumber,
                 orderedAt: filteredData[0].orderedAt,
                 status: filteredData[0].status,
+                storeCode: filteredData[0].storeCode,
               }
             : null,
         });
         return filteredData;
-      } catch (error) {
+      } catch (error: any) {
         console.error("Sales Chart - Error fetching orders:", error);
         return [];
       }
     },
     retry: 2,
     retryDelay: 500,
-    staleTime: 1 * 60 * 1000, // Cache for 1 minute only to ensure fresh data
+    staleTime: 0, // Disable cache to ensure fresh data on filter change
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: false,
   });
 
-  // Query order items for all orders
-  const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items"],
+  // Query store list for filter
+  const { data: storesFilterData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/order-items");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        let data = await response.json();
+        // Filter out admin accounts (userType = 1)
+        data = data.filter((store: any) => store.typeUser !== 1);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        return [];
+      }
+    },
+    staleTime: 0,
+    gcTime: 0,
+  });
+
+  // Query order items for all orders
+  const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -249,59 +343,73 @@ export function SalesChartReport() {
     enabled: analysisType === "product", // Only fetch when needed
   });
 
+  // Refetch orders when analysisType or storeFilter changes
+  useEffect(() => {
+    if (refetchOrders) {
+      console.log("🔄 Refetching orders due to filter change:", {
+        analysisType,
+        storeFilter,
+      });
+      refetchOrders();
+    }
+  }, [analysisType, storeFilter, refetchOrders]);
+
   // Query tables for floor data
   const {
     data: tables,
     isLoading: tablesLoading,
     error: tablesError,
   } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/tables"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Combined loading state
-  const isLoading = ordersLoading || orderItemsLoading;
+  const isLoading = ordersLoading || orderItemsLoading || storesLoading;
 
   const { data: employees } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: products } = useQuery({
     queryKey: [
-      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products",
       selectedCategory,
       productType,
       productSearch,
       startDate,
       endDate,
+      storeFilter, // Include store filter in query key
     ],
     queryFn: async () => {
-      const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${selectedCategory}/${productType}/${productSearch || ""}`,
-      );
+      const storeParam =
+        storeFilter && storeFilter !== "all" ? `?storeCode=${storeFilter}` : "";
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products${storeParam}`);
       if (!response.ok) throw new Error("Failed to fetch products");
+      return response.json();
+    },
+    staleTime: 0, // Disable cache to ensure fresh data
+    enabled: analysisType === "product", // Only fetch when needed
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories", storeFilter],
+    queryFn: async () => {
+      const storeParam =
+        storeFilter && storeFilter !== "all" ? `?storeCode=${storeFilter}` : "";
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories${storeParam}`);
+      if (!response.ok) throw new Error("Failed to fetch categories");
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
-    staleTime: 5 * 60 * 1000,
-  });
-
   const { data: customers } = useQuery({
-    queryKey: [
-      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers",
-      customerSearch,
-      customerStatus,
-      startDate,
-      endDate,
-    ],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", customerSearch, customerStatus],
     queryFn: async () => {
       const response = await fetch(
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/${customerSearch || "all"}/${customerStatus}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerSearch || "all"}/${customerStatus}`,
       );
       if (!response.ok) throw new Error("Failed to fetch customers");
       return response.json();
@@ -310,84 +418,93 @@ export function SalesChartReport() {
   });
 
   // Product Analysis Data from new API
-  const { data: productAnalysisData, isLoading: productAnalysisLoading } =
-    useQuery({
-      queryKey: [
-        "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/product-analysis",
-        startDate,
-        endDate,
-        startTime,
-        endTime,
-        selectedCategory,
-        productType,
-        selectedFloor, // Include floor filter in query key
-        productSearch,
-      ],
-      queryFn: async () => {
-        try {
-          // Use YYYY-MM-DD format with time to avoid timezone conversion issues
-          const startDateTimeLocal = `${startDate} ${startTime}:00`;
-          const endDateTimeLocal = `${endDate} ${endTime}:59`;
+  const {
+    data: productAnalysisData,
+    isLoading: productAnalysisLoading,
+    error: productAnalysisError,
+  } = useQuery({
+    queryKey: [
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/product-analysis",
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      selectedCategory,
+      productType,
+      selectedFloor, // Include floor filter in query key
+      productSearch,
+      storeFilter, // Include store filter in query key
+    ],
+    queryFn: async () => {
+      try {
+        // Use YYYY-MM-DD format with time to avoid timezone conversion issues
+        const startDateTimeLocal = `${startDate} ${startTime}:00`;
+        const endDateTimeLocal = `${endDate} ${endTime}:59`;
 
-          const params = new URLSearchParams({
-            categoryId: selectedCategory || "all",
-            productType: productType || "all",
-            productSearch: productSearch || "",
-          });
+        const params = new URLSearchParams({
+          categoryId: selectedCategory || "all",
+          productType: productType || "all",
+          productSearch: productSearch || "",
+        });
 
-          // Construct URL with floor filter if it's not 'all'
-          const floorFilter =
-            selectedFloor !== "all" ? `/${selectedFloor}` : "/all";
+        // Construct URL with floor filter if it's not 'all'
+        const floorFilter =
+          selectedFloor !== "all" ? `/${selectedFloor}` : "/all";
 
-          console.log("📊 Fetching product analysis data:", {
-            startDateTimeLocal,
-            endDateTimeLocal,
-            floorFilter,
-            params: params.toString(),
-          });
+        // Construct URL with store filter if it's not 'all'
+        const storeCodeFilter =
+          storeFilter !== "all" ? `/${storeFilter}` : "/all";
 
-          const response = await fetch(
-            `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/product-analysis/${encodeURIComponent(startDateTimeLocal)}/${encodeURIComponent(endDateTimeLocal)}${floorFilter}?${params}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
+        console.log("📊 Fetching product analysis data:", {
+          startDateTimeLocal,
+          endDateTimeLocal,
+          floorFilter,
+          storeCodeFilter,
+          params: params.toString(),
+        });
+
+        const response = await fetch(
+          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/product-analysis/${encodeURIComponent(startDateTimeLocal)}/${encodeURIComponent(endDateTimeLocal)}${floorFilter}${storeCodeFilter}?${params}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
+          },
+        );
 
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(
-              "❌ Product analysis API error:",
-              response.status,
-              errorText,
-            );
-            throw new Error(
-              `Failed to fetch product analysis: ${response.status} ${errorText}`,
-            );
-          }
-
-          const data = await response.json();
-          console.log(
-            "✅ Product analysis data received:",
-            data?.productStats?.length || 0,
-            "products",
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(
+            "❌ Product analysis API error:",
+            response.status,
+            errorText,
           );
-          return data;
-        } catch (error) {
-          console.error("❌ Product analysis query error:", error);
-          throw error;
+          // Return empty data structure instead of throwing
+          return { productStats: [], totalRevenue: 0, totalQuantity: 0 };
         }
-      },
-      enabled: analysisType === "product",
-      staleTime: 1 * 60 * 1000, // Reduced cache time for fresh data
-      retry: 2,
-      retryDelay: 1000,
-    });
+
+        const data = await response.json();
+        console.log(
+          "✅ Product analysis data received:",
+          data?.productStats?.length || 0,
+          "products",
+        );
+        return data || { productStats: [], totalRevenue: 0, totalQuantity: 0 };
+      } catch (error) {
+        console.error("❌ Product analysis query error:", error);
+        // Return empty data structure instead of throwing
+        return { productStats: [], totalRevenue: 0, totalQuantity: 0 };
+      }
+    },
+    enabled: analysisType === "product",
+    staleTime: 1 * 60 * 1000, // Reduced cache time for fresh data
+    retry: 2,
+    retryDelay: 1000,
+  });
 
   const { data: transactions } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/transactions"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions"],
     staleTime: 5 * 60 * 1000,
   });
 
@@ -474,6 +591,10 @@ export function SalesChartReport() {
     return Array.from({ length: 10 }, (_, i) => `Tầng ${i + 1}`);
   };
 
+  const getStoresFilter = (): any[] => {
+    return storesFilterData;
+  };
+
   // Function to get available floors, considering both fixed and dynamic data
   const getAvailableFloors = (): string[] => {
     const uniqueFloors = getUniqueFloors();
@@ -527,6 +648,7 @@ export function SalesChartReport() {
   // Get dashboard stats from orders data
   const getDashboardStats = () => {
     try {
+      // Add proper loading and error checks
       if (ordersLoading || orderItemsLoading) {
         return {
           periodRevenue: 0,
@@ -545,11 +667,10 @@ export function SalesChartReport() {
         };
       }
 
-      // Ensure we have valid arrays - add null/undefined checks
-      const validOrders = orders && Array.isArray(orders) ? orders : [];
-      const validOrderItems =
-        orderItems && Array.isArray(orderItems) ? orderItems : [];
-      const validTables = tables && Array.isArray(tables) ? tables : [];
+      // Ensure we have valid arrays - add null checks
+      let validOrders = Array.isArray(orders) ? orders : [];
+      const validOrderItems = Array.isArray(orderItems) ? orderItems : [];
+      const validTables = Array.isArray(tables) && tables ? tables : [];
 
       // Filter completed/paid orders for time analysis (exclude cancelled orders)
       const completedOrders = validOrders.filter(
@@ -573,23 +694,29 @@ export function SalesChartReport() {
           : null,
       });
 
-      // Calculate total sales revenue (sum of subtotal) - Doanh thu = Thành tiền (chưa thuế)
-      const periodRevenue = completedOrders.reduce(
-        (sum: number, order: any) => {
-          const subtotal = Number(order.subtotal || 0);
-          return sum + subtotal;
-        },
-        0,
-      );
+      // Calculate total sales revenue using dashboard formula
+      let periodRevenue = 0;
+      let periodSubtotalRevenue = 0;
 
-      // Calculate subtotal revenue (sum of subtotal) - Tổng doanh thu
-      const periodSubtotalRevenue = completedOrders.reduce(
-        (sum: number, order: any) => {
-          const subtotal = Number(order.subtotal || 0);
-          return sum + subtotal;
-        },
-        0,
-      );
+      completedOrders.forEach((order: any) => {
+        const orderSubtotal = Number(order.subtotal || 0);
+        const orderDiscount = Number(order.discount || 0);
+        const orderTax = Number(order.tax || 0);
+        const orderPriceIncludeTax = order.priceIncludeTax === true;
+
+        // Calculate revenue based on priceIncludeTax setting (same as dashboard)
+        let doanhThu;
+        if (orderPriceIncludeTax) {
+          // When priceIncludeTax = true: doanh thu = subtotal - tax
+          doanhThu = orderSubtotal - orderTax;
+        } else {
+          // When priceIncludeTax = false: doanh thu = subtotal - discount
+          doanhThu = Math.max(0, orderSubtotal - orderDiscount);
+        }
+
+        periodRevenue += doanhThu;
+        periodSubtotalRevenue += orderSubtotal;
+      });
 
       // Total count from completed orders only
       const periodOrderCount = completedOrders.length;
@@ -740,15 +867,15 @@ export function SalesChartReport() {
     const filteredTransactions = filteredCompletedOrders.map((order: any) => ({
       id: order.id,
       orderNumber: order.orderNumber, // Ensure orderNumber is included if available
-      transactionId: `TXN-${order.id}`,
+      transactionId: order.orderNumber,
       total: order.total,
       subtotal: order.priceIncludeTax
         ? Number(order.subtotal || 0) + Number(order.tax || 0)
         : order.subtotal,
       discount: order.discount || 0,
-      paymentMethod: order.paymentMethod || "cash",
-      createdAt: order.createdAt || order.orderedAt || order.paidAt,
-      created_at: order.createdAt || order.orderedAt || order.paidAt,
+      paymentMethod: order.paymentMethod || "",
+      createdAt: order.updatedAt,
+      created_at: order.updatedAt,
       customerName: order.customerName,
       tax: order.tax || 0,
       customerId: order.customerId,
@@ -780,7 +907,7 @@ export function SalesChartReport() {
       try {
         // Use correct date field from order - prioritize createdAt for consistency with API filter
         const orderDate = new Date(
-          order.createdAt ||
+          order.updatedAt ||
             order.created_at ||
             order.orderedAt ||
             order.paidAt ||
@@ -808,58 +935,151 @@ export function SalesChartReport() {
         // Check priceIncludeTax setting from order
         const orderPriceIncludeTax = order.priceIncludeTax === true;
         const orderSubtotal = Number(order.subtotal || 0);
-        const orderDiscount = Number(order.discount || 0);
+        let orderDiscount = Number(order.discount || 0);
         const orderTax = Number(order.tax || 0);
         const orderTotal = Number(order.total || 0);
 
-        // Fix calculation logic based on order-specific priceIncludeTax
-        let thanhTien, doanhThu;
-
-        if (orderPriceIncludeTax) {
-          // When order priceIncludeTax = true:
-          // - Thành tiền = subtotal + discount (original amount before discount)
-          // - Doanh thu = subtotal (already net of discount, includes tax)
-          thanhTien = orderSubtotal + orderDiscount + orderTax;
-          doanhThu = thanhTien - orderDiscount - orderTax;
-        } else {
-          // When order priceIncludeTax = false:
-          // - Thành tiền = subtotal (original amount before discount, excludes tax)
-          // - Doanh thu = subtotal - discount (net amount, excludes tax)
-          thanhTien = orderSubtotal;
-          doanhThu = Math.max(0, orderSubtotal - orderDiscount);
-        }
-
-        dailySales[dateStr].orders += 1;
-        dailySales[dateStr].revenue += doanhThu; // Doanh thu
-        dailySales[dateStr].customers += Number(order.customerCount || 1);
-        dailySales[dateStr].discount += orderDiscount; // Giảm giá từ DB
-        dailySales[dateStr].tax += orderTax; // Thuế
-        dailySales[dateStr].subtotal += thanhTien; // Thành tiền
-
-        console.log("Processing order:", {
-          id: order.id,
-          date: dateStr,
-          total: orderTotal,
+        console.log(`📊 [BIỂU ĐỒ] Đơn hàng ${order.orderNumber || order.id} - Dữ liệu gốc:`, {
+          ngày: dateStr,
+          priceIncludeTax: orderPriceIncludeTax,
           subtotal: orderSubtotal,
           discount: orderDiscount,
           tax: orderTax,
-          revenue: doanhThu,
-          thanhTien: thanhTien,
+          total: orderTotal,
+        });
+
+        console.log(`📊 [Order ${order.orderNumber || order.id}] - BEFORE PROCESSING:`, {
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          date: dateStr,
+          rawDate: order.updatedAt,
           priceIncludeTax: orderPriceIncludeTax,
+          subtotal: orderSubtotal,
+          discount: orderDiscount,
+          tax: orderTax,
+          total: orderTotal,
+          itemsCount: order.items?.length || 0,
+        });
+
+        // Calculate discount based on logic: 
+        // If order items have discount -> sum of item discounts
+        // Otherwise -> use master order discount
+        if (orderDiscount == 0) {
+          const filteredOrderItems = order.items.filter(
+            (item: any) => Number(item.discount || "0") > 0,
+          );
+          orderDiscount = filteredOrderItems.reduce(
+            (sum: number, item: any) => sum + Number(item.discount || "0"),
+            0,
+          );
+          console.log(`💰 [BIỂU ĐỒ] Đơn ${order.orderNumber || order.id} - Tính giảm giá:`, {
+            nguồn: 'Chi tiết đơn hàng (order items)',
+            sốItemCóGiảmGiá: filteredOrderItems.length,
+            tổngGiảmGiá: orderDiscount,
+            chiTiết: filteredOrderItems.map((item: any) => ({
+              sảnPhẩm: item.productName,
+              giảmGiá: Number(item.discount || "0"),
+            })),
+          });
+        } else {
+          console.log(`💰 [BIỂU ĐỒ] Đơn ${order.orderNumber || order.id} - Tính giảm giá:`, {
+            nguồn: 'Master đơn hàng (order master)',
+            giảmGiáMaster: orderDiscount,
+          });
+        }
+
+        // Calculate revenue based on priceIncludeTax setting
+        let doanhThu;
+        if (orderPriceIncludeTax) {
+          // When priceIncludeTax = true: doanh thu = subtotal - discount - tax
+          doanhThu = orderSubtotal - orderDiscount - orderTax;
+          console.log(`💹 [BIỂU ĐỒ] Đơn ${order.orderNumber || order.id} - CÔNG THỨC DOANH THU (Giá bao gồm thuế):`, {
+            côngThức: '📐 Doanh thu = Thành tiền - Giảm giá - Thuế',
+            thànhTiền: orderSubtotal,
+            giảmGiá: orderDiscount,
+            thuế: orderTax,
+            doanhThu: doanhThu,
+            bướcTính: {
+              bước1: `${orderSubtotal} (Thành tiền)`,
+              bước2: `- ${orderDiscount} (Giảm giá)`,
+              bước3: `- ${orderTax} (Thuế)`,
+              kếtQuả: `= ${doanhThu} ₫`,
+            },
+            ghiChú: '✅ Giá đã bao gồm thuế, trừ cả thuế và giảm giá',
+          });
+        } else {
+          // When priceIncludeTax = false: doanh thu = subtotal - discount
+          doanhThu = orderSubtotal - orderDiscount;
+          console.log(`💹 [BIỂU ĐỒ] Đơn ${order.orderNumber || order.id} - CÔNG THỨC DOANH THU (Giá chưa bao gồm thuế):`, {
+            côngThức: '📐 Doanh thu = Thành tiền - Giảm giá',
+            thànhTiền: orderSubtotal,
+            giảmGiá: orderDiscount,
+            doanhThu: doanhThu,
+            bướcTính: {
+              bước1: `${orderSubtotal} (Thành tiền)`,
+              bước2: `- ${orderDiscount} (Giảm giá)`,
+              kếtQuả: `= ${doanhThu} ₫`,
+            },
+            ghiChú: '✅ Giá chưa bao gồm thuế, không trừ thuế',
+          });
+        }
+
+        dailySales[dateStr].orders += 1;
+        dailySales[dateStr].revenue += doanhThu; // Doanh thu (net after discount)
+        dailySales[dateStr].customers += Number(order.customerCount || 1);
+        dailySales[dateStr].discount += orderDiscount; // Giảm giá từ DB
+        dailySales[dateStr].tax += orderTax; // Thuế
+        dailySales[dateStr].subtotal += orderSubtotal; // Subtotal from API
+
+        console.log(`📈 [BIỂU ĐỒ] Đơn ${order.orderNumber || order.id} - CỘNG DỒN THEO NGÀY:`, {
+          ngày: dateStr,
+          doanhThuĐơnNày: doanhThu,
+          tổngDoanhThuNgày: dailySales[dateStr].revenue,
+          tổngĐơnHàng: dailySales[dateStr].orders,
+          tổngThànhTiền: dailySales[dateStr].subtotal,
+          tổngGiảmGiá: dailySales[dateStr].discount,
+          tổngThuế: dailySales[dateStr].tax,
+          tổngKháchHàng: dailySales[dateStr].customers,
         });
       } catch (error) {
-        console.warn("Error processing order for daily sales:", error, order);
+        console.warn("❌ Error processing order for daily sales:", error, order);
       }
     });
 
-    console.log("Daily sales calculated:", dailySales);
+    console.log("📊 ========== TỔNG KẾT DOANH THU BIỂU ĐỒ ==========");
+    console.log("🔢 Tổng số ngày có dữ liệu:", Object.keys(dailySales).length);
+    console.log("📅 Dữ liệu chi tiết theo ngày:", dailySales);
+    
+    let tổngDoanhThuTấtCảNgày = 0;
+    let tổngĐơnHàngTấtCảNgày = 0;
+    
+    Object.entries(dailySales).forEach(([date, data]) => {
+      tổngDoanhThuTấtCảNgày += data.revenue;
+      tổngĐơnHàngTấtCảNgày += data.orders;
+      
+      console.log(`📅 [${date}] DOANH THU HIỂN THỊ TRÊN BIỂU ĐỒ:`, {
+        '📊 Số đơn hàng': data.orders,
+        '💰 Doanh thu (hiển thị)': `${data.revenue.toLocaleString('vi-VN')} ₫`,
+        '💵 Thành tiền': `${data.subtotal.toLocaleString('vi-VN')} ₫`,
+        '🏷️ Giảm giá': `${data.discount.toLocaleString('vi-VN')} ₫`,
+        '📋 Thuế': `${data.tax.toLocaleString('vi-VN')} ₫`,
+        '👥 Khách hàng': data.customers,
+        '📈 TB/đơn': data.orders > 0 ? `${(data.revenue / data.orders).toLocaleString('vi-VN')} ₫` : '0 ₫',
+      });
+    });
+    
+    console.log("💎 ========== TỔNG KẾT CUỐI CÙNG ==========");
+    console.log(`📊 Tổng doanh thu TẤT CẢ ngày: ${tổngDoanhThuTấtCảNgày.toLocaleString('vi-VN')} ₫`);
+    console.log(`🛒 Tổng số đơn hàng: ${tổngĐơnHàngTấtCảNgày}`);
+    console.log(`📈 Doanh thu trung bình/đơn: ${tổngĐơnHàngTấtCảNgày > 0 ? (tổngDoanhThuTấtCảNgày / tổngĐơnHàngTấtCảNgày).toLocaleString('vi-VN') : '0'} ₫`);
+    console.log("📊 ==========================================");
 
     const paymentMethods: {
       [method: string]: { count: number; revenue: number };
     } = {};
 
     filteredCompletedOrders.forEach((order: any) => {
-      const method = order.paymentMethod || "cash";
+      const method = order.paymentMethod || "";
       if (!paymentMethods[method]) {
         paymentMethods[method] = { count: 0, revenue: 0 };
       }
@@ -867,11 +1087,37 @@ export function SalesChartReport() {
 
       // Use correct revenue formula: Doanh thu = Thành tiền - Giảm giá
       const orderSubtotal = Number(order.subtotal || 0); // Thành tiền
-      const discount = Number(order.discount || 0); // Giảm giá
-      paymentMethods[method].revenue += Math.max(0, orderSubtotal - discount); // Doanh thu = Thành tiền - Giảm giá
+      let discount = Number(order.discount || 0); // Giảm giá
+      if (discount == 0) {
+        const filteredOrderItems = order.items.filter(
+          (item: any) => Number(item.discount || "0") > 0,
+        );
+        discount = filteredOrderItems.reduce(
+          (sum: number, item: any) => sum + Number(item.discount || "0"),
+          0,
+        );
+      }
+      const orderRevenue = Math.max(0, orderSubtotal - discount);
+      paymentMethods[method].revenue += orderRevenue;
+      
+      console.log(`💳 [Payment Method: ${method}] Order ${order.orderNumber || order.id}:`, {
+        subtotal: orderSubtotal,
+        discount: discount,
+        revenue: orderRevenue,
+        cumulativeRevenue: paymentMethods[method].revenue,
+      });
     });
 
+    console.log("📊 ========== PAYMENT METHODS SUMMARY ==========");
     console.log("Payment methods calculated:", paymentMethods);
+    Object.entries(paymentMethods).forEach(([method, data]) => {
+      console.log(`💳 [${method}]:`, {
+        count: data.count,
+        totalRevenue: data.revenue,
+        avgPerTransaction: data.count > 0 ? (data.revenue / data.count).toFixed(2) : 0,
+      });
+    });
+    console.log("📊 ===============================================");
 
     // Use dashboard stats directly for consistency
     const totalRevenue = dashboardStats.periodRevenue || 0; // Tổng thu từ bán hàng (sum of total)
@@ -1315,11 +1561,11 @@ export function SalesChartReport() {
 
                                         let customerPayment;
                                         if (orderPriceIncludeTax) {
-                                          // When priceIncludeTax = true: customer payment = total from DB
+                                          // priceIncludeTax = true: customer payment = total from DB
                                           customerPayment =
                                             transactionTotal - transactionTax;
                                         } else {
-                                          // When priceIncludeTax = false: customer payment = revenue + tax
+                                          // priceIncludeTax = false: customer payment = revenue + tax
                                           const revenue = Math.max(
                                             0,
                                             transactionSubtotal -
@@ -1364,7 +1610,7 @@ export function SalesChartReport() {
                                                 0) + amount;
                                           });
                                         } else {
-                                          // Not a valid JSON array, treat as single payment method
+                                          // Not a valid array, treat as single payment method
                                           const transSubtotal = Number(
                                             transaction.subtotal || 0,
                                           );
@@ -1625,19 +1871,19 @@ export function SalesChartReport() {
                                             true;
 
                                           if (orderPriceIncludeTax) {
-                                            // priceIncludeTax = true: tổng tiền = total
+                                            // priceIncludeTax = true: customer payment = total from DB
                                             return formatCurrency(
                                               transactionTotal,
                                             );
                                           } else {
-                                            // priceIncludeTax = false: tổng tiền = subtotal - discount + tax
-                                            const doanhThu = Math.max(
+                                            // priceIncludeTax = false: customer payment = revenue + tax
+                                            const revenue = Math.max(
                                               0,
                                               transactionSubtotal -
                                                 transactionDiscount,
                                             );
                                             return formatCurrency(
-                                              doanhThu + transactionTax,
+                                              revenue + transactionTax,
                                             );
                                           }
                                         })()}
@@ -1805,10 +2051,53 @@ export function SalesChartReport() {
                     ) : (
                       <TableRow>
                         <TableCell
-                          colSpan={9}
-                          className="text-center text-gray-500 py-8"
+                          colSpan={(() => {
+                            // Calculate dynamic colspan based on payment methods
+                            const baseColumns =
+                              analysisType !== "employee" ? 9 : 8;
+                            const allPaymentMethods = new Set();
+                            if (
+                              filteredCompletedOrders &&
+                              Array.isArray(filteredCompletedOrders)
+                            ) {
+                              filteredCompletedOrders.forEach((order: any) => {
+                                const paymentMethod =
+                                  order.paymentMethod || "cash";
+                                try {
+                                  const parsed = JSON.parse(paymentMethod);
+                                  if (
+                                    Array.isArray(parsed) &&
+                                    parsed.length > 0
+                                  ) {
+                                    parsed.forEach((pm: any) => {
+                                      if (pm.method) {
+                                        allPaymentMethods.add(pm.method);
+                                      }
+                                    });
+                                  } else {
+                                    allPaymentMethods.add(paymentMethod);
+                                  }
+                                } catch (e) {
+                                  allPaymentMethods.add(paymentMethod);
+                                }
+                              });
+                            }
+                            return baseColumns + allPaymentMethods.size;
+                          })()}
+                          className="text-center py-12"
                         >
-                          {t("reports.noDataDescription")}
+                          <div className="flex flex-col items-center justify-center space-y-4">
+                            <div className="text-6xl">📊</div>
+                            <div className="text-lg font-medium text-gray-700">
+                              {t("reports.noDataInDateRange")}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ({formatDate(startDate)} - {formatDate(endDate)})
+                            </div>
+                            <div className="text-sm text-gray-500 max-w-md">
+                              {t("reports.tryDifferentDateRange")}
+                            </div>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
@@ -2342,7 +2631,7 @@ export function SalesChartReport() {
 
       if (order.priceIncludeTax === true) {
         orderSubtotal = orderSubtotal + orderDiscount + orderTax; // Thành tiền = subtotal + discount + tax
-        orderRevenue = orderSubtotal - orderDiscount - orderTax; // Doanh thu = subtotal - tax
+        orderRevenue = orderSubtotal - orderDiscount - orderTax; // Doanh thu = subtotal + tax
         orderTotal = orderRevenue + orderTax;
       } else {
         orderTotal = orderRevenue + orderTax;
@@ -2856,8 +3145,36 @@ export function SalesChartReport() {
                                 <TableCell className="text-right text-red-600 min-w-[100px] px-2">
                                   {formatCurrency(item.discount)}
                                 </TableCell>
-                                <TableCell className="text-right text-green-600 font-medium min-w-[120px] px-2">
-                                  {formatCurrency(item.revenue)}
+                                <TableCell className="text-right text-green-600 font-medium text-sm min-w-[140px] px-2">
+                                  {(() => {
+                                    const transactionSubtotal = Number(
+                                      item.totalAmount || 0,
+                                    );
+                                    const transactionDiscount = Number(
+                                      item.discount || 0,
+                                    );
+
+                                    // Check priceIncludeTax from transaction or order
+                                    const orderPriceIncludeTax =
+                                      order.priceIncludeTax === true;
+
+                                    let doanhThu;
+                                    if (orderPriceIncludeTax) {
+                                      // priceIncludeTax = true: doanh thu = subtotal (already net of discount)
+                                      doanhThu =
+                                        transactionSubtotal -
+                                        Number(item.tax || 0);
+                                    } else {
+                                      // priceIncludeTax = false: doanh thu = subtotal - discount
+                                      doanhThu = Math.max(
+                                        0,
+                                        transactionSubtotal -
+                                          transactionDiscount,
+                                      );
+                                    }
+
+                                    return formatCurrency(doanhThu);
+                                  })()}
                                 </TableCell>
                                 <TableCell className="text-right min-w-[100px] px-2">
                                   {(() => {
@@ -2874,10 +3191,42 @@ export function SalesChartReport() {
                                   })()}
                                 </TableCell>
                                 <TableCell className="text-right min-w-[100px] px-2">
-                                  {formatCurrency(item.tax)}
+                                  {formatCurrency(item.vat)}
                                 </TableCell>
                                 <TableCell className="text-right font-bold text-blue-600 min-w-[120px] px-2">
-                                  {formatCurrency(item.totalMoney)}
+                                  {(() => {
+                                    const transactionSubtotal = Number(
+                                      item.totalAmount || 0,
+                                    );
+                                    const transactionDiscount = Number(
+                                      item.discount || 0,
+                                    );
+                                    const transactionTax = Number(
+                                      item.vat || 0,
+                                    );
+                                    const transactionTotal = Number(
+                                      item.totalMoney || 0,
+                                    );
+
+                                    // Check priceIncludeTax from transaction or order
+                                    const orderPriceIncludeTax =
+                                      order.priceIncludeTax === true;
+
+                                    if (orderPriceIncludeTax) {
+                                      // priceIncludeTax = true: tổng tiền = total
+                                      return formatCurrency(transactionTotal);
+                                    } else {
+                                      // priceIncludeTax = false: tổng tiền = subtotal - discount + tax
+                                      const doanhThu = Math.max(
+                                        0,
+                                        transactionSubtotal -
+                                          transactionDiscount,
+                                      );
+                                      return formatCurrency(
+                                        doanhThu + transactionTax,
+                                      );
+                                    }
+                                  })()}
                                 </TableCell>
                                 <TableCell className="text-center min-w-[150px] px-2 text-gray-600 text-sm">
                                   {order.notes || "-"}
@@ -3230,7 +3579,7 @@ export function SalesChartReport() {
                       Loại: "Chi tiết đơn hàng",
                       "Mã NV": item.employeeCode,
                       "Tên NV": item.employeeName,
-                      "Mã đơn h �ng": order.orderNumber || `ORD-${order.id}`,
+                      "Mã đơn h ng": order.orderNumber || `ORD-${order.id}`,
                       "Ngày giờ": new Date(
                         order.orderedAt || order.createdAt || order.created_at,
                       ).toLocaleString("vi-VN", {
@@ -3483,7 +3832,7 @@ export function SalesChartReport() {
                                 }
                                 className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded text-sm"
                               >
-                                {isExpanded ? "−" : "+"}
+                                {isExpanded ? "  �" : "+"}
                               </button>
                             </TableCell>
                             <TableCell className="text-center border-r bg-green-50 font-medium min-w-[120px] px-4">
@@ -3933,7 +4282,7 @@ export function SalesChartReport() {
                           ),
                         )}
                       </TableCell>
-                      <TableCell className="text-right border-r text-green-600 min-w-[120px] px-4">
+                      <TableCell className="text-right border-r min-w-[120px] px-4">
                         {formatCurrency(
                           data.reduce(
                             (sum, item) => sum + item.totalRevenue,
@@ -4290,8 +4639,8 @@ export function SalesChartReport() {
       const orderPriceIncludeTax = order.priceIncludeTax ?? false;
       let orderRevenue;
       if (orderPriceIncludeTax) {
-        // When priceIncludeTax = true: doanh thu = subtotal (already includes discount effect)
-        orderRevenue = orderSubtotal + orderDiscount + orderTax;
+        // When priceIncludeTax = true: doanh thu = subtotal (already net of discount)
+        orderRevenue = orderSubtotal - orderTax;
         customerSales[customerId].totalAmount +=
           orderRevenue - orderDiscount - orderTax;
       } else {
@@ -4376,7 +4725,7 @@ export function SalesChartReport() {
                           second: "2-digit",
                           hour12: false,
                         }),
-                        "Số đ �n": 1,
+                        "Số đ n": 1,
                         "Tổng tiền": formatCurrency(
                           Number(order.subtotal || 0),
                         ),
@@ -4667,11 +5016,9 @@ export function SalesChartReport() {
                                       const discount = Number(order.discount);
                                       const tax = Number(order.tax);
                                       if (order.priceIncludeTax === false) {
-                                        return formatCurrency(
-                                          subtotal - discount,
-                                        );
-                                      } else {
                                         return formatCurrency(subtotal - tax);
+                                      } else {
+                                        return formatCurrency(subtotal);
                                       }
                                     })()}
                                   </TableCell>
@@ -4718,7 +5065,7 @@ export function SalesChartReport() {
                         {t("common.total")}
                       </TableCell>
                       <TableCell className="text-center border-r bg-green-50 min-w-[150px] px-4">
-                        {data.length} khách hàng
+                        {data.length} kh ch hàng
                       </TableCell>
                       <TableCell className="text-center border-r min-w-[100px] px-4">
                         {(() => {
@@ -4778,7 +5125,7 @@ export function SalesChartReport() {
                                 let orderRevenue;
                                 if (orderPriceIncludeTax) {
                                   // When priceIncludeTax = true: doanh thu = subtotal (already net of discount)
-                                  orderRevenue = orderSubtotal;
+                                  orderRevenue = orderSubtotal - orderTax;
                                 } else {
                                   // When priceIncludeTax = false: doanh thu = subtotal - discount
                                   orderRevenue = Math.max(
@@ -5223,25 +5570,12 @@ export function SalesChartReport() {
             [date: string]: { revenue: number; orders: number };
           } = {};
 
-          // Initialize all dates in range with zero values
-          const currentDate = new Date(timeStart);
-          while (currentDate <= timeEnd) {
-            // Use local date format to avoid timezone issues
-            const year = currentDate.getFullYear();
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const dateKey = `${year}-${month}-${day}`;
-            dailyData[dateKey] = { revenue: 0, orders: 0 };
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
-
           console.log("Time Analysis Debug:", {
             startDate,
             endDate,
             timeStart: timeStart.toISOString(),
             timeEnd: timeEnd.toISOString(),
             ordersLength: orders?.length || 0,
-            totalDatesInRange: Object.keys(dailyData).length,
           });
 
           if (orders && Array.isArray(orders) && orders.length > 0) {
@@ -5262,13 +5596,12 @@ export function SalesChartReport() {
                   tables.find((table: any) => table.id === order.tableId)
                     ?.floor === selectedFloor;
 
+                // Apply store filter
+                const storeMatch =
+                  storeFilter === "all" || order.storeCode === storeFilter;
+
                 // EXACT same date parsing as dashboard
-                const orderDate = new Date(
-                  order.orderedAt ||
-                    order.paidAt ||
-                    order.createdAt ||
-                    order.created_at,
-                );
+                const orderDate = new Date(order.updatedAt);
 
                 if (isNaN(orderDate.getTime())) {
                   console.warn("Invalid date for order:", order.id);
@@ -5277,7 +5610,7 @@ export function SalesChartReport() {
 
                 const dateMatch =
                   orderDate >= timeStart && orderDate <= timeEnd;
-                return dateMatch && floorMatch;
+                return dateMatch && floorMatch && storeMatch;
               } catch (error) {
                 console.warn("Error filtering order:", order.id, error);
                 return false;
@@ -5290,26 +5623,29 @@ export function SalesChartReport() {
 
             filteredOrders.forEach((order: any) => {
               try {
-                const orderDate = new Date(
-                  order.orderedAt ||
-                    order.paidAt ||
-                    order.createdAt ||
-                    order.created_at,
-                );
-                // Use local date format to match initialization
-                const year = orderDate.getFullYear();
-                const month = String(orderDate.getMonth() + 1).padStart(2, '0');
-                const day = String(orderDate.getDate()).padStart(2, '0');
-                const dateKey = `${year}-${month}-${day}`;
+                const orderDate = new Date(order.updatedAt);
+                const dateKey = orderDate.toISOString().split("T")[0];
 
-                if (dailyData[dateKey]) {
-                  const orderSubtotal = Number(order.subtotal || 0);
-                  const discount = Number(order.discount || 0);
-                  const revenue = Math.max(0, orderSubtotal - discount); // Ensure non-negative
-
-                  dailyData[dateKey].revenue += revenue;
-                  dailyData[dateKey].orders += 1;
+                if (!dailyData[dateKey]) {
+                  dailyData[dateKey] = { revenue: 0, orders: 0 };
                 }
+
+                const orderSubtotal = Number(order.subtotal || 0);
+                let discount = Number(order.discount || 0);
+                const revenue = Math.max(0, orderSubtotal - discount); // Ensure non-negative
+                if (discount == 0) {
+                  const filteredOrderItems = order.items.filter(
+                    (item: any) => Number(item.discount || "0") > 0,
+                  );
+                  discount = filteredOrderItems.reduce(
+                    (sum: number, item: any) =>
+                      sum + Number(item.discount || "0"),
+                    0,
+                  );
+                }
+
+                dailyData[dateKey].revenue += revenue;
+                dailyData[dateKey].orders += 1;
               } catch (error) {
                 console.warn(
                   "Error processing order for chart:",
@@ -5320,16 +5656,19 @@ export function SalesChartReport() {
             });
           }
 
-          // Convert to array and sort by date, include all dates
           const chartData = Object.keys(dailyData)
-            .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
             .map((date) => ({
               name: formatDate(date),
               revenue: Math.round(dailyData[date].revenue), // Round to avoid floating point issues
               orders: dailyData[date].orders,
-            }));
+            }))
+            .sort(
+              (a, b) =>
+                new Date(a.name.split("/").reverse().join("-")).getTime() -
+                new Date(b.name.split("/").reverse().join("-")).getTime(),
+            )
+            .slice(0, 10);
 
-          console.log("Generated chart data with all dates:", chartData);
           return chartData;
 
         case "product":
@@ -5401,6 +5740,10 @@ export function SalesChartReport() {
                   tables.find((table: any) => table.id === order.tableId)
                     ?.floor === selectedFloor;
 
+                // Apply store filter
+                const storeMatch =
+                  storeFilter === "all" || order.storeCode === storeFilter;
+
                 // Try multiple possible date fields (EXACT same as dashboard)
                 const orderDate = new Date(
                   order.orderedAt ||
@@ -5454,7 +5797,7 @@ export function SalesChartReport() {
                       .toLowerCase()
                       .includes(selectedEmployee.toLowerCase()));
 
-                return dateMatch && employeeMatch && floorMatch;
+                return dateMatch && employeeMatch && floorMatch && storeMatch;
               } catch (error) {
                 console.warn(
                   "Error filtering employee order:",
@@ -5549,11 +5892,16 @@ export function SalesChartReport() {
                   tables.find((table: any) => table.id === order.tableId)
                     ?.floor === selectedFloor;
 
+                // Apply store filter
+                const storeMatch =
+                  storeFilter === "all" || order.storeCode === storeFilter;
+
                 return (
                   orderDate >= custStart &&
                   orderDate <= custEnd &&
                   order.status === "paid" &&
-                  floorMatch
+                  floorMatch &&
+                  storeMatch
                 );
               } catch (error) {
                 console.warn(
@@ -5648,6 +5996,10 @@ export function SalesChartReport() {
                   tables.find((table: any) => table.id === order.tableId)
                     ?.floor === selectedFloor;
 
+                // Apply store filter
+                const storeMatch =
+                  storeFilter === "all" || order.storeCode === storeFilter;
+
                 const orderDate = new Date(
                   order.orderedAt ||
                     order.createdAt ||
@@ -5666,7 +6018,8 @@ export function SalesChartReport() {
                 return (
                   orderDate >= salesMethodStart &&
                   orderDate <= salesMethodEnd &&
-                  floorMatch
+                  floorMatch &&
+                  storeMatch
                 );
               } catch (error) {
                 console.warn(
@@ -5704,7 +6057,7 @@ export function SalesChartReport() {
             salesMethodFilteredOrders.forEach((order: any) => {
               try {
                 // Check if order has tableId to determine if it's dine-in or takeaway
-                const isDineIn = order.salesChannel === "table" ? true : false;
+                const isDineIn = order.tableId && order.tableId !== null;
                 const method = isDineIn ? "Ăn tại chỗ" : "Mang về";
 
                 const orderRevenue = Number(order.subtotal || 0);
@@ -6037,7 +6390,6 @@ export function SalesChartReport() {
                 </Select>
                 <p className="text-sm font-medium"> {t("common.rows")} </p>
               </div>
-
               <div className="flex items-center space-x-2">
                 <p className="text-sm font-medium">
                   {t("common.page")} {productCurrentPage} / {totalPages}
@@ -6078,7 +6430,7 @@ export function SalesChartReport() {
                     »
                   </button>
                 </div>
-              </div>
+              </div>{" "}
             </div>
           )}
         </CardContent>
@@ -6438,7 +6790,63 @@ export function SalesChartReport() {
         <CardContent className="pt-6">
           <div className="space-y-6">
             {/* Main Filter Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {/* Store Filter - Only show for admin users */}
+              {isAdmin && (
+                <div>
+                  <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                    Cửa hàng
+                  </Label>
+                  <Select
+                    value={storeFilter}
+                    onValueChange={setStoreFilter}
+                    disabled={storesLoading}
+                  >
+                    <SelectTrigger className="h-10 text-sm border-gray-200 hover:border-cyan-300 transition-colors">
+                      <SelectValue
+                        placeholder={
+                          storesLoading
+                            ? "Đang tải..."
+                            : storeFilter === "all"
+                              ? "Tất cả"
+                              : storesFilterData
+                                  ?.filter((store: any) => store.typeUser !== 1)
+                                  .find(
+                                    (store: any) =>
+                                      store.storeCode === storeFilter,
+                                  )?.storeName
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {storesFilterData &&
+                        Array.isArray(storesFilterData) &&
+                        storesFilterData.length > 1 && (
+                          <SelectItem value="all">{t("common.all")}</SelectItem>
+                        )}
+                      {storesFilterData &&
+                        Array.isArray(storesFilterData) &&
+                        storesFilterData.map((store: any) => (
+                          <SelectItem key={store.id} value={store.storeCode}>
+                            {store.storeName}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  {storesLoading && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Đang tải danh sách cửa hàng...
+                    </p>
+                  )}
+                  {!storesLoading && !storesFilterData && (
+                    <p className="text-xs text-red-500 mt-1">
+                      Lỗi khi tải danh sách cửa hàng
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Analysis Type */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
@@ -6470,23 +6878,15 @@ export function SalesChartReport() {
                     <SelectItem value="product">
                       {t("reports.productAnalysis")}
                     </SelectItem>
-                    {
-                      storeSettings.businessType !== "laundry" && (
-                        <SelectItem value="employee">
-                          {t("reports.employeeAnalysis")}
-                        </SelectItem>
-                      )
-                    }
+                    {/* <SelectItem value="employee">
+                      {t("reports.employeeAnalysis")}
+                    </SelectItem> */}
                     <SelectItem value="customer">
                       {t("reports.customerAnalysis")}
                     </SelectItem>
-                    {
-                      storeSettings.businessType !== "laundry" && (
-                        <SelectItem value="salesMethod">
-                          {t("reports.salesMethod")}
-                        </SelectItem>
-                      )
-                    }
+                    {/* <SelectItem value="salesMethod">
+                      {t("reports.salesMethod")}
+                    </SelectItem> */}
                     <SelectItem value="salesDetail">
                       {t("reports.salesDetailReport")}
                     </SelectItem>
@@ -6537,36 +6937,43 @@ export function SalesChartReport() {
                 />
               </div>
 
-              {/* Floor Filter */}
+              {/* Shop Filter */}
               <div className="space-y-2">
                 <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                   <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
-                  {t("tables.floorLabel")}
+                  {t("common.shop")}
                 </Label>
                 <Select
-                  value={selectedFloor}
-                  onValueChange={setSelectedFloor}
+                  value={selectedShop}
+                  onValueChange={setSelectedShop}
                   disabled={tablesLoading}
                 >
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={tablesLoading ? "Đang tải..." : "Chọn tầng"}
+                      placeholder={
+                        tablesLoading
+                          ? t("common.loading")
+                          : t("common.selectShop")
+                      }
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
                     {tablesLoading ? (
                       <SelectItem value="loading" disabled>
-                        Đang tải dữ liệu...
+                        {t("common.loadingData")}
                       </SelectItem>
                     ) : tablesError ? (
                       <SelectItem value="error" disabled>
-                        Lỗi tải dữ liệu
+                        {t("common.errorLoadingData")}
                       </SelectItem>
                     ) : (
-                      getAvailableFloors().map((floor) => (
-                        <SelectItem key={floor} value={floor}>
-                          {floor}
+                      getStoresFilter().map((stores: any) => (
+                        <SelectItem
+                          key={stores.storeCode}
+                          value={stores.storeCode}
+                        >
+                          {stores.storeName}
                         </SelectItem>
                       ))
                     )}
@@ -6574,7 +6981,7 @@ export function SalesChartReport() {
                 </Select>
                 {tablesError && (
                   <p className="text-xs text-red-500 mt-1">
-                    Không thể tải dữ liệu tầng
+                    Không thể tải dữ liệu cửa hàng
                   </p>
                 )}
               </div>
@@ -6631,7 +7038,7 @@ export function SalesChartReport() {
 
           {analysisType === "product" && (
             <div className="pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                     <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>

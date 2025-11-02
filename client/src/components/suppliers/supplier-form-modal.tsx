@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
     address: "",
     taxId: "",
     bankAccount: "",
-    paymentTerms: "30일",
+    paymentTerms: "30_days",
     status: "active",
     notes: "",
   });
@@ -38,45 +38,22 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
 
   const isEdit = !!supplier;
 
-  // Fetch store settings to get storeCode
-  const { data: storeSettings } = useQuery({
-    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', 'https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings');
-      return response.json();
-    },
-  });
+  // Fetch next supplier code when creating new supplier
+  useEffect(() => {
+    const fetchNextCode = async () => {
+      if (!supplier && isOpen) {
+        try {
+          const response = await apiRequest('GET', 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers/next-code');
+          const data = await response.json();
+          setFormData(prev => ({ ...prev, code: data.code }));
+        } catch (error) {
+          console.error("Failed to fetch next supplier code:", error);
+        }
+      }
+    };
 
-  // Fetch all suppliers to generate next code
-  const { data: suppliers } = useQuery({
-    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', 'https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers');
-      return response.json();
-    },
-  });
-
-  // Generate next supplier code
-  const generateSupplierCode = () => {
-    if (!suppliers || !Array.isArray(suppliers)) return "NCC-0000001";
-    
-    // Extract all supplier codes that match the pattern NCC-XXXXXXX
-    const existingCodes = suppliers
-      .map((s: any) => s.code)
-      .filter((code: string) => code && code.startsWith("NCC-"))
-      .map((code: string) => {
-        const numPart = code.substring(4);
-        return parseInt(numPart, 10);
-      })
-      .filter((num: number) => !isNaN(num));
-
-    // Find the max number
-    const maxNum = existingCodes.length > 0 ? Math.max(...existingCodes) : 0;
-    const nextNum = maxNum + 1;
-    
-    // Format as NCC-0000001
-    return `NCC-${String(nextNum).padStart(7, '0')}`;
-  };
+    fetchNextCode();
+  }, [supplier, isOpen]);
 
   useEffect(() => {
     if (supplier) {
@@ -89,38 +66,34 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
         address: supplier.address || "",
         taxId: supplier.taxId || "",
         bankAccount: supplier.bankAccount || "",
-        paymentTerms: supplier.paymentTerms || "30일",
+        paymentTerms: supplier.paymentTerms || "30_days",
         status: supplier.status as "active" | "inactive",
         notes: supplier.notes || "",
       });
     } else {
       setFormData({
         name: "",
-        code: generateSupplierCode(),
+        code: "",
         contactPerson: "",
         phone: "",
         email: "",
         address: "",
         taxId: "",
         bankAccount: "",
-        paymentTerms: "30일",
+        paymentTerms: "30_days",
         status: "active",
         notes: "",
       });
     }
-  }, [supplier, isOpen, suppliers]);
+  }, [supplier, isOpen]);
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertSupplier) => {
-      const dataWithStoreCode = {
-        ...data,
-        storeCode: storeSettings?.storeCode || null,
-      };
-      const response = await apiRequest('POST', 'https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers', dataWithStoreCode);
+      const response = await apiRequest('POST', 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers', data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers'] });
       toast({
         title: t("common.successTitle"),
         description: t("suppliers.createSuccess"),
@@ -138,11 +111,11 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
 
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<InsertSupplier>) => {
-      const response = await apiRequest('PUT', `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers/${supplier!.id}`, data);
+      const response = await apiRequest('PUT', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers/${supplier!.id}`, data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers'] });
       toast({
         title: t("common.successTitle"),
         description: t("suppliers.updateSuccess"),
@@ -211,10 +184,10 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
                 id="code"
                 value={formData.code}
                 onChange={(e) => handleInputChange('code', e.target.value)}
-                placeholder={t('suppliers.codePlaceholder')}
+                placeholder={t('suppliers.autoGeneratedCode')}
                 required
-                disabled
-                className="bg-gray-100 cursor-not-allowed"
+                disabled={true}
+                className="bg-gray-100"
               />
             </div>
           </div>
@@ -284,16 +257,16 @@ export function SupplierFormModal({ isOpen, onClose, supplier }: SupplierFormMod
             </div>
             <div>
               <Label htmlFor="paymentTerms">{t('suppliers.paymentTerms')}</Label>
-              <Select value={formData.paymentTerms || "30일"} onValueChange={(value) => handleInputChange('paymentTerms', value)}>
+              <Select value={formData.paymentTerms || "30_days"} onValueChange={(value) => handleInputChange('paymentTerms', value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="현금">{t('suppliers.cash')}</SelectItem>
-                  <SelectItem value="15일">15일</SelectItem>
-                  <SelectItem value="30일">30일</SelectItem>
-                  <SelectItem value="60일">60일</SelectItem>
-                  <SelectItem value="90일">90일</SelectItem>
+                  <SelectItem value="cash">{t('suppliers.paymentTermsCash')}</SelectItem>
+                  <SelectItem value="15_days">{t('suppliers.paymentTerms15Days')}</SelectItem>
+                  <SelectItem value="30_days">{t('suppliers.paymentTerms30Days')}</SelectItem>
+                  <SelectItem value="60_days">{t('suppliers.paymentTerms60Days')}</SelectItem>
+                  <SelectItem value="90_days">{t('suppliers.paymentTerms90Days')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

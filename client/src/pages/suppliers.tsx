@@ -29,33 +29,33 @@ export default function SuppliersPage({ onLogout }: SuppliersPageProps) {
   const queryClient = useQueryClient();
 
   const { data: suppliers, isLoading } = useQuery({
-    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers', { status: selectedStatus, search: searchQuery }],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers', { status: selectedStatus, search: searchQuery }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedStatus !== 'all') params.append('status', selectedStatus);
       if (searchQuery) params.append('search', searchQuery);
       
-      const response = await apiRequest('GET', `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers?${params}`);
+      const response = await apiRequest('GET', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers?${params}`);
       return response.json();
     },
   });
 
   // Fetch purchase order statistics for suppliers
   const { data: supplierStats } = useQuery({
-    queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/supplier-stats'],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/supplier-stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', 'https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/supplier-stats');
+      const response = await apiRequest('GET', 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/supplier-stats');
       return response.json();
     },
   });
 
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers/${id}`);
+      const response = await apiRequest('DELETE', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers'] });
       toast({
         title: t('suppliers.deleteSuccess'),
         description: t('suppliers.deleteSuccessDesc'),
@@ -158,7 +158,7 @@ export default function SuppliersPage({ onLogout }: SuppliersPageProps) {
             </div>
           </div>
 
-          {/* Suppliers Table */}
+          {/* Suppliers Grid */}
           {isLoading ? (
             <div className="text-center py-8">
               <div className="text-gray-500">{t('common.loading')}</div>
@@ -171,93 +171,117 @@ export default function SuppliersPage({ onLogout }: SuppliersPageProps) {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.code')}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.name')}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.contactPerson')}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.phone')}
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.address')}
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('suppliers.status')}
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('purchases.totalOrders')}
-                        </th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {t('common.actions')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredSuppliers.map((supplier: Supplier) => (
-                        <tr key={supplier.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {supplier.code}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {supplier.name}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {supplier.contactPerson || '-'}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                            {supplier.phone || '-'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate" title={supplier.address || ''}>
-                            {supplier.address || '-'}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-center">
-                            <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                              {supplier.status === 'active' ? t('suppliers.active') : t('suppliers.inactive')}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-center text-sm font-medium text-green-600">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredSuppliers.map((supplier: Supplier) => (
+                <Card key={supplier.id} className="h-full flex flex-col">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-lg">{supplier.name}</CardTitle>
+                        <CardDescription>{supplier.code}</CardDescription>
+                      </div>
+                      <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
+                        {supplier.status === 'active' ? t('suppliers.active') : t('suppliers.inactive')}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6 pt-0 flex flex-col flex-1">
+                    <div className="space-y-2">
+                      {supplier.contactPerson && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Building2 className="w-4 h-4 mr-2" />
+                          {supplier.contactPerson}
+                        </div>
+                      )}
+                      {supplier.phone && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="w-4 h-4 mr-2" />
+                          {supplier.phone}
+                        </div>
+                      )}
+                      {supplier.email && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="w-4 h-4 mr-2" />
+                          {supplier.email}
+                        </div>
+                      )}
+                      {supplier.address && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          {supplier.address}
+                        </div>
+                      )}
+                      {supplier.paymentTerms && (
+                        <div className="text-sm text-gray-600">
+                          <span className="font-medium">{t('suppliers.paymentTerms')}:</span> {supplier.paymentTerms}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Purchase Metrics */}
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <div className="text-lg font-bold text-green-600">
                             {getSupplierMetrics(supplier.id).totalOrders}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap text-center text-sm">
-                            <div className="flex justify-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(supplier)}
-                                className="h-8 px-2"
-                                data-testid={`button-edit-supplier-${supplier.id}`}
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(supplier.id)}
-                                className="text-red-600 hover:text-red-700 h-8 px-2"
-                                data-testid={`button-delete-supplier-${supplier.id}`}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {t('purchases.totalOrders')}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {getSupplierMetrics(supplier.id).onTimeDelivery}%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {t('purchases.onTime')}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-yellow-600">
+                            {getSupplierMetrics(supplier.id).averageRating.toFixed(1)}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {t('purchases.rating')}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center gap-2 mt-auto pt-4 border-t border-gray-100">
+                      <Button
+                        size="sm"
+                        onClick={() => handleCreatePurchaseOrder(supplier)}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        data-testid={`button-create-po-${supplier.id}`}
+                      >
+                        <ShoppingCart className="w-3 h-3 mr-1" />
+                        {t('purchases.createOrder')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(supplier)}
+                        data-testid={`button-edit-supplier-${supplier.id}`}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        {t('common.edit')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDelete(supplier.id)}
+                        className="text-red-600 hover:text-red-700"
+                        data-testid={`button-delete-supplier-${supplier.id}`}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        {t('common.delete')}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>

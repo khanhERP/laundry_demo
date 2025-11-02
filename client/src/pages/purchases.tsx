@@ -41,6 +41,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   ClipboardCheck,
   Plus,
   Search,
@@ -51,10 +57,14 @@ import {
   DollarSign,
   Eye,
   Trash2,
+  Download,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { PurchaseOrder, Supplier } from "@shared/schema";
+import PurchaseFormPage from "./purchase-form";
+import PurchaseViewPage from "./purchase-view";
+import * as XLSX from "xlsx";
 
 interface PurchasesPageProps {
   onLogout: () => void;
@@ -68,6 +78,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
   const [productFilter, setProductFilter] = useState("");
   const [supplierFilter, setSupplierFilter] = useState("");
   const [poNumberFilter, setPoNumberFilter] = useState("");
+  const [storeFilter, setStoreFilter] = useState("all");
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -78,13 +89,20 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
   // State for delete confirmation dialog
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  // State for purchase creation dialog
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  // State for purchase edit dialog
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingPurchaseId, setEditingPurchaseId] = useState<number | null>(null);
+
   // Fetch purchase receipts with filters
   const {
     data: purchaseReceiptsResponse = { data: [] },
     isLoading: isOrdersLoading,
   } = useQuery<{ data: PurchaseOrder[]; success: boolean; message: string }>({
     queryKey: [
-      "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts",
       {
         startDate,
         endDate,
@@ -116,7 +134,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
         console.log("🔍 Adding PO number search:", poNumberFilter.trim());
       }
 
-      const url = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts${params.toString() ? `?${params.toString()}` : ""}`;
       console.log("🔍 Fetching purchase receipts with filters:", url);
 
       const response = await fetch(url);
@@ -152,14 +170,33 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
 
   // Fetch suppliers for filtering
   const { data: suppliers = [] } = useQuery<Supplier[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
+  });
+
+  // Fetch stores for filtering
+  const { data: storesData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Filter out stores with typeUser = 1
+        return Array.isArray(data) ? data.filter((store: any) => store.typeUser !== 1) : [];
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        return [];
+      }
+    },
   });
 
   // Fetch payment methods
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -197,8 +234,20 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
     };
   }, [purchaseOrders]);
 
-  // Use server-filtered orders directly
-  const filteredOrders = purchaseOrders;
+  // Apply client-side store filter
+  const filteredOrders = useMemo(() => {
+    return purchaseOrders.filter((order) => {
+      // Store filter
+      if (storeFilter !== "all") {
+        // Check if order has storeCode property
+        const orderStoreCode = (order as any).storeCode;
+        if (orderStoreCode !== storeFilter) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [purchaseOrders, storeFilter]);
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -261,7 +310,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
   // Bulk delete mutation
   const bulkDeleteMutation = useMutation({
     mutationFn: async (orderIds: number[]) => {
-      return apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/bulk-delete", {
+      return apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/bulk-delete", {
         orderIds,
       });
     },
@@ -278,7 +327,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
       setSelectedOrders(new Set());
 
       // Refetch purchase receipts
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"] });
 
       // Close dialog
       setShowDeleteDialog(false);
@@ -315,7 +364,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
       {/* Right Sidebar */}
       <RightSidebar />
 
-      <div className="main-content pt-16 px-6">
+      <div className="main-content px-6">
         <div className="mx-auto py-8" style={{ maxWidth: "95rem" }}>
           {/* Page Header */}
           <div className="mb-6 sm:mb-8">
@@ -336,12 +385,35 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
           <Card className="mb-6">
             <CardContent className="pt-6">
               <div className="flex flex-col gap-4">
-                {/* Desktop: 4 columns, Tablet: 2 columns, Mobile: 1 column */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 w-full">
+                {/* Desktop: 5 columns, Tablet: 2 columns, Mobile: 1 column */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 w-full">
+                  {/* Store Filter */}
+                  <div className="flex flex-col">
+                    <label className="text-xs text-gray-600 mb-1 font-bold">
+                      {t("purchases.storeLabel")}
+                    </label>
+                    <select
+                      value={storeFilter}
+                      onChange={(e) => setStoreFilter(e.target.value)}
+                      className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
+                        <option value="all">{t("common.all")}</option>
+                      )}
+                      {storesData
+                        .filter((store: any) => store.typeUser !== 1)
+                        .map((store: any) => (
+                          <option key={store.id} value={store.storeCode}>
+                            {store.storeName}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
                   {/* From Date */}
                   <div className="flex flex-col">
                     <label className="text-xs text-gray-600 mb-1 font-bold">
-                      {t("common.fromDate")}
+                      {t("purchases.fromDateLabel")}
                     </label>
                     <Input
                       type="date"
@@ -355,7 +427,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                   {/* To Date */}
                   <div className="flex flex-col">
                     <label className="text-xs text-gray-600 mb-1 font-bold">
-                      {t("common.toDate")}
+                      {t("purchases.toDateLabel")}
                     </label>
                     <Input
                       type="date"
@@ -372,7 +444,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                       {t("purchases.supplier")}
                     </label>
                     <Input
-                      placeholder={t("purchases.supplierFilterPlaceholder")}
+                      placeholder={t("purchases.supplierPlaceholder")}
                       value={supplierFilter}
                       onChange={(e) => setSupplierFilter(e.target.value)}
                       className="w-full text-sm"
@@ -421,15 +493,31 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
             </Button>
 
             <Button
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
-              onClick={() => navigate("/purchases/create")}
-              data-testid="button-create-purchase-order"
+              variant="outline"
+              onClick={() => {
+                const selectedPurchases = filteredOrders.filter(order => selectedOrders.has(order.id));
+                const excelData = selectedPurchases.map(order => ({
+                  "Số phiếu": order.receiptNumber || order.poNumber || "-",
+                  "Ngày nhập": order.purchaseDate || order.actualDeliveryDate || order.createdAt,
+                  "Nhà cung cấp": order.supplier?.name || getSupplierName(order.supplierId),
+                  "Thành tiền": parseFloat(order.subtotal || order.total || "0"),
+                  "Giảm giá": order.items?.reduce((sum, item) => sum + parseFloat(item.discount || "0"), 0) || 0,
+                  "Tổng tiền": parseFloat(order.total || "0"),
+                  "Ghi chú": order.notes || ""
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Phiếu nhập");
+                XLSX.writeFile(wb, `phieu-nhap-hang_${new Date().toISOString().slice(0,10)}.xlsx`);
+              }}
+              disabled={selectedOrders.size === 0}
+              className="border-green-600 text-green-600 hover:bg-green-50 font-semibold px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
             >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span className="hidden sm:inline">
-                {t("purchases.createNewPurchaseOrder")}
-              </span>
-              <span className="sm:hidden">Tạo mới</span>
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              <span className="hidden sm:inline">{t("purchases.exportToExcel")}</span>
+              <span className="sm:hidden">Excel</span>
+              <span className="ml-1">({selectedOrders.size})</span>
             </Button>
           </div>
 
@@ -456,13 +544,13 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                   <ClipboardCheck className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-base sm:text-lg font-semibold text-gray-700 mb-2">
                     {purchaseOrders.length === 0
-                      ? t("purchases.noOrders")
-                      : t("purchases.noOrdersFound")}
+                      ? t("purchases.noPurchaseReceipts")
+                      : t("purchases.noPurchaseReceiptsFound")}
                   </h3>
                   <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6 max-w-md mx-auto">
                     {purchaseOrders.length === 0
-                      ? t("purchases.createFirstOrder")
-                      : t("purchases.tryDifferentFilters")}
+                      ? t("purchases.createFirstReceipt")
+                      : t("purchases.tryChangingFilters")}
                   </p>
                   <Button
                     className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 text-sm sm:text-base"
@@ -471,8 +559,8 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                     size="lg"
                   >
                     <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    <span className="hidden sm:inline">{t("purchases.createNewPurchaseOrder")}</span>
-                    <span className="sm:hidden">{t("purchases.createOrder")}</span>
+                    <span className="hidden sm:inline">{t("purchases.createNewReceipt")}</span>
+                    <span className="sm:hidden">{t("purchases.createNewPurchaseOrder")}</span>
                   </Button>
                 </div>
               ) : (
@@ -508,7 +596,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                           {t("purchases.totalAmount")}
                         </TableHead>
                         <TableHead className="font-bold min-w-[150px] text-xs sm:text-sm">
-                          Ghi chú
+                          {t("purchases.notesColumn")}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -564,7 +652,9 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                                 target.closest("button")
                               )
                                 return;
-                              navigate(`/purchases/view/${order.id}`);
+                              // Open edit dialog instead of navigation
+                              setEditingPurchaseId(order.id);
+                              setShowEditDialog(true);
                             }}
                           >
                             <TableCell
@@ -715,6 +805,57 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Purchase Creation Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
+          <div className="overflow-y-auto max-h-[95vh]">
+            <PurchaseFormPage
+              onLogout={onLogout}
+              hideBackButton={true}
+              onSuccess={() => {
+                setShowCreateDialog(false);
+                toast({
+                  title: t("common.success"),
+                  description: "Phiếu nhập hàng đã được tạo thành công",
+                });
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={(open) => {
+        setShowEditDialog(open);
+        if (!open) {
+          setEditingPurchaseId(null);
+        }
+      }}>
+        <DialogContent className="max-w-[98vw] max-h-[98vh] p-0 overflow-hidden">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{t("purchases.viewPurchaseOrder")}</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto max-h-[98vh] w-full">
+            {editingPurchaseId && (
+              <PurchaseViewPage
+                onLogout={onLogout}
+                hideBackButton={true}
+                purchaseId={editingPurchaseId}
+                onSuccess={() => {
+                  setShowEditDialog(false);
+                  setEditingPurchaseId(null);
+                  queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"] });
+                  toast({
+                    title: t("common.success"),
+                    description: "Phiếu nhập hàng đã được cập nhật thành công",
+                  });
+                }}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -27,7 +27,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 border-white border-opacity-30 text-white hover:text-white">
+        <Button variant="outline" size="sm" className="gap-2 bg-white bg-opacity-90 hover:bg-opacity-100 border-green-500 border-2 text-green-600 hover:text-green-700 shadow-lg hover:shadow-xl transition-all">
           <Globe className="h-4 w-4" />
           <span>{currentLang?.flag}</span>
           <span className="hidden sm:inline">{currentLang?.name}</span>

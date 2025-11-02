@@ -119,12 +119,16 @@ interface PurchaseFormPageProps {
   id?: string;
   viewOnly?: boolean;
   onLogout: () => void;
+  onSuccess?: () => void;
+  hideBackButton?: boolean;
 }
 
 export default function PurchaseFormPage({
   id,
   viewOnly = false,
   onLogout,
+  onSuccess,
+  hideBackButton = false,
 }: PurchaseFormPageProps) {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
@@ -180,22 +184,13 @@ export default function PurchaseFormPage({
 
   const isEditMode = Boolean(id) && !viewOnly;
 
-  // Fetch user info and store settings for storeCode
-  const { data: userInfo } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/auth/verify"],
-    retry: false,
-  });
-
-  const { data: storeSettings } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
-  });
-
   // Form setup
   const form = useForm<z.infer<typeof insertPurchaseReceiptSchema>>({
     resolver: zodResolver(insertPurchaseReceiptSchema),
     defaultValues: {
       receiptNumber: `PN${Date.now()}`,
       supplierId: 0,
+      storeCode: "",
       purchaseDate: format(new Date(), "yyyy-MM-dd"),
       actualDeliveryDate: "",
       notes: "",
@@ -236,13 +231,32 @@ export default function PurchaseFormPage({
 
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
     select: (data: any) => data || [],
+  });
+
+  // Fetch stores for selection
+  const { data: storesData = [] } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Filter out stores with typeUser = 1
+        return Array.isArray(data) ? data.filter((store: any) => store.typeUser !== 1) : [];
+      } catch (error) {
+        console.error("Error fetching stores:", error);
+        return [];
+      }
+    },
   });
 
   // Fetch employees for assignment
   const { data: employees = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     select: (data: any[]) =>
       (data || []).map((emp: any) => ({
         id: emp.id,
@@ -255,13 +269,13 @@ export default function PurchaseFormPage({
 
   // Fetch categories for new product form
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     select: (data: any) => data || [],
   });
 
   // Fetch payment methods
   const { data: paymentMethods = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     select: (data: any[]) =>
       (data || [])
         .filter((method: any) => method.enabled === true) // Only show enabled payment methods
@@ -273,9 +287,10 @@ export default function PurchaseFormPage({
         })),
   });
 
+
   // Fetch products for selection
   const { data: allProducts = [] } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
     select: (data: any[]) =>
       (data || []).map((product: any) => ({
         ...product,
@@ -295,7 +310,7 @@ export default function PurchaseFormPage({
 
   // Fetch existing purchase order for edit mode
   const { data: existingOrder, isLoading: isLoadingOrder } = useQuery({
-    queryKey: [`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/${id}`],
+    queryKey: [`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/${id}`],
     enabled: Boolean(id),
     select: (data: any) => {
       console.log("📊 Purchase order API response:", data);
@@ -305,7 +320,7 @@ export default function PurchaseFormPage({
 
   // Fetch existing documents for edit mode
   const { data: existingDocuments } = useQuery({
-    queryKey: [`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/${id}/documents`],
+    queryKey: [`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/${id}/documents`],
     enabled: Boolean(id),
     select: (data: any) => data || [],
   });
@@ -316,14 +331,14 @@ export default function PurchaseFormPage({
     error: nextPOError,
     isLoading: isLoadingPONumber,
   } = useQuery({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/next-po-number"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/next-po-number"],
     enabled: !isEditMode,
     queryFn: async () => {
       try {
         console.log("🔍 Fetching next PO number...");
         const response = await apiRequest(
           "GET",
-          "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-orders/next-po-number",
+          "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/next-po-number",
         );
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -424,6 +439,7 @@ export default function PurchaseFormPage({
 
       // Load basic order information
       form.setValue("supplierId", order.supplierId || order.supplierid);
+      form.setValue("storeCode", order.storeCode || "");
       form.setValue("receiptNumber", order.receiptNumber || order.ponumber);
       form.setValue(
         "purchaseDate",
@@ -562,7 +578,7 @@ export default function PurchaseFormPage({
   // Create new product mutation
   const createProductMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", data);
       return response.json();
     },
     onSuccess: (newProduct) => {
@@ -573,7 +589,7 @@ export default function PurchaseFormPage({
       });
 
       // Update products query cache
-      queryClient.setQueryData(["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"], (old: any[]) => {
+      queryClient.setQueryData(["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"], (old: any[]) => {
         return [
           ...(old || []),
           { ...newProduct, unitPrice: Number(newProduct.price) || 0 },
@@ -581,7 +597,7 @@ export default function PurchaseFormPage({
       });
 
       // Invalidate queries for cache consistency
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
 
       // Add new product to selected items automatically
       addProduct({
@@ -1112,6 +1128,16 @@ export default function PurchaseFormPage({
       }
 
       // Validate required fields
+      if (!formValues.storeCode || formValues.storeCode.trim() === "") {
+        toast({
+          title: "Lỗi",
+          description: "Vui lòng chọn cửa hàng",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!formValues.supplierId || formValues.supplierId === 0) {
         toast({
           title: "Lỗi",
@@ -1144,11 +1170,7 @@ export default function PurchaseFormPage({
 
       // Validate payment method if isPaid = true
       if (formValues.isPaid) {
-        if (
-          !editPaymentMethods ||
-          editPaymentMethods.length === 0 ||
-          !editPaymentMethods[0].method
-        ) {
+        if (!editPaymentMethods || editPaymentMethods.length === 0 || !editPaymentMethods[0].method) {
           toast({
             title: "Lỗi",
             description: "Vui lòng chọn phương thức thanh toán",
@@ -1158,7 +1180,7 @@ export default function PurchaseFormPage({
           return;
         }
 
-        const paymentAmount = parseFloat(editPaymentMethods[0].amount || "0");
+        const paymentAmount = parseFloat(editPaymentMethods[0].amount || '0');
         if (paymentAmount <= 0) {
           toast({
             title: "Lỗi",
@@ -1176,14 +1198,11 @@ export default function PurchaseFormPage({
         0,
       );
 
-      // Get storeCode from logged-in user
-      const storeCode =
-        userInfo?.storeCode || storeSettings?.storeCode || "STORE001";
-
       // Prepare submission data
       const submissionData = {
         receiptNumber: finalReceiptNumber,
         supplierId: formValues.supplierId,
+        storeCode: formValues.storeCode,
         employeeId: formValues.employeeId || null,
         purchaseDate: formValues.purchaseDate,
         actualDeliveryDate: formValues.actualDeliveryDate || null,
@@ -1192,19 +1211,16 @@ export default function PurchaseFormPage({
         tax: "0.00",
         total: subtotalAmount.toFixed(2),
         isPaid: formValues.isPaid || false,
-        paymentMethod:
-          formValues.isPaid && editPaymentMethods.length > 0
-            ? JSON.stringify({
-                method: editPaymentMethods[0].method,
-                amount: parseFloat(editPaymentMethods[0].amount || "0"),
-              })
-            : null,
-        paymentAmount:
-          formValues.isPaid && editPaymentMethods.length > 0
-            ? editPaymentMethods[0].amount
-            : null,
+        paymentMethod: formValues.isPaid && editPaymentMethods.length > 0
+          ? JSON.stringify({
+              method: editPaymentMethods[0].method,
+              amount: parseFloat(editPaymentMethods[0].amount || '0')
+            })
+          : null,
+        paymentAmount: formValues.isPaid && editPaymentMethods.length > 0
+          ? editPaymentMethods[0].amount
+          : null,
         notes: formValues.notes?.trim() || null,
-        storeCode: storeCode, // Add storeCode from logged-in user
         items: validItems.map((item) => {
           // Lấy CHÍNH XÁC giá trị từ UI - không tính toán lại
           const discountPercent = parseFloat(
@@ -1231,12 +1247,12 @@ export default function PurchaseFormPage({
 
       // Submit data
       const response = isEditMode
-        ? await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${id}`, {
+        ? await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(submissionData),
           })
-        : await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts", {
+        : await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(submissionData),
@@ -1337,7 +1353,7 @@ export default function PurchaseFormPage({
 
             // Send file data as JSON with original filename preserved
             const uploadResponse = await fetch(
-              `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts/${result.id}/documents`,
+              `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/${result.id}/documents`,
               {
                 method: "POST",
                 headers: {
@@ -1401,12 +1417,18 @@ export default function PurchaseFormPage({
       });
 
       // Refresh queries and navigate
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/purchase-receipts"] });
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/suppliers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"] });
 
-      setTimeout(() => {
-        navigate("/purchases");
-      }, 1000);
+      if (onSuccess) {
+        // If onSuccess callback is provided (dialog mode), call it
+        onSuccess();
+      } else {
+        // Otherwise navigate (standalone page mode)
+        setTimeout(() => {
+          navigate("/purchases");
+        }, 1000);
+      }
     } catch (error: any) {
       console.error("❌ Error in form submission:", error);
 
@@ -1461,15 +1483,17 @@ export default function PurchaseFormPage({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/purchases")}
-              data-testid="button-back"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              {t("common.back")}
-            </Button>
+            {!hideBackButton && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/purchases")}
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t("common.back")}
+              </Button>
+            )}
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 {viewOnly
@@ -1507,6 +1531,45 @@ export default function PurchaseFormPage({
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Store Selection */}
+                      <FormField
+                        control={form.control}
+                        name="storeCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-1">
+                              <span>{t("purchases.storeLabel")}</span>
+                              <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value || ""}
+                              disabled={viewOnly}
+                              data-testid="select-store"
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={t("purchases.allStores")}
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {storesData.map((store: any) => (
+                                  <SelectItem
+                                    key={store.id}
+                                    value={store.storeCode}
+                                  >
+                                    {store.storeName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
                       {/* Supplier Selection */}
                       <FormField
                         control={form.control}
@@ -1853,50 +1916,32 @@ export default function PurchaseFormPage({
                                     field.onChange(checked);
                                     // Khi check isPaid, tự động điền số tiền = tổng tiền
                                     if (checked) {
-                                      const itemsTotal = selectedItems.reduce(
-                                        (sum, item) => {
-                                          const subtotal =
-                                            (item.quantity || 0) *
-                                            (item.unitPrice || 0);
-                                          const discountAmount = parseFloat(
-                                            (item as any).discountAmount || 0,
-                                          );
-                                          return (
-                                            sum + (subtotal - discountAmount)
-                                          );
-                                        },
-                                        0,
-                                      );
+                                      const itemsTotal = selectedItems.reduce((sum, item) => {
+                                        const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
+                                        const discountAmount = parseFloat((item as any).discountAmount || 0);
+                                        return sum + (subtotal - discountAmount);
+                                      }, 0);
 
-                                      setEditPaymentMethods([
-                                        {
-                                          method: "cash",
-                                          amount:
-                                            Math.round(itemsTotal).toString(),
-                                        },
-                                      ]);
+                                      setEditPaymentMethods([{
+                                        method: 'cash',
+                                        amount: Math.round(itemsTotal).toString()
+                                      }]);
 
                                       // Cập nhật form values
-                                      form.setValue(
-                                        "paymentMethod",
-                                        JSON.stringify({
-                                          method: "cash",
-                                          amount: Math.round(itemsTotal),
-                                        }),
-                                      );
-                                      form.setValue(
-                                        "paymentAmount",
-                                        Math.round(itemsTotal).toString(),
-                                      );
+                                      form.setValue("paymentMethod", JSON.stringify({
+                                        method: 'cash',
+                                        amount: Math.round(itemsTotal)
+                                      }));
+                                      form.setValue("paymentAmount", Math.round(itemsTotal).toString());
                                     }
                                   }}
                                   disabled={viewOnly}
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>{t("purchases.paid")}</FormLabel>
+                                <FormLabel>{t("common.paid")}</FormLabel>
                                 <p className="text-sm text-muted-foreground">
-                                  {t("purchases.paidDescription")}
+                                  {t("purchases.markAsPaidDescription") || "Mark if this receipt has been paid"}
                                 </p>
                               </div>
                             </FormItem>
@@ -1909,75 +1954,54 @@ export default function PurchaseFormPage({
                         <div className="md:col-span-5">
                           <div className="border rounded-lg p-3 bg-blue-50 h-full">
                             <h4 className="font-semibold mb-2 text-sm">
-                              {t("purchases.paymentMethod")}
+                              {t("common.paymentMethodLabel")}
                             </h4>
 
                             {(() => {
                               const getMethodName = (method: string) => {
-                                // Find the payment method from the list
-                                const paymentMethod = paymentMethods.find(
-                                  (pm) => pm.nameKey === method,
-                                );
-                                return paymentMethod
-                                  ? paymentMethod.name
-                                  : method;
+                                const names: Record<string, string> = {
+                                  cash: "Tiền mặt",
+                                  bank_transfer: "Chuyển khoản",
+                                  credit_card: "Thẻ tín dụng",
+                                  other: "Khác",
+                                };
+                                return names[method] || method;
                               };
 
                               // Tính tổng tiền từ items - tự động cập nhật
-                              const itemsTotal = selectedItems.reduce(
-                                (sum, item) => {
-                                  const subtotal =
-                                    (item.quantity || 0) *
-                                    (item.unitPrice || 0);
-                                  const discountAmount = parseFloat(
-                                    (item as any).discountAmount || 0,
-                                  );
-                                  return sum + (subtotal - discountAmount);
-                                },
-                                0,
-                              );
+                              const itemsTotal = selectedItems.reduce((sum, item) => {
+                                const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
+                                const discountAmount = parseFloat((item as any).discountAmount || 0);
+                                return sum + (subtotal - discountAmount);
+                              }, 0);
 
                               // Lấy method hiện tại hoặc mặc định
-                              const currentMethod = editPaymentMethods[0] || {
-                                method: "cash",
-                                amount: Math.round(itemsTotal).toString(),
+                              const currentMethod = editPaymentMethods[0] || { 
+                                method: 'cash', 
+                                amount: Math.round(itemsTotal).toString() 
                               };
 
                               // Auto-update payment amount khi items thay đổi
                               if (editPaymentMethods[0]) {
-                                editPaymentMethods[0].amount =
-                                  Math.round(itemsTotal).toString();
+                                editPaymentMethods[0].amount = Math.round(itemsTotal).toString();
                               }
 
                               return (
                                 <div className="space-y-2">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 bg-white rounded border text-xs">
                                     <div className="space-y-1">
-                                      <label className="text-xs font-medium">
-                                        {t("purchases.paymentMethod")}
-                                      </label>
+                                      <label className="text-xs font-medium">{t("common.paymentMethodLabel")}</label>
                                       {!viewOnly ? (
                                         <Select
                                           value={currentMethod.method || "cash"}
                                           onValueChange={(value) => {
-                                            const updated = [
-                                              {
-                                                method: value,
-                                                amount:
-                                                  Math.round(
-                                                    itemsTotal,
-                                                  ).toString(),
-                                              },
-                                            ];
+                                            const updated = [{ 
+                                              method: value,
+                                              amount: Math.round(itemsTotal).toString()
+                                            }];
                                             setEditPaymentMethods(updated);
-                                            form.setValue(
-                                              "paymentMethod",
-                                              JSON.stringify(updated[0]),
-                                            );
-                                            form.setValue(
-                                              "paymentAmount",
-                                              Math.round(itemsTotal).toString(),
-                                            );
+                                            form.setValue("paymentMethod", JSON.stringify(updated[0]));
+                                            form.setValue("paymentAmount", Math.round(itemsTotal).toString());
                                           }}
                                         >
                                           <SelectTrigger className="h-8 text-xs">
@@ -1985,12 +2009,8 @@ export default function PurchaseFormPage({
                                           </SelectTrigger>
                                           <SelectContent>
                                             {paymentMethods.map((method) => (
-                                              <SelectItem
-                                                key={method.id}
-                                                value={method.nameKey}
-                                              >
-                                                {method.icon}{" "}
-                                                {t(`common.${method.nameKey}`)}
+                                              <SelectItem key={method.id} value={method.nameKey}>
+                                                {method.icon} {method.name}
                                               </SelectItem>
                                             ))}
                                           </SelectContent>
@@ -1998,24 +2018,17 @@ export default function PurchaseFormPage({
                                       ) : (
                                         <div className="h-8 px-2 py-1 bg-blue-50 border border-blue-200 rounded flex items-center">
                                           <span className="font-medium text-blue-900 text-xs">
-                                            {getMethodName(
-                                              currentMethod.method,
-                                            )}
+                                            {getMethodName(currentMethod.method)}
                                           </span>
                                         </div>
                                       )}
                                     </div>
 
                                     <div className="space-y-1">
-                                      <label className="text-xs font-medium">
-                                        {t("common.amount")}
-                                      </label>
+                                      <label className="text-xs font-medium">{t("common.amount")}</label>
                                       <div className="h-8 px-2 py-1 bg-gray-100 border border-gray-300 rounded flex items-center justify-end">
                                         <span className="font-semibold text-gray-800 text-xs">
-                                          {Math.round(
-                                            itemsTotal,
-                                          ).toLocaleString("vi-VN")}{" "}
-                                          ₫
+                                          {Math.round(itemsTotal).toLocaleString("vi-VN")} ₫
                                         </span>
                                       </div>
                                     </div>
@@ -2024,14 +2037,9 @@ export default function PurchaseFormPage({
                                   {/* Payment status display */}
                                   <div className="space-y-1 mt-2">
                                     <div className="flex justify-between items-center pt-2 border-t">
-                                      <span className="font-semibold text-sm">
-                                        {t("common.totalPayment")}:
-                                      </span>
+                                      <span className="font-semibold text-sm">{t("common.totalPayment")}:</span>
                                       <span className="text-base font-bold text-gray-900">
-                                        {Math.round(itemsTotal).toLocaleString(
-                                          "vi-VN",
-                                        )}{" "}
-                                        ₫
+                                        {Math.round(itemsTotal).toLocaleString("vi-VN")} ₫
                                       </span>
                                     </div>
                                   </div>
@@ -2187,7 +2195,7 @@ export default function PurchaseFormPage({
                           <TableHeader>
                             <TableRow>
                               <TableHead className="w-12 text-center p-2 font-bold">
-                                {t("purchases.rowNumber")}
+                                No
                               </TableHead>
                               <TableHead className="w-32 text-center p-2 font-bold">
                                 {t("purchases.productCode")}
@@ -2218,7 +2226,7 @@ export default function PurchaseFormPage({
                               </TableHead>
                               {!viewOnly && (
                                 <TableHead className="w-20 text-center p-2 font-bold">
-                                  {t("common.actions")}
+                                  {t("purchases.actions")}
                                 </TableHead>
                               )}
                             </TableRow>
@@ -2295,6 +2303,7 @@ export default function PurchaseFormPage({
                                             );
                                             setIsProductDialogOpen(true);
                                           }}
+                                          placeholder={t("purchases.productCodePlaceholder")}
                                           onKeyDown={(e) => {
                                             const suggestions =
                                               skuSuggestions[index] || [];
@@ -2406,12 +2415,6 @@ export default function PurchaseFormPage({
                                               }
                                             }
                                           }}
-                                          placeholder={
-                                            t(
-                                              "purchases.searchProductPlaceholder",
-                                            ) ||
-                                            "Nhập mã/tên SP hoặc click để chọn"
-                                          }
                                           className="w-28 text-center text-sm h-8 border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                                           disabled={viewOnly}
                                           data-testid={`input-sku-${index}`}
@@ -2479,7 +2482,7 @@ export default function PurchaseFormPage({
                                           }
                                         }}
                                         className="w-full text-sm h-8 bg-gray-100"
-                                        placeholder={t("purchases.productName")}
+                                        placeholder={t("purchases.productNamePlaceholder")}
                                         readOnly
                                         disabled={viewOnly}
                                       />
@@ -2488,7 +2491,7 @@ export default function PurchaseFormPage({
                                     {/* 4. Đơn vị tính */}
                                     <TableCell className="text-center p-2">
                                       <span className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded-full">
-                                        {t("common.unit")}
+                                        Cái
                                       </span>
                                     </TableCell>
 
@@ -2810,7 +2813,7 @@ export default function PurchaseFormPage({
 
                                     {/* Tên sản phẩm - Placeholder for "TỔNG CỘNG" */}
                                     <TableCell className="p-2 font-bold text-blue-800">
-                                      {t("purchases.totalSummary")}
+                                      TỔNG CỘNG
                                     </TableCell>
 
                                     {/* Đơn vị tính */}

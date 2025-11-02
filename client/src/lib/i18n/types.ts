@@ -3,6 +3,7 @@ export type Language = "ko" | "en" | "vi";
 // Common translations interface
 export interface CommonTranslations {
   loading: string;
+  phoneNumber: string;
   save: string;
   cancel: string;
   delete: string;
@@ -96,13 +97,6 @@ export interface CommonTranslations {
   categoryIdPlaceholder: string;
   icon: string;
 
-  // Customer info section
-  customerInfoTitle: string;
-  customerInfoDesc: string;
-
-  // Subtotal
-  subtotalLabel: string;
-
   // Status translations
   statuses: {
     // Order status
@@ -140,6 +134,8 @@ export interface CommonTranslations {
   days90: string;
   days180: string;
   days365: string;
+  dateRange: string;
+  quickSelect: string;
 }
 
 // Navigation translations interface
@@ -436,14 +432,12 @@ export interface OrdersTranslations {
   title: string;
   description: string;
   orderManagement: string;
-  salesOrdersList: string;
   newOrder: string;
   editOrder: string;
   viewOrder: string;
   deleteOrder: string;
   orderId: string;
   orderNumber: string;
-  salesOrderCode: string;
   orderDate: string;
   orderTime: string;
   customer: string;
@@ -452,73 +446,10 @@ export interface OrdersTranslations {
   quantity: string;
   price: string;
   total: string;
-  totalPayment: string;
   subtotal: string;
-  subtotalAmount: string;
   tax: string;
-  totalTax: string;
   discount: string;
-  
-  // Sales orders specific
-  startDate: string;
-  endDate: string;
-  productSearch: string;
-  createdDate: string;
-  completedCancelledDate: string;
-  salesChannel: string;
-  allChannels: string;
-  tableOrder: string;
-  posOrder: string;
-  onlineOrder: string;
-  deliveryOrder: string;
-  orderStatusFilter: string;
-  allStatus: string;
-  paidStatus: string;
-  pendingStatus: string;
-  cancelledStatus: string;
-  einvoiceStatusFilter: string;
-  notPublished: string;
-  published: string;
-  bulkCancel: string;
-  exportExcel: string;
-  orderNo: string;
-  returned: string;
-  notReturned: string;
-  createdDateColumn: string;
-  completedCancelledColumn: string;
-  itemCode: string;
-  itemName: string;
-  unit: string;
-  unitPrice: string;
-  totalPrice: string;
-  cashier: string;
-  invoiceSymbol: string;
-  invoiceNumber: string;
-  invoiceStatus: string;
-  notes: string;
-  summary: string;
-  grandTotal: string;
-  payment: string;
-  close: string;
-  phone: string;
-  address: string;
-  email: string;
-  customerInfo: string;
-  table: string;
-  returnedGoods: string;
-  productInfo: string;
-  orderActions: string;
-  saveChanges: string;
-  cancelEdit: string;
-  deleteItem: string;
-  addNewItem: string;
-  orderDetailsInfo: string;
-  productList: string;
   tip: string;
-  startDate: string;
-  endDate: string;
-  customer: string;
-  productSearch: string;
   finalTotal: string;
   status: string;
   paymentStatus: string;
@@ -1972,6 +1903,11 @@ export interface SuppliersTranslations {
   bankAccount: string;
   bankAccountPlaceholder: string;
   cash: string;
+  paymentTermsCash: string;
+  paymentTerms15Days: string;
+  paymentTerms30Days: string;
+  paymentTerms60Days: string;
+  paymentTerms90Days: string;
   notes: string;
   notesPlaceholder: string;
   status: string;
@@ -2443,7 +2379,6 @@ export interface EmployeesTranslations {
   employeeCodePlaceholder: string;
   employeeCodeRequired: string;
   duplicateEmployeeCode: string;
-  addEmployeeHint: string;
   employeeCodeAlreadyExists: string;
   pinCodeLabel: string;
   pinCodePlaceholder: string;

@@ -46,6 +46,7 @@ import {
   type StoreSettings,
   type InsertStoreSettings,
   type Customer,
+  type Printer,
 } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -67,12 +68,11 @@ import {
   UserCheck,
   Tag,
   ShoppingCart,
-  Printer,
-  Receipt,
   Upload,
   Link,
   FileImage,
   X,
+  DollarSign,
 } from "lucide-react";
 import { CustomerFormModal } from "@/components/customers/customer-form-modal";
 import { CustomerPointsModal } from "@/components/customers/customer-points-modal";
@@ -83,7 +83,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PrinterConfigModal } from "@/components/pos/printer-config-modal";
 import { POSHeader } from "@/components/pos/header";
 import { RightSidebar } from "@/components/ui/right-sidebar";
-import * as XLSX from "xlsx";
+import { StoreListManagement } from "@/components/settings/store-list-management"; // Import the new component
+import { PriceListManagement } from "@/components/settings/price-list-management"; // Import the new component
 
 // E-invoice software providers mapping
 const EINVOICE_PROVIDERS = [
@@ -179,7 +180,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     if (!employeeToDelete) return;
 
     try {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees/${employeeToDelete.id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees/${employeeToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -219,7 +220,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
       }
 
       await queryClient.refetchQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
       });
 
       toast({
@@ -241,8 +242,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   const [selectedCategoryFilter, setSelectedCategoryFilter] =
     useState<string>("all");
   const [productSearchTerm, setProductSearchTerm] = useState("");
-  const [productPage, setProductPage] = useState(1);
-  const [productPageSize] = useState(20);
   const [categoryForm, setCategoryForm] = useState({
     id: "", // Added for the new ID field
     name: "",
@@ -268,21 +267,21 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
 
   // Fetch store settings
   const { data: storeData, isLoading } = useQuery<StoreSettings>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
   });
 
   // Fetch customers
   const { data: customersData, isLoading: customersLoading } = useQuery<
     Customer[]
   >({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"],
   });
 
   // Fetch employees
   const { data: employeesRawData, isLoading: employeesLoading } = useQuery<
     any[]
   >({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
   });
 
   // Sort employees by ID descending (newest first)
@@ -326,17 +325,29 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery<
     any[]
   >({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   // Fetch products (include inactive products in settings)
   const { data: productsData, isLoading: productsLoading } = useQuery<any[]>({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
     queryFn: async () => {
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products");
       if (!response.ok) throw new Error("Failed to fetch products");
       return response.json();
     },
+  });
+
+  // Fetch printers
+  const { data: printers = [], isLoading: printersLoading } = useQuery<
+    Printer[]
+  >({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/printers"],
+  });
+
+  // Fetch dynamic product units from the API
+  const { data: productUnits = [] } = useQuery<string[]>({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/units"],
   });
 
   // Store settings state
@@ -384,7 +395,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   // Fetch payment methods from API
   const { data: paymentMethodsData, isLoading: paymentMethodsLoading } =
     useQuery<any[]>({
-      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"],
+      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     });
 
   // Update local state when data is loaded
@@ -397,11 +408,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   // Mutation to update store settings
   const updateStoreSettingsMutation = useMutation({
     mutationFn: async (settings: Partial<InsertStoreSettings>) => {
-      const response = await apiRequest("PUT", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings", settings);
+      const response = await apiRequest("PUT", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings", settings);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/store-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"] });
       toast({
         title: t("common.success"),
         description: t("settings.storeUpdated"),
@@ -507,11 +518,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   // Mutation to create payment method
   const createPaymentMethodMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: t("common.success"),
         description: "Đã thêm phương thức thanh toán mới",
@@ -531,13 +542,13 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const response = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods/${id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods/${id}`,
         data,
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: t("common.success"),
         description: t("settings.paymentUpdateSuccessDesc"),
@@ -555,11 +566,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   // Mutation to delete payment method
   const deletePaymentMethodMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest("DELETE", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods/${id}`);
+      const response = await apiRequest("DELETE", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: t("common.success"),
         description: "Đã xóa phương thức thanh toán",
@@ -644,7 +655,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     if (!customerToDelete) return;
 
     try {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers/${customerToDelete.id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -652,7 +663,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/customers"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
 
       toast({
         title: t("common.success"),
@@ -732,7 +743,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     }
 
     try {
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -747,8 +758,8 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
       const result = await response.json();
 
       // Refetch data immediately
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"] });
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
 
       toast({
         title: t("common.success"),
@@ -786,7 +797,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     }
 
     try {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories/${editingCategory.id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories/${editingCategory.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -805,8 +816,8 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
       resetCategoryForm();
 
       // Refetch data immediately
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"] });
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
 
       toast({
         title: t("common.success"),
@@ -849,7 +860,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     if (!categoryToDelete) return;
 
     try {
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories/${categoryToDelete.id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories/${categoryToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -861,8 +872,8 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
       }
 
       // Refetch data immediately
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/categories"] });
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
 
       toast({
         title: t("common.success"),
@@ -951,7 +962,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
         finalProductData.imageUrl = productForm.imageUrl;
       }
 
-      const response = await fetch("https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalProductData),
@@ -964,7 +975,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
         throw new Error(errorData.message || "Failed to create product");
       }
 
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
       setShowProductForm(false);
       resetProductForm();
       toast({
@@ -1024,7 +1035,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
         finalProductData.imageUrl = productForm.imageUrl;
       }
 
-      const response = await fetch(`https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${editingProduct.id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${editingProduct.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalProductData),
@@ -1037,7 +1048,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
         throw new Error(errorData.message || "Failed to update product");
       }
 
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
       setShowProductForm(false);
       setEditingProduct(null);
       resetProductForm();
@@ -1089,9 +1100,9 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     if (!productToDelete) return;
 
     try {
-      await apiRequest("DELETE", `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products/${productToDelete.id}`);
+      await apiRequest("DELETE", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${productToDelete.id}`);
 
-      await queryClient.refetchQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
 
       toast({
         title: t("common.success"),
@@ -1121,7 +1132,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   };
 
   // Filter products based on category and search term
-  const allFilteredProducts = productsData
+  const filteredProducts = productsData
     ? productsData.filter((product: any) => {
         const matchesCategory =
           selectedCategoryFilter === "all" ||
@@ -1135,22 +1146,10 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
       })
     : [];
 
-  // Pagination
-  const totalProductPages = Math.ceil(allFilteredProducts.length / productPageSize);
-  const filteredProducts = allFilteredProducts.slice(
-    (productPage - 1) * productPageSize,
-    productPage * productPageSize
-  );
-
-  // Reset to page 1 when search/filter changes
-  useEffect(() => {
-    setProductPage(1);
-  }, [productSearchTerm, selectedCategoryFilter]);
-
   // Fetch E-invoice connections
   const { data: eInvoiceConnections = [], isLoading: eInvoiceLoading } =
     useQuery<any[]>({
-      queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections"],
+      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"],
     });
 
   // E-invoice mutations
@@ -1158,14 +1157,14 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async (data: any) => {
       const response = await apiRequest(
         "POST",
-        "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections",
+        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections",
         data,
       );
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"],
       });
       toast({
         title: t("common.success"),
@@ -1187,14 +1186,14 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const response = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections/${id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections/${id}`,
         data,
       );
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"],
       });
       toast({
         title: t("common.success"),
@@ -1216,13 +1215,13 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async (id: number) => {
       const response = await apiRequest(
         "DELETE",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections/${id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections/${id}`,
       );
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/einvoice-connections"],
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"],
       });
       toast({
         title: t("common.success"),
@@ -1411,17 +1410,17 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   const { data: invoiceTemplates = [], isLoading: templatesLoading } = useQuery<
     any[]
   >({
-    queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"],
   });
 
   // Invoice template mutations
   const createTemplateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: t("common.success"),
         description: t("settings.einvoiceTemplateCreateSuccess"),
@@ -1442,13 +1441,13 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const response = await apiRequest(
         "PUT",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates/${id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates/${id}`,
         data,
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: t("common.success"),
         description: t("settings.einvoiceTemplateUpdateSuccess"),
@@ -1469,12 +1468,12 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
     mutationFn: async (id: number) => {
       const response = await apiRequest(
         "DELETE",
-        `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates/${id}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates/${id}`,
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: t("common.success"),
         description: t("settings.einvoiceTemplateDeleteSuccess"),
@@ -1578,7 +1577,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
   };
 
   const refetchProducts = () => {
-    queryClient.invalidateQueries({ queryKey: ["https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/api/products"] });
+    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
   };
 
   const handleOpenCategoryDialog = () => {
@@ -1609,15 +1608,13 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
           <div className="relative z-10 container mx-auto p-6">
             <div className="mb-8">
               <div className="flex items-center justify-between">
-                {storeSettings.businessType !== "laundry" && (
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                      <SettingsIcon className="w-8 h-8 text-green-600" />
-                      {t("settings.title")}
-                    </h1>
-                    <p className="text-gray-600">{t("settings.description")}</p>
-                  </div>
-                )}
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+                    <SettingsIcon className="w-8 h-8 text-green-600" />
+                    {t("settings.title")}
+                  </h1>
+                  <p className="text-gray-600">{t("settings.description")}</p>
+                </div>
                 <Button
                   onClick={() => (window.location.href = "/")}
                   variant="outline"
@@ -1695,11 +1692,23 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                         {t("settings.paymentMethods")}
                       </span>
                     </TabsTrigger>
+                    {/* Add price list tab trigger */}
+                    <TabsTrigger
+                      value="price-lists"
+                      className="flex items-center gap-1.5 text-xs sm:text-sm px-2 sm:px-3 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-green-100 transition-all duration-200 rounded-lg font-medium text-center flex-shrink-0"
+                    >
+                      <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                      <span className="hidden lg:inline">Bảng giá</span>
+                      <span className="lg:hidden">Bảng giá</span>
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
                 {/* Store Information Tab */}
-                <TabsContent value="store">
+                <TabsContent value="store" className="space-y-6">
+                  {/* Store List Management */}
+                  <StoreListManagement />
+
                   <Tabs defaultValue="basic" className="space-y-6">
                     <TabsList className="flex justify-start md:justify-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-2 py-4">
                       <TabsTrigger
@@ -1714,34 +1723,30 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                           {t("settings.basicInfoShort")}
                         </span>
                       </TabsTrigger>
-                      {storeSettings.businessType !== "laundry" && (
-                        <>
-                          <TabsTrigger
-                            value="einvoice"
-                            className="flex items-center gap-1.5 text-xs sm:text-sm px-3 sm:px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-green-100 transition-all duration-200 rounded-lg font-medium whitespace-nowrap flex-shrink-0"
-                          >
-                            <SettingsIcon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span className="hidden md:inline">
-                              {t("settings.einvoiceSetup")}
-                            </span>
-                            <span className="md:hidden">
-                              {t("settings.einvoiceShort")}
-                            </span>
-                          </TabsTrigger>
-                          <TabsTrigger
-                            value="operations"
-                            className="flex items-center gap-1.5 text-xs sm:text-sm px-3 sm:px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-green-100 transition-all duration-200 rounded-lg font-medium whitespace-nowrap flex-shrink-0"
-                          >
-                            <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                            <span className="hidden md:inline">
-                              {t("settings.operations")}
-                            </span>
-                            <span className="md:hidden">
-                              {t("settings.operationsShort")}
-                            </span>
-                          </TabsTrigger>
-                        </>
-                      )}
+                      <TabsTrigger
+                        value="einvoice"
+                        className="flex items-center gap-1.5 text-xs sm:text-sm px-3 sm:px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-green-100 transition-all duration-200 rounded-lg font-medium whitespace-nowrap flex-shrink-0"
+                      >
+                        <SettingsIcon className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="hidden md:inline">
+                          {t("settings.einvoiceSetup")}
+                        </span>
+                        <span className="md:hidden">
+                          {t("settings.einvoiceShort")}
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="operations"
+                        className="flex items-center gap-1.5 text-xs sm:text-sm px-3 sm:px-4 py-2 data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-green-100 transition-all duration-200 rounded-lg font-medium whitespace-nowrap flex-shrink-0"
+                      >
+                        <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="hidden md:inline">
+                          {t("settings.operations")}
+                        </span>
+                        <span className="md:hidden">
+                          {t("settings.operationsShort")}
+                        </span>
+                      </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="basic">
@@ -1771,7 +1776,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   )
                                 }
                                 placeholder={t("settings.storeNamePlaceholder")}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1788,7 +1792,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   )
                                 }
                                 placeholder={t("settings.storeCodePlaceholder")}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1805,7 +1808,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   )
                                 }
                                 placeholder={t("settings.taxIdPlaceholder")}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1820,7 +1822,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                     value,
                                   )
                                 }
-                                disabled={storeSettings.businessType === "laundry"}
                               >
                                 <SelectTrigger>
                                   <SelectValue
@@ -1860,7 +1861,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                 placeholder={t("settings.pinCodePlaceholder")}
                                 maxLength={6}
                                 pattern="[0-9]*"
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                               {storeSettings.pinCode &&
                                 storeSettings.pinCode.length < 4 && (
@@ -1882,7 +1882,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                       priceIncludesTax: Boolean(checked),
                                     }))
                                   }
-                                  disabled={storeSettings.businessType === "laundry"}
                                 />
                                 <Label
                                   htmlFor="priceIncludesTax"
@@ -1924,7 +1923,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                 }
                                 placeholder={t("settings.addressPlaceholder")}
                                 rows={3}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1942,7 +1940,6 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   )
                                 }
                                 placeholder={t("settings.phonePlaceholder")}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                             <div className="space-y-2">
@@ -1960,26 +1957,23 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   )
                                 }
                                 placeholder={t("settings.emailPlaceholder")}
-                                disabled={storeSettings.businessType === "laundry"}
                               />
                             </div>
                           </CardContent>
                         </Card>
                       </div>
-                      {storeSettings.businessType !== "laundry" && (
-                        <div className="flex justify-end mt-6">
-                          <Button
-                            onClick={saveStoreSettings}
-                            disabled={updateStoreSettingsMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Save className="w-4 h-4 mr-2" />
-                            {updateStoreSettingsMutation.isPending
-                              ? t("common.loading")
-                              : t("common.save")}
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex justify-end mt-6">
+                        <Button
+                          onClick={saveStoreSettings}
+                          disabled={updateStoreSettingsMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {updateStoreSettingsMutation.isPending
+                            ? t("common.loading")
+                            : t("common.save")}
+                        </Button>
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="einvoice">
@@ -2864,8 +2858,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                           ? "bg-purple-500"
                                           : customer.membershipLevel === "GOLD"
                                             ? "bg-yellow-500"
-                                            : customer.membershipLevel ===
-                                                "SILVER"
+                                            : customer.membershipLevel === "SILVER"
                                               ? "bg-gray-300 text-black"
                                               : "bg-gray-400"
                                       } text-white`}
@@ -2874,8 +2867,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                         ? t("customers.vip")
                                         : customer.membershipLevel === "GOLD"
                                           ? t("customers.gold")
-                                          : customer.membershipLevel ===
-                                              "SILVER"
+                                          : customer.membershipLevel === "SILVER"
                                             ? t("customers.silver")
                                             : customer.membershipLevel}
                                     </Badge>
@@ -3088,105 +3080,16 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   {t("common.search")}
                                 </Button>
                               </div>
-                              <div className="flex gap-2">
-                                {storeSettings.businessType === "laundry" && (
-                                  <Button
-                                    variant="outline"
-                                    className="border-green-500 text-green-700 hover:bg-green-100"
-                                    onClick={() => {
-                                      if (!filteredProducts || filteredProducts.length === 0) {
-                                        toast({
-                                          title: t("common.error"),
-                                          description: "Không có dữ liệu để xuất",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-
-                                      const exportData = [
-                                        ["STT", "Tên sản phẩm", "SKU", "Danh mục", "Giá bán", "% Thuế", "Tồn kho", "Đơn vị", "Trạng thái"]
-                                      ];
-
-                                      filteredProducts.forEach((product: any, index: number) => {
-                                        const category = categoriesData?.find(
-                                          (c: any) => c.id === product.categoryId,
-                                        );
-
-                                        exportData.push([
-                                          (index + 1).toString(),
-                                          product.name,
-                                          product.sku,
-                                          category?.name || "N/A",
-                                          parseFloat(product.price || "0").toString(),
-                                          product.taxRate || "0",
-                                          product.stock?.toString() || "0",
-                                          product.unit || "Cái",
-                                          (product.isActive === true || product.isActive === 1) ? "Đang sử dụng" : "Không sử dụng"
-                                        ]);
-                                      });
-
-                                      const ws = XLSX.utils.aoa_to_sheet(exportData);
-
-                                      const colWidths = [
-                                        { wch: 5 },   // STT
-                                        { wch: 50 },  // Tên sản phẩm
-                                        { wch: 15 },  // SKU
-                                        { wch: 20 },  // Danh mục
-                                        { wch: 12 },  // Giá bán
-                                        { wch: 10 },  // % Thuế
-                                        { wch: 10 },  // Tồn kho
-                                        { wch: 12 },  // Đơn vị
-                                        { wch: 15 },  // Trạng thái
-                                      ];
-                                      ws["!cols"] = colWidths;
-
-                                      const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
-                                      for (let col = range.s.c; col <= range.e.c; col++) {
-                                        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-                                        if (!ws[cellAddress]) continue;
-                                        ws[cellAddress].s = {
-                                          font: { bold: true, color: { rgb: "FFFFFF" } },
-                                          fill: { fgColor: { rgb: "16A34A" } },
-                                          alignment: { horizontal: "center" },
-                                        };
-                                      }
-
-                                      const wb = XLSX.utils.book_new();
-                                      XLSX.utils.book_append_sheet(wb, ws, "Sản phẩm");
-
-                                      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-                                      const filename = `danh-sach-san-pham_${timestamp}.xlsx`;
-
-                                      XLSX.writeFile(wb, filename, {
-                                        bookType: "xlsx",
-                                        cellStyles: true,
-                                        sheetStubs: false,
-                                        compression: true,
-                                      });
-
-                                      toast({
-                                        title: t("common.success"),
-                                        description: "Xuất Excel thành công",
-                                      });
-                                    }}
-                                  >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Export Excel
-                                  </Button>
-                                )}
-                                {storeSettings.businessType !== "laundry" && (
-                                  <Button
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={() => {
-                                      resetProductForm();
-                                      setShowProductForm(true);
-                                    }}
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {t("settings.addProduct")}
-                                  </Button>
-                                )}
-                              </div>
+                              <Button
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => {
+                                  resetProductForm();
+                                  setShowProductForm(true);
+                                }}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                {t("settings.addProduct")}
+                              </Button>
                             </div>
 
                             {productsLoading ? (
@@ -3245,13 +3148,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                           {t("settings.usageStatus")}
                                         </div>
                                       </th>
-                                      {storeSettings.businessType !== "laundry" && (
-                                        <th className="w-[120px] px-4 py-3 text-center font-medium text-sm text-gray-600">
-                                          <div className="leading-tight break-words">
-                                            {t("common.actions")}
-                                          </div>
-                                        </th>
-                                      )}
+                                      <th className="w-[120px] px-4 py-3 text-center font-medium text-sm text-gray-600">
+                                        <div className="leading-tight break-words">
+                                          {t("common.actions")}
+                                        </div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y">
@@ -3324,26 +3225,22 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                               </div>
                                             </td>
                                             <td className="px-4 py-3 text-center">
-                                              {product.trackInventory !== false ? (
-                                                <Badge
-                                                  variant={
-                                                    product.stock > 0
-                                                      ? "default"
-                                                      : "destructive"
-                                                  }
-                                                  className={`text-xs ${
-                                                    product.stock > 0
-                                                      ? "bg-green-100 text-green-800"
-                                                      : ""
-                                                  }`}
-                                                >
-                                                  {product.stock > 0
-                                                    ? t("common.inStock")
-                                                    : t("common.outOfStock")}
-                                                </Badge>
-                                              ) : (
-                                                <span className="text-xs text-gray-400">-</span>
-                                              )}
+                                              <Badge
+                                                variant={
+                                                  product.stock > 0
+                                                    ? "default"
+                                                    : "destructive"
+                                                }
+                                                className={`text-xs ${
+                                                  product.stock > 0
+                                                    ? "bg-green-100 text-green-800"
+                                                    : ""
+                                                }`}
+                                              >
+                                                {product.stock > 0
+                                                  ? t("common.inStock")
+                                                  : t("common.outOfStock")}
+                                              </Badge>
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                               <Badge
@@ -3366,34 +3263,32 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                                   : t("common.no")}
                                               </Badge>
                                             </td>
-                                            {storeSettings.businessType !== "laundry" && (
-                                              <td className="px-4 py-3">
-                                                <div className="flex items-center justify-center gap-1">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      handleEditProduct(product)
-                                                    }
-                                                  >
-                                                    <Edit className="w-4 h-4" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-500 hover:text-red-700"
-                                                    onClick={() =>
-                                                      handleDeleteProduct(
-                                                        product.id,
-                                                        product.name,
-                                                      )
-                                                    }
-                                                  >
-                                                    <Trash2 className="w-4 h-4" />
-                                                  </Button>
-                                                </div>
-                                              </td>
-                                            )}
+                                            <td className="px-4 py-3">
+                                              <div className="flex items-center justify-center gap-1">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    handleEditProduct(product)
+                                                  }
+                                                >
+                                                  <Edit className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="text-red-500 hover:text-red-700"
+                                                  onClick={() =>
+                                                    handleDeleteProduct(
+                                                      product.id,
+                                                      product.name,
+                                                    )
+                                                  }
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                              </div>
+                                            </td>
                                           </tr>
                                         );
                                       },
@@ -3405,34 +3300,9 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
 
                             <div className="flex justify-between items-center mt-6">
                               <div className="text-sm text-gray-600">
-                                {t("settings.total")} {allFilteredProducts.length}{" "}
+                                {t("settings.total")} {filteredProducts.length}{" "}
                                 {t("settings.productsShowing")}
-                                {allFilteredProducts.length > 0 && (
-                                  <span className="ml-2">
-                                    (Trang {productPage}/{totalProductPages})
-                                  </span>
-                                )}
                               </div>
-                              {totalProductPages > 1 && (
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setProductPage(prev => Math.max(1, prev - 1))}
-                                    disabled={productPage === 1}
-                                  >
-                                    {t("common.previous") || "Trước"}
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setProductPage(prev => Math.min(totalProductPages, prev + 1))}
-                                    disabled={productPage === totalProductPages}
-                                  >
-                                    {t("common.next") || "Sau"}
-                                  </Button>
-                                </div>
-                              )}
                             </div>
                           </CardContent>
                         </Card>
@@ -3491,96 +3361,13 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                   {t("common.search")}
                                 </Button>
                               </div>
-                              <div className="flex gap-2">
-                                {storeSettings.businessType === "laundry" && (
-                                  <Button
-                                    variant="outline"
-                                    className="border-green-500 text-green-700 hover:bg-green-100"
-                                    onClick={() => {
-                                      if (!categoriesData || categoriesData.length === 0) {
-                                        toast({
-                                          title: t("common.error"),
-                                          description: "Không có dữ liệu để xuất",
-                                          variant: "destructive",
-                                        });
-                                        return;
-                                      }
-
-                                      const exportData = [
-                                        ["STT", "Category ID", "Tên nhóm hàng", "Icon", "Số lượng sản phẩm"]
-                                      ];
-
-                                      categoriesData
-                                        .filter((category: any) => category.id !== 15 && category.id !== 17)
-                                        .forEach((category: any, index: number) => {
-                                          const productCount = productsData
-                                            ? productsData.filter((p: any) => p.categoryId === category.id).length
-                                            : 0;
-
-                                          exportData.push([
-                                            (index + 1).toString(),
-                                            category.id.toString(),
-                                            category.name,
-                                            category.icon,
-                                            productCount.toString()
-                                          ]);
-                                        });
-
-                                      const ws = XLSX.utils.aoa_to_sheet(exportData);
-
-                                      const colWidths = [
-                                        { wch: 5 },   // STT
-                                        { wch: 12 },  // Category ID
-                                        { wch: 35 },  // Tên nhóm hàng
-                                        { wch: 20 },  // Icon
-                                        { wch: 18 },  // Số lượng sản phẩm
-                                      ];
-                                      ws["!cols"] = colWidths;
-
-                                      const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
-                                      for (let col = range.s.c; col <= range.e.c; col++) {
-                                        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-                                        if (!ws[cellAddress]) continue;
-                                        ws[cellAddress].s = {
-                                          font: { bold: true, color: { rgb: "FFFFFF" } },
-                                          fill: { fgColor: { rgb: "16A34A" } },
-                                          alignment: { horizontal: "center" },
-                                        };
-                                      }
-
-                                      const wb = XLSX.utils.book_new();
-                                      XLSX.utils.book_append_sheet(wb, ws, "Nhóm hàng");
-
-                                      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-                                      const filename = `danh-sach-nhom-hang_${timestamp}.xlsx`;
-
-                                      XLSX.writeFile(wb, filename, {
-                                        bookType: "xlsx",
-                                        cellStyles: true,
-                                        sheetStubs: false,
-                                        compression: true,
-                                      });
-
-                                      toast({
-                                        title: t("common.success"),
-                                        description: "Xuất Excel thành công",
-                                      });
-                                    }}
-                                  >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    Export Excel
-                                  </Button>
-                                )}
-                                {storeSettings.businessType !== "laundry" && (
-                                  <Button
-                                    onClick={handleOpenCategoryDialog}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    {t("settings.addProductGroup")}
-                                  </Button>
-                                )}
-                              </div>
+                              <Button
+                                onClick={handleOpenCategoryDialog}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                {t("settings.addProductGroup")}
+                              </Button>
                             </div>
 
                             {categoriesLoading ? (
@@ -3627,13 +3414,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                           {t("settings.totalProducts")}
                                         </div>
                                       </th>
-                                      {storeSettings.businessType !== "laundry" && (
-                                        <th className="w-[120px] px-4 py-3 text-center font-medium text-sm text-gray-600">
-                                          <div className="leading-tight break-words">
-                                            {t("common.actions")}
-                                          </div>
-                                        </th>
-                                      )}
+                                      <th className="w-[120px] px-4 py-3 text-center font-medium text-sm text-gray-600">
+                                        <div className="leading-tight break-words">
+                                          {t("common.actions")}
+                                        </div>
+                                      </th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y">
@@ -3648,10 +3433,7 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                           selectedCategoryFilter === "all" ||
                                           category.id.toString() ===
                                             selectedCategoryFilter;
-                                          const checkRequired =
-                                            category.id !== 15 &&
-                                            category.id !== 17;
-                                        return matchesSearch && matchesCategory && checkRequired;
+                                        return matchesSearch && matchesCategory;
                                       })
                                       .map((category: any, index) => {
                                         const productCount = productsData
@@ -3718,33 +3500,31 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                                                 {t("settings.productsCount")}
                                               </Badge>
                                             </td>
-                                            {storeSettings.businessType !== "laundry" && (
-                                              <td className="px-4 py-3">
-                                                <div className="flex items-center justify-center gap-2">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      handleEditCategory(category)
-                                                    }
-                                                  >
-                                                    <Edit className="w-4 h-4" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="text-red-500 hover:text-red-700"
-                                                    onClick={() =>
-                                                      handleDeleteCategory(
-                                                        category.id,
-                                                      )
-                                                    }
-                                                  >
-                                                    <Trash2 className="w-4 h-4" />
-                                                  </Button>
-                                                </div>
-                                              </td>
-                                            )}
+                                            <td className="px-4 py-3">
+                                              <div className="flex items-center justify-center gap-2">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() =>
+                                                    handleEditCategory(category)
+                                                  }
+                                                >
+                                                  <Edit className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="text-red-500 hover:text-red-700"
+                                                  onClick={() =>
+                                                    handleDeleteCategory(
+                                                      category.id,
+                                                    )
+                                                  }
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                              </div>
+                                            </td>
                                           </tr>
                                         );
                                       })}
@@ -4058,6 +3838,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                       </div>
                     </CardContent>
                   </Card>
+                </TabsContent>
+
+                {/* Price List Tab */}
+                <TabsContent value="price-lists">
+                  <PriceListManagement />
                 </TabsContent>
               </Tabs>
             </div>
@@ -4475,16 +4260,11 @@ export default function SettingsPage({ onLogout }: SettingsPageProps) {
                         <SelectValue placeholder="Chọn đơn vị" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Cái">Cái</SelectItem>
-                        <SelectItem value="Ly">Ly</SelectItem>
-                        <SelectItem value="Chai">Chai</SelectItem>
-                        <SelectItem value="Lon">Lon</SelectItem>
-                        <SelectItem value="Phần">Phần</SelectItem>
-                        <SelectItem value="Đĩa">Đĩa</SelectItem>
-                        <SelectItem value="Tô">Tô</SelectItem>
-                        <SelectItem value="Kg">Kg</SelectItem>
-                        <SelectItem value="Gói">Gói</SelectItem>
-                        <SelectItem value="Hộp">Hộp</SelectItem>
+                        {productUnits.map((unit) => (
+                          <SelectItem key={unit} value={unit}>
+                            {unit}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
