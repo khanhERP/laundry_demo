@@ -149,57 +149,78 @@ export default function CustomersPageContent() {
     setShowPointsModal(true);
   };
 
-  const handleExportToExcel = () => {
-    // Tạo dữ liệu xuất Excel
-    const exportData = customersData.map((customer, index) => ({
-      "STT": index + 1,
-      "Mã khách hàng": customer.customerId,
-      "Tên khách hàng": customer.name,
-      "Số điện thoại": customer.phone || "",
-      "Email": customer.email || "",
-      "Địa chỉ": customer.address || "",
-      "Số lần đến": customer.visitCount || 0,
-      "Tổng chi tiêu (₫)": parseFloat(customer.totalSpent || "0"),
-      "Điểm tích lũy": customer.points || 0,
-      "Hạng thành viên": customer.membershipLevel === "VIP" ? "VIP" :
-                         customer.membershipLevel === "GOLD" ? "Vàng" :
-                         customer.membershipLevel === "SILVER" ? "Bạc" : "Thường",
-      "Trạng thái": customer.status === "active" ? "Hoạt động" : "Không hoạt động",
-      "Ngày đăng ký": customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("vi-VN") : "",
-    }));
+  const handleExportToExcel = async () => {
+    try {
+      // Fetch all customers without pagination
+      const params = new URLSearchParams({
+        page: "1",
+        limit: "99999", // Fetch all records
+        search: customerSearchTerm,
+        storeFilter: storeFilter || "all",
+      });
 
-    // Tạo worksheet
-    const ws = XLSX.utils.json_to_sheet(exportData);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch customers");
+      const data = await response.json();
+      const allCustomers = data.customers || [];
 
-    // Auto-fit column widths
-    const colWidths = [
-      { wch: 5 },   // STT
-      { wch: 15 },  // Mã khách hàng
-      { wch: 25 },  // Tên khách hàng
-      { wch: 15 },  // Số điện thoại
-      { wch: 25 },  // Email
-      { wch: 30 },  // Địa chỉ
-      { wch: 12 },  // Số lần đến
-      { wch: 18 },  // Tổng chi tiêu
-      { wch: 12 },  // Điểm tích lũy
-      { wch: 15 },  // Hạng thành viên
-      { wch: 15 },  // Trạng thái
-      { wch: 15 },  // Ngày đăng ký
-    ];
-    ws["!cols"] = colWidths;
+      // Tạo dữ liệu xuất Excel
+      const exportData = allCustomers.map((customer, index) => ({
+        "STT": index + 1,
+        "Mã khách hàng": customer.customerId,
+        "Tên khách hàng": customer.name,
+        "Số điện thoại": customer.phone || "",
+        "Email": customer.email || "",
+        "Địa chỉ": customer.address || "",
+        "Số lần đến": customer.visitCount || 0,
+        "Tổng chi tiêu (₫)": parseFloat(customer.totalSpent || "0"),
+        "Điểm tích lũy": customer.points || 0,
+        "Hạng thành viên": customer.membershipLevel === "VIP" ? "VIP" :
+                           customer.membershipLevel === "GOLD" ? "Vàng" :
+                           customer.membershipLevel === "SILVER" ? "Bạc" : "Thường",
+        "Trạng thái": customer.status === "active" ? "Hoạt động" : "Không hoạt động",
+        "Ngày đăng ký": customer.createdAt ? new Date(customer.createdAt).toLocaleDateString("vi-VN") : "",
+      }));
 
-    // Tạo workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Danh sách khách hàng");
+      // Tạo worksheet
+      const ws = XLSX.utils.json_to_sheet(exportData);
 
-    // Xuất file
-    const timestamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `danh-sach-khach-hang_${timestamp}.xlsx`);
+      // Auto-fit column widths
+      const colWidths = [
+        { wch: 5 },   // STT
+        { wch: 15 },  // Mã khách hàng
+        { wch: 25 },  // Tên khách hàng
+        { wch: 15 },  // Số điện thoại
+        { wch: 25 },  // Email
+        { wch: 30 },  // Địa chỉ
+        { wch: 12 },  // Số lần đến
+        { wch: 18 },  // Tổng chi tiêu
+        { wch: 12 },  // Điểm tích lũy
+        { wch: 15 },  // Hạng thành viên
+        { wch: 15 },  // Trạng thái
+        { wch: 15 },  // Ngày đăng ký
+      ];
+      ws["!cols"] = colWidths;
 
-    toast({
-      title: t("common.success"),
-      description: `Đã xuất ${exportData.length} khách hàng ra file Excel`,
-    });
+      // Tạo workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Danh sách khách hàng");
+
+      // Xuất file
+      const timestamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `danh-sach-khach-hang_${timestamp}.xlsx`);
+
+      toast({
+        title: t("common.success"),
+        description: `Đã xuất ${exportData.length} khách hàng ra file Excel`,
+      });
+    } catch (error) {
+      toast({
+        title: t("common.error"),
+        description: "Không thể xuất dữ liệu khách hàng",
+        variant: "destructive",
+      });
+    }
   };
 
   // Use server-side filtered and paginated data

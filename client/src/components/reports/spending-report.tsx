@@ -479,7 +479,14 @@ export function SpendingReport() {
       totalSupplierDebt,
       totalSpending,
     };
-  }, [purchaseReceipts, categories, suppliers, products, expenseVouchers, storeFilter]);
+  }, [
+    purchaseReceipts,
+    categories,
+    suppliers,
+    products,
+    expenseVouchers,
+    storeFilter,
+  ]);
 
   // Calculate total revenue from orders
   const totalRevenue = useMemo(() => {
@@ -524,7 +531,8 @@ export function SpendingReport() {
                   <SelectValue placeholder="Chọn cửa hàng" />
                 </SelectTrigger>
                 <SelectContent>
-                  {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
+                  {storesData.filter((store: any) => store.typeUser !== 1)
+                    .length > 1 && (
                     <SelectItem value="all">{t("common.allStores")}</SelectItem>
                   )}
                   {storesData
@@ -634,7 +642,9 @@ export function SpendingReport() {
               <TableRow>
                 <TableHead className="w-20">{t("common.no")}</TableHead>
                 <TableHead>{t("reports.productName")}</TableHead>
-                <TableHead className="text-right">{t("reports.totalValue")}</TableHead>
+                <TableHead className="text-right">
+                  {t("reports.totalValue")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

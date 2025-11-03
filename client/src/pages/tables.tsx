@@ -34,7 +34,7 @@ export default function TablesPage({ onLogout }: TablesPageProps) {
         const isCustomDomain = !host.includes('replit.dev');
 
         // For custom domains, use the Replit deployment proxy
-        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+        const wsUrl = `https://9be1b990-a8c1-421a-a505-64253c7b3cff-00-2h4xdaesakh9p.sisko.replit.dev/ws`;
 
         console.log(`📡 Tables: Connecting to WebSocket at ${wsUrl}`);
         ws = new WebSocket(wsUrl);

@@ -350,7 +350,7 @@ export default function SalesOrders() {
         }
         let data = await response.json();
         setStoreSettings(data);
-        
+
         // Auto-set dateSearchType to 'updated' for laundry business
         if (data?.businessType === "laundry") {
           setDateSearchType("updated");
@@ -469,7 +469,12 @@ export default function SalesOrders() {
         }
 
         const url = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list?${params.toString()}`;
-        console.log("🔍 Searching orders with customerSearch:", customerSearch, "URL:", url);
+        console.log(
+          "🔍 Searching orders with customerSearch:",
+          customerSearch,
+          "URL:",
+          url,
+        );
         const response = await apiRequest("GET", url);
 
         if (!response.ok) {
@@ -1173,8 +1178,12 @@ export default function SalesOrders() {
             const searchText = customerSearch.trim().toLowerCase();
             const customerName = (item.customerName || "").toLowerCase();
             const customerPhone = (item.customerPhone || "").toLowerCase();
-            const customerCode = (item.customerCode || item.customerTaxCode || "").toLowerCase();
-            
+            const customerCode = (
+              item.customerCode ||
+              item.customerTaxCode ||
+              ""
+            ).toLowerCase();
+
             // Check if any field contains the search text
             return (
               customerName.includes(searchText) ||
@@ -1188,120 +1197,127 @@ export default function SalesOrders() {
           // Client-side filter by product search text - filter orders that contain matching products
           if (productSearch && productSearch.trim()) {
             const searchText = productSearch.trim().toLowerCase();
-            
+
             // Get order items for this order
-            const itemsForOrder = orders.find((o: any) => o.id === item.id)?.items || [];
-            
+            const itemsForOrder =
+              orders.find((o: any) => o.id === item.id)?.items || [];
+
             // Check if any item matches the product search
             return itemsForOrder.some((orderItem: any) => {
               const productName = (orderItem.productName || "").toLowerCase();
-              const sku = (orderItem.sku || orderItem.productSku || "").toLowerCase();
-              
-              return productName.includes(searchText) || sku.includes(searchText);
+              const sku = (
+                orderItem.sku ||
+                orderItem.productSku ||
+                ""
+              ).toLowerCase();
+
+              return (
+                productName.includes(searchText) || sku.includes(searchText)
+              );
             });
           }
           return true; // Show all if no search text
         })
         .sort((a: any, b: any) => {
-        // Apply custom sorting if a field is selected
-        if (sortField) {
-          let aValue: any;
-          let bValue: any;
+          // Apply custom sorting if a field is selected
+          if (sortField) {
+            let aValue: any;
+            let bValue: any;
 
-          switch (sortField) {
-            case "orderNumber":
-              aValue = a.displayNumber || "";
-              bValue = b.displayNumber || "";
-              break;
-            case "createdAt":
-              aValue = new Date(a.createdAt || 0).getTime();
-              bValue = new Date(b.createdAt || 0).getTime();
-              break;
-            case "updatedAt":
-              aValue = new Date(a.updatedAt || 0).getTime();
-              bValue = new Date(b.updatedAt || 0).getTime();
-              break;
-            case "salesChannel":
-              aValue = a.salesChannel || "";
-              bValue = b.salesChannel || "";
-              break;
-            case "customerCode":
-              aValue = a.customerCode || a.customerTaxCode || "";
-              bValue = b.customerCode || b.customerTaxCode || "";
-              break;
-            case "customerName":
-              aValue = a.customerName || "";
-              bValue = b.customerName || "";
-              break;
-            case "subtotal":
-              aValue = parseFloat(a.subtotal || "0");
-              bValue = parseFloat(b.subtotal || "0");
-              break;
-            case "discount":
-              aValue = parseFloat(a.discount || "0");
-              bValue = parseFloat(b.discount || "0");
-              break;
-            case "tax":
-              aValue = parseFloat(a.tax || "0");
-              bValue = parseFloat(b.tax || "0");
-              break;
-            case "total":
-              aValue = parseFloat(a.total || "0");
-              bValue = parseFloat(b.total || "0");
-              break;
-            case "employeeCode":
-              aValue = a.employeeId || 0;
-              bValue = b.employeeId || 0;
-              break;
-            case "employeeName":
-              aValue = "";
-              bValue = "";
-              break;
-            case "symbol":
-              aValue = a.symbol || a.templateNumber || "";
-              bValue = b.symbol || b.templateNumber || "";
-              break;
-            case "invoiceNumber":
-              aValue = a.invoiceNumber || "";
-              bValue = b.invoiceNumber || "";
-              break;
-            case "notes":
-              aValue = a.notes || "";
-              bValue = b.notes || "";
-              break;
-            case "status":
-              aValue = a.displayStatus || 0;
-              bValue = b.displayStatus || 0;
-              break;
-            default:
-              aValue = "";
-              bValue = "";
+            switch (sortField) {
+              case "orderNumber":
+                aValue = a.displayNumber || "";
+                bValue = b.displayNumber || "";
+                break;
+              case "createdAt":
+                aValue = new Date(a.createdAt || 0).getTime();
+                bValue = new Date(b.createdAt || 0).getTime();
+                break;
+              case "updatedAt":
+                aValue = new Date(a.updatedAt || 0).getTime();
+                bValue = new Date(b.updatedAt || 0).getTime();
+                break;
+              case "salesChannel":
+                aValue = a.salesChannel || "";
+                bValue = b.salesChannel || "";
+                break;
+              case "customerCode":
+                aValue = a.customerCode || a.customerTaxCode || "";
+                bValue = b.customerCode || b.customerTaxCode || "";
+                break;
+              case "customerName":
+                aValue = a.customerName || "";
+                bValue = b.customerName || "";
+                break;
+              case "subtotal":
+                aValue = parseFloat(a.subtotal || "0");
+                bValue = parseFloat(b.subtotal || "0");
+                break;
+              case "discount":
+                aValue = parseFloat(a.discount || "0");
+                bValue = parseFloat(b.discount || "0");
+                break;
+              case "tax":
+                aValue = parseFloat(a.tax || "0");
+                bValue = parseFloat(b.tax || "0");
+                break;
+              case "total":
+                aValue = parseFloat(a.total || "0");
+                bValue = parseFloat(b.total || "0");
+                break;
+              case "employeeCode":
+                aValue = a.employeeId || 0;
+                bValue = b.employeeId || 0;
+                break;
+              case "employeeName":
+                aValue = "";
+                bValue = "";
+                break;
+              case "symbol":
+                aValue = a.symbol || a.templateNumber || "";
+                bValue = b.symbol || b.templateNumber || "";
+                break;
+              case "invoiceNumber":
+                aValue = a.invoiceNumber || "";
+                bValue = b.invoiceNumber || "";
+                break;
+              case "notes":
+                aValue = a.notes || "";
+                bValue = b.notes || "";
+                break;
+              case "status":
+                aValue = a.displayStatus || 0;
+                bValue = b.displayStatus || 0;
+                break;
+              default:
+                aValue = "";
+                bValue = "";
+            }
+
+            // Compare values
+            if (typeof aValue === "string" && typeof bValue === "string") {
+              const comparison = aValue.localeCompare(bValue, "vi");
+              return sortOrder === "asc" ? comparison : -comparison;
+            } else {
+              const comparison = aValue - bValue;
+              return sortOrder === "asc" ? comparison : -comparison;
+            }
           }
 
-          // Compare values
-          if (typeof aValue === "string" && typeof bValue === "string") {
-            const comparison = aValue.localeCompare(bValue, "vi");
-            return sortOrder === "asc" ? comparison : -comparison;
-          } else {
-            const comparison = aValue - bValue;
-            return sortOrder === "asc" ? comparison : -comparison;
-          }
-        }
+          // Default sort by date (newest first)
+          const dateA = new Date(
+            a.orderedAt || a.createdAt || a.date || a.invoiceDate,
+          );
+          const dateB = new Date(
+            b.orderedAt || b.createdAt || b.date || b.invoiceDate,
+          );
 
-        // Default sort by date (newest first)
-        const dateA = new Date(
-          a.orderedAt || a.createdAt || a.date || a.invoiceDate,
-        );
-        const dateB = new Date(
-          b.orderedAt || b.createdAt || b.date || b.invoiceDate,
-        );
+          if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+          if (isNaN(dateA.getTime())) return 1;
+          if (isNaN(dateB.getTime())) return -1;
 
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-
-        return dateB.getTime() - dateA.getTime();
-      })
+          return dateB.getTime() - dateA.getTime();
+        })
     : [];
 
   // Handle URL parameter for order filtering and auto-expand

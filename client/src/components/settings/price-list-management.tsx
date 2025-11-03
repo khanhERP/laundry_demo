@@ -154,13 +154,124 @@ export function PriceListManagement() {
     },
   });
 
-  // Filter stores based on user permission
-  const availableStores = isAdmin
-    ? allStores.filter((store: any) => store.typeUser !== 1)
-    : allStores.filter(
-        (store: any) =>
-          store.typeUser !== 1 && userStoreCodes.includes(store.storeCode),
-      );
+  // Fetch price lists first (needed by availableStores)
+  const { data: priceLists = [], isLoading: priceListsLoading } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists");
+      if (!response.ok) throw new Error("Failed to fetch price lists");
+      return response.json();
+    },
+  });
+
+  // Filter stores based on user permission and price list validity
+  const availableStores = useMemo(() => {
+    const baseStores = isAdmin
+      ? allStores.filter((store: any) => store.typeUser !== 1)
+      : allStores.filter(
+          (store: any) =>
+            store.typeUser !== 1 && userStoreCodes.includes(store.storeCode),
+        );
+
+    if (!isDialogOpen) {
+      return baseStores;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // If editing, include stores currently applied to this price list
+    const currentlyAppliedStores = editingPriceList?.storeCode
+      ? editingPriceList.storeCode.split(",").map((s: string) => s.trim())
+      : [];
+
+    // Filter out stores that have active price lists
+    return baseStores.filter((store: any) => {
+      // Find all price lists for this store (excluding current editing price list)
+      const storePriceLists = priceLists.filter((pl: PriceList) => {
+        // Skip the current editing price list
+        if (editingPriceList && pl.id === editingPriceList.id) {
+          return false;
+        }
+        
+        if (!pl.storeCode) return false;
+        const storeCodes = pl.storeCode.split(",").map((s: string) => s.trim());
+        return storeCodes.includes(store.storeCode);
+      });
+
+      // If store is currently applied to the editing price list
+      if (editingPriceList && currentlyAppliedStores.includes(store.storeCode)) {
+        // Only show if this store is NOT being used by any other active price list
+        if (storePriceLists.length > 0) {
+          // Check if any of those price lists are still active
+          const hasOtherActivePriceList = storePriceLists.some((pl: PriceList) => {
+            // If price list has no validTo date, it's permanently active
+            if (!pl.validTo) {
+              return true;
+            }
+
+            const plValidTo = new Date(pl.validTo);
+            plValidTo.setHours(0, 0, 0, 0);
+
+            // If validTo is today or in the future, the price list is still active
+            return plValidTo >= today;
+          });
+
+          // Don't show this store if it's being used by another active price list
+          if (hasOtherActivePriceList) {
+            return false;
+          }
+        }
+        // Show store if it's only applied to current editing price list
+        return true;
+      }
+
+      // For stores not currently applied to editing price list
+      // If no price lists exist for this store, it's available
+      if (storePriceLists.length === 0) {
+        return true;
+      }
+
+      // Check if store has any active price list that is still valid
+      const hasActivePriceList = storePriceLists.some((pl: PriceList) => {
+        // If price list has no validTo date, it's permanently active
+        if (!pl.validTo) {
+          return true;
+        }
+
+        const plValidTo = new Date(pl.validTo);
+        plValidTo.setHours(0, 0, 0, 0);
+
+        // If validTo is today or in the future, the price list is still active
+        return plValidTo >= today;
+      });
+
+      // Additionally, if user has specified dates, check for overlap
+      if (priceListForm.validFrom && priceListForm.validTo) {
+        const formValidFrom = new Date(priceListForm.validFrom);
+        const formValidTo = new Date(priceListForm.validTo);
+
+        const hasOverlap = storePriceLists.some((pl: PriceList) => {
+          // Skip price lists without dates
+          if (!pl.validFrom || !pl.validTo) {
+            return false;
+          }
+
+          const plValidFrom = new Date(pl.validFrom);
+          const plValidTo = new Date(pl.validTo);
+
+          // Check for date range overlap
+          return formValidFrom <= plValidTo && formValidTo >= plValidFrom;
+        });
+
+        // Store is NOT available if it has active price list OR overlap
+        return !hasActivePriceList && !hasOverlap;
+      }
+
+      // Store is available only if it doesn't have active price list
+      return !hasActivePriceList;
+    });
+  }, [isAdmin, allStores, userStoreCodes, isDialogOpen, priceListForm.validFrom, priceListForm.validTo, priceLists, editingPriceList]);
 
   // Fetch next price list code
   const { data: nextCodeData } = useQuery({
@@ -182,16 +293,6 @@ export function PriceListManagement() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-
-  // Fetch price lists
-  const { data: priceLists = [], isLoading: priceListsLoading } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists");
-      if (!response.ok) throw new Error("Failed to fetch price lists");
-      return response.json();
-    },
-  });
 
   // Filter price lists based on store filter
   const filteredPriceLists = useMemo(() => {

@@ -194,11 +194,10 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
       console.error("Logout API error:", error);
     }
 
-    // Xóa toàn bộ localStorage
-    localStorage.clear();
-
-    // Xóa toàn bộ sessionStorage
-    sessionStorage.clear();
+    // Xóa tất cả thông tin đăng nhập
+    sessionStorage.removeItem("pinAuthenticated");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("storeInfo");
 
     // Xóa tất cả cookies
     document.cookie.split(";").forEach((c) => {
@@ -208,7 +207,7 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
     });
 
     // Xóa cache của browser (nếu có API hỗ trợ)
-    if ('caches' in window) {
+    if ("caches" in window) {
       caches.keys().then((names) => {
         names.forEach((name) => {
           caches.delete(name);
@@ -236,7 +235,8 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
               alt="EDPOS Logo"
               className="h-10 cursor-pointer drop-shadow-lg"
               style={{
-                filter: 'brightness(0) saturate(100%) invert(58%) sepia(89%) saturate(491%) hue-rotate(91deg) brightness(95%) contrast(88%)'
+                filter:
+                  "brightness(0) saturate(100%) invert(58%) sepia(89%) saturate(491%) hue-rotate(91deg) brightness(95%) contrast(88%)",
               }}
               onClick={() => (window.location.href = "/")}
             />
@@ -252,7 +252,6 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
           <LanguageSwitcher />
           {/* Navigation Menu */}
           <nav className="flex items-center space-x-2">
-
             {/* User Menu Dropdown */}
             <div className="relative pos-dropdown">
               <button
@@ -263,7 +262,10 @@ export function POSHeader({ onLogout }: POSHeaderProps) {
                 <span className="hidden sm:inline">
                   {currentCashier
                     ? currentCashier.name
-                    : (storeSettings?.storeName || storeSettings?.userName || storeSettings?.storeCode || "Admin")}
+                    : storeSettings?.storeName ||
+                      storeSettings?.userName ||
+                      storeSettings?.storeCode ||
+                      "Admin"}
                 </span>
                 <ChevronDown
                   className={`w-3 h-3 ml-1 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}

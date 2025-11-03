@@ -30,15 +30,15 @@ export function AttendanceList({
 }: AttendanceListProps) {
   const { t } = useTranslation();
   const { data: employees } = useQuery({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
+    queryKey: ['/api/employees'],
   });
 
   const { data: attendanceRecords, isLoading } = useQuery({
     queryKey: useRange 
-      ? ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
-      : ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance', selectedDate],
+      ? ['/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
+      : ['/api/attendance', selectedDate],
     queryFn: async () => {
-      let url = 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance';
+      let url = '/api/attendance';
       if (useRange && dateRange?.startDate && dateRange?.endDate) {
         url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
       } else {

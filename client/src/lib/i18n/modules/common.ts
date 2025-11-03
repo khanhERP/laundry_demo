@@ -1290,6 +1290,7 @@ export const commonTranslations: { [key: string]: CommonTranslations } = {
     create: "Create",
     update: "Update",
     successTitle: "Success",
+    comingSoon: "Coming Soon",
 
     // Unit indicators
     perUnit: "per item",
@@ -1855,6 +1856,7 @@ export const commonTranslations: { [key: string]: CommonTranslations } = {
     combo: "Combo",
     service: "Dịch vụ",
     update: "Cập nhật",
+    comingSoon: "Sắp ra mắt",
 
     // Unit indicators
     perUnit: "món",

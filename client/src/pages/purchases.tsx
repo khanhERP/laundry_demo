@@ -94,7 +94,9 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
 
   // State for purchase edit dialog
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [editingPurchaseId, setEditingPurchaseId] = useState<number | null>(null);
+  const [editingPurchaseId, setEditingPurchaseId] = useState<number | null>(
+    null,
+  );
 
   // Fetch purchase receipts with filters
   const {
@@ -184,7 +186,9 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
         }
         const data = await response.json();
         // Filter out stores with typeUser = 1
-        return Array.isArray(data) ? data.filter((store: any) => store.typeUser !== 1) : [];
+        return Array.isArray(data)
+          ? data.filter((store: any) => store.typeUser !== 1)
+          : [];
       } catch (error) {
         console.error("Error fetching stores:", error);
         return [];
@@ -397,7 +401,8 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                       onChange={(e) => setStoreFilter(e.target.value)}
                       className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
-                      {storesData.filter((store: any) => store.typeUser !== 1).length > 1 && (
+                      {storesData.filter((store: any) => store.typeUser !== 1)
+                        .length > 1 && (
                         <option value="all">{t("common.all")}</option>
                       )}
                       {storesData
@@ -495,27 +500,44 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
             <Button
               variant="outline"
               onClick={() => {
-                const selectedPurchases = filteredOrders.filter(order => selectedOrders.has(order.id));
-                const excelData = selectedPurchases.map(order => ({
+                const selectedPurchases = filteredOrders.filter((order) =>
+                  selectedOrders.has(order.id),
+                );
+                const excelData = selectedPurchases.map((order) => ({
                   "Số phiếu": order.receiptNumber || order.poNumber || "-",
-                  "Ngày nhập": order.purchaseDate || order.actualDeliveryDate || order.createdAt,
-                  "Nhà cung cấp": order.supplier?.name || getSupplierName(order.supplierId),
-                  "Thành tiền": parseFloat(order.subtotal || order.total || "0"),
-                  "Giảm giá": order.items?.reduce((sum, item) => sum + parseFloat(item.discount || "0"), 0) || 0,
+                  "Ngày nhập":
+                    order.purchaseDate ||
+                    order.actualDeliveryDate ||
+                    order.createdAt,
+                  "Nhà cung cấp":
+                    order.supplier?.name || getSupplierName(order.supplierId),
+                  "Thành tiền": parseFloat(
+                    order.subtotal || order.total || "0",
+                  ),
+                  "Giảm giá":
+                    order.items?.reduce(
+                      (sum, item) => sum + parseFloat(item.discount || "0"),
+                      0,
+                    ) || 0,
                   "Tổng tiền": parseFloat(order.total || "0"),
-                  "Ghi chú": order.notes || ""
+                  "Ghi chú": order.notes || "",
                 }));
 
                 const ws = XLSX.utils.json_to_sheet(excelData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Phiếu nhập");
-                XLSX.writeFile(wb, `phieu-nhap-hang_${new Date().toISOString().slice(0,10)}.xlsx`);
+                XLSX.writeFile(
+                  wb,
+                  `phieu-nhap-hang_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                );
               }}
               disabled={selectedOrders.size === 0}
               className="border-green-600 text-green-600 hover:bg-green-50 font-semibold px-4 sm:px-6 py-2 shadow-lg hover:shadow-xl transition-all duration-200 text-sm"
             >
               <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              <span className="hidden sm:inline">{t("purchases.exportToExcel")}</span>
+              <span className="hidden sm:inline">
+                {t("purchases.exportToExcel")}
+              </span>
               <span className="sm:hidden">Excel</span>
               <span className="ml-1">({selectedOrders.size})</span>
             </Button>
@@ -559,8 +581,12 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                     size="lg"
                   >
                     <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    <span className="hidden sm:inline">{t("purchases.createNewReceipt")}</span>
-                    <span className="sm:hidden">{t("purchases.createNewPurchaseOrder")}</span>
+                    <span className="hidden sm:inline">
+                      {t("purchases.createNewReceipt")}
+                    </span>
+                    <span className="sm:hidden">
+                      {t("purchases.createNewPurchaseOrder")}
+                    </span>
                   </Button>
                 </div>
               ) : (
@@ -826,12 +852,15 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
       </Dialog>
 
       {/* Purchase Edit Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={(open) => {
-        setShowEditDialog(open);
-        if (!open) {
-          setEditingPurchaseId(null);
-        }
-      }}>
+      <Dialog
+        open={showEditDialog}
+        onOpenChange={(open) => {
+          setShowEditDialog(open);
+          if (!open) {
+            setEditingPurchaseId(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-[98vw] max-h-[98vh] p-0 overflow-hidden">
           <DialogHeader className="sr-only">
             <DialogTitle>{t("purchases.viewPurchaseOrder")}</DialogTitle>
@@ -845,7 +874,9 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                 onSuccess={() => {
                   setShowEditDialog(false);
                   setEditingPurchaseId(null);
-                  queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"] });
+                  queryClient.invalidateQueries({
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"],
+                  });
                   toast({
                     title: t("common.success"),
                     description: "Phiếu nhập hàng đã được cập nhật thành công",
