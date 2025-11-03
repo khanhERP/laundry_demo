@@ -74,7 +74,12 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
   const [startDate, setStartDate] = useState(() => {
     const today = new Date();
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    return firstDayOfMonth.toISOString().split("T")[0];
+
+    // Điều chỉnh về giờ địa phương
+    const localDate = new Date(
+      firstDayOfMonth.getTime() - firstDayOfMonth.getTimezoneOffset() * 60000,
+    );
+    return localDate.toISOString().split("T")[0];
   });
   const [endDate, setEndDate] = useState(() => {
     return new Date().toISOString().split("T")[0];
