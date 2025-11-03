@@ -2967,7 +2967,7 @@ export default function SalesOrders() {
       <POSHeader />
       {/* Right Sidebar */}
       <RightSidebar />
-      <div className="main-content px-4 pt-24">
+      <div className="px-4 pt-24">
         <div className="w-full mx-auto py-6">
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">

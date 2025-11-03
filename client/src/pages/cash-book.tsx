@@ -868,7 +868,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
     <div className="min-h-screen bg-green-50 grocery-bg">
       <POSHeader />
       <RightSidebar />
-      <div className="main-content px-6">
+      <div className="px-6">
         <div className="max-w-7xl mx-auto py-8">
           {/* Page Header */}
           <div className="mb-8">

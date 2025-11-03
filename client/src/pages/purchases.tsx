@@ -364,7 +364,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
       {/* Right Sidebar */}
       <RightSidebar />
 
-      <div className="main-content px-6">
+      <div className="px-6">
         <div className="mx-auto py-8" style={{ maxWidth: "95rem" }}>
           {/* Page Header */}
           <div className="mb-6 sm:mb-8">
