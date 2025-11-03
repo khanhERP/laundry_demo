@@ -21,7 +21,7 @@ export function GeneralSettingsContent() {
 
   // Fetch general settings
   const { data: settings = [], isLoading } = useQuery<GeneralSetting[]>({
-    queryKey: ["/api/general-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings"],
   });
 
   // Update setting active status
@@ -62,7 +62,7 @@ export function GeneralSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/general-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật trạng thái thiết lập",

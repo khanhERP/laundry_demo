@@ -41,19 +41,19 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
 
   // Fetch store settings to get user's store info
   const { data: userStore } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
   });
 
   // Fetch store list for admin users
   const { data: storesData, isLoading: storesLoading } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   const isAdmin = userStore?.isAdmin || false;
 
   // Fetch customers with server-side pagination
   const { data: customersResponse, isLoading: customersLoading, refetch: refetchCustomers } = useQuery({
-    queryKey: ["/api/customers", currentPage, pageSize, customerSearchTerm, storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", currentPage, pageSize, customerSearchTerm, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -95,7 +95,7 @@ export default function CustomersPage({ onLogout }: CustomersPageProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      await queryClient.refetchQueries({ queryKey: ["/api/customers"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
 
       toast({
         title: t("common.success"),

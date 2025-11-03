@@ -52,9 +52,9 @@ export function ProductGrid({
 
   // Fetch store settings to check price inclusion of tax
   const { data: storeSettings } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("/api/store-settings");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       if (!response.ok) throw new Error("Failed to fetch store settings");
       return response.json();
     },
@@ -71,7 +71,7 @@ export function ProductGrid({
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
     queryKey: [
-      "/api/products",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products",
       { category: selectedCategory, search: searchQuery },
     ],
     queryFn: async () => {

@@ -57,23 +57,23 @@ export function InventoryReport() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: products } = useQuery({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   const { data: orders } = useQuery({
-    queryKey: ["/api/orders"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
   });
 
   const { data: employees } = useQuery({
-    queryKey: ["/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
   });
 
   const { data: suppliers } = useQuery({
-    queryKey: ["/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   const formatCurrency = (amount: number) => {

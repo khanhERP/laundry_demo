@@ -351,7 +351,7 @@ export default function POS({ onLogout }: POSPageProps) {
               try {
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {

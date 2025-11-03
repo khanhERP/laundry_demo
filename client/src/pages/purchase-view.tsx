@@ -41,15 +41,15 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch categories for new product form
   const { data: categories = [] } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     select: (data: any) => data || [],
   });
 
   // Fetch payment methods from API
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -94,7 +94,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch purchase receipt details
   const { data: purchaseOrder, isLoading: isOrderLoading, error: orderError } = useQuery<PurchaseOrder>({
-    queryKey: ["/api/purchase-receipts", purchaseId],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
@@ -118,7 +118,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch purchase receipt items
   const { data: purchaseItems = [], isLoading: isItemsLoading } = useQuery<PurchaseReceiptItem[]>({
-    queryKey: ["/api/purchase-receipts", purchaseId, "items"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
@@ -136,7 +136,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch attached documents
   const { data: attachedDocuments = [] } = useQuery({
-    queryKey: ["/api/purchase-receipts", purchaseId, "documents"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"],
     queryFn: async () => {
       if (!purchaseId) throw new Error("Purchase ID not found");
 
@@ -154,7 +154,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch suppliers for name lookup
   const { data: suppliers = [] } = useQuery<Supplier[]>({
-    queryKey: ["/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   // Initialize form data when purchase order loads
@@ -260,7 +260,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch employees for display
   const { data: employees = [] } = useQuery({
-    queryKey: ["/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     select: (data: any[]) =>
       (data || []).map((emp: any) => ({
         id: emp.id,
@@ -270,14 +270,14 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
   // Fetch stores data for dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     select: (data: any[]) => 
       (data || []).filter((store: any) => store.typeUser !== 1),
   });
 
   // Fetch products for selection
   const { data: allProducts = [] } = useQuery({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
     select: (data: any[]) =>
       (data || []).map((product: any) => ({
         ...product,
@@ -488,7 +488,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
     // Update purchaseItems with synced data and new item
     queryClient.setQueryData(
-      ["/api/purchase-receipts", purchaseId, "items"],
+      ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"],
       [...syncedItems, newItem]
     );
 
@@ -580,7 +580,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
       // Refresh documents list
       await queryClient.invalidateQueries({
-        queryKey: ["/api/purchase-receipts", purchaseId, "documents"]
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"]
       });
     } catch (error) {
       console.error('Error uploading files:', error);
@@ -673,7 +673,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
       // Refresh documents list
       await queryClient.invalidateQueries({
-        queryKey: ["/api/purchase-receipts", purchaseId, "documents"]
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"]
       });
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -1140,10 +1140,10 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
       // Refresh the data
       await queryClient.invalidateQueries({ 
-        queryKey: ["/api/purchase-receipts", purchaseId] 
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
       });
       await queryClient.invalidateQueries({ 
-        queryKey: ["/api/purchase-receipts", purchaseId, "items"] 
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
       });
 
       // Call onSuccess callback if provided (for dialog mode)
@@ -2090,7 +2090,7 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
                                           // Refresh the items list
                                           await queryClient.invalidateQueries({ 
-                                            queryKey: ["/api/purchase-receipts", purchaseId, "items"] 
+                                            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                                           });
                                         } catch (error) {
                                           console.error('Error deleting item:', error);
@@ -2244,21 +2244,21 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
                 onClick={async () => {
                   // Tải lại dữ liệu từ server trước khi cho phép chỉnh sửa
                   await queryClient.invalidateQueries({ 
-                    queryKey: ["/api/purchase-receipts", purchaseId] 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                   });
                   await queryClient.invalidateQueries({ 
-                    queryKey: ["/api/purchase-receipts", purchaseId, "items"] 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                   });
                   await queryClient.invalidateQueries({ 
-                    queryKey: ["/api/purchase-receipts", purchaseId, "documents"] 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"] 
                   });
 
                   // Đợi dữ liệu load xong (refetch data)
                   await queryClient.refetchQueries({ 
-                    queryKey: ["/api/purchase-receipts", purchaseId] 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                   });
                   await queryClient.refetchQueries({ 
-                    queryKey: ["/api/purchase-receipts", purchaseId, "items"] 
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                   });
 
                   // Bật chế độ chỉnh sửa
@@ -2278,13 +2278,13 @@ export default function PurchaseViewPage({ onLogout, onSuccess, hideBackButton =
 
                     // Reload all data from server
                     await queryClient.invalidateQueries({ 
-                      queryKey: ["/api/purchase-receipts", purchaseId] 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId] 
                     });
                     await queryClient.invalidateQueries({ 
-                      queryKey: ["/api/purchase-receipts", purchaseId, "items"] 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "items"] 
                     });
                     await queryClient.invalidateQueries({ 
-                      queryKey: ["/api/purchase-receipts", purchaseId, "documents"] 
+                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", purchaseId, "documents"] 
                     });
 
                     // Reset form data to original values

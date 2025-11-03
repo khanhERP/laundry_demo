@@ -55,10 +55,10 @@ export function SalesReport() {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/store-settings/list", {
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list", {
           headers: {
             "Content-Type": "application/json",
           },
@@ -82,7 +82,7 @@ export function SalesReport() {
     error: ordersError,
     refetch: refetchOrders,
   } = useQuery({
-    queryKey: ["/api/orders/list", startDate, endDate, "all", storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list", startDate, endDate, "all", storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -125,7 +125,7 @@ export function SalesReport() {
     isLoading: orderItemsLoading,
     refetch: refetchOrderItems,
   } = useQuery({
-    queryKey: ["/api/order-items/date-range", startDate, endDate, "all"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items/date-range", startDate, endDate, "all"],
     queryFn: async () => {
       try {
         const response = await fetch(

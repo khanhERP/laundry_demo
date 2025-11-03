@@ -280,7 +280,7 @@ export default function InventoryPage({ onLogout }: InventoryPageProps) {
 
   const cleanupMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/products/cleanup/inactive", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/cleanup/inactive", {
         method: "DELETE",
       });
       if (!response.ok) {
@@ -289,7 +289,7 @@ export default function InventoryPage({ onLogout }: InventoryPageProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
       toast({
         title: "Dọn dẹp thành công",
         description: `Đã xóa ${data.deletedCount} sản phẩm vô hiệu khỏi cơ sở dữ liệu`,

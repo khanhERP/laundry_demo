@@ -157,9 +157,9 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch store settings to get user info
   const { data: storeSettings } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("/api/store-settings");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       if (!response.ok) throw new Error("Failed to fetch store settings");
       return response.json();
     },
@@ -167,10 +167,10 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/store-settings/list");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -187,7 +187,7 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
 
   // Fetch orders with authentication-based filtering for overview tab
   const { data: ordersData } = useQuery({
-    queryKey: ["/api/orders/list", startDate, endDate, storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list", startDate, endDate, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams({
         startDate,

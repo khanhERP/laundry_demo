@@ -80,22 +80,22 @@ export function EInvoiceSettingsContent() {
 
   // Fetch e-invoice connections
   const { data: connections = [], isLoading: connectionsLoading } = useQuery<any[]>({
-    queryKey: ["/api/einvoice-connections"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"],
   });
 
   // Fetch invoice templates
   const { data: templates = [], isLoading: templatesLoading } = useQuery<any[]>({
-    queryKey: ["/api/invoice-templates"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"],
   });
 
   // Connection mutations
   const createConnectionMutation = useMutation({
     mutationFn: async (data: typeof connectionFormData) => {
-      const response = await apiRequest("POST", "/api/einvoice-connections", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/einvoice-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"] });
       toast({
         title: "Thành công",
         description: "Đã tạo kênh kết nối mới",
@@ -118,7 +118,7 @@ export function EInvoiceSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/einvoice-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật kênh kết nối",
@@ -141,7 +141,7 @@ export function EInvoiceSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/einvoice-connections"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/einvoice-connections"] });
       toast({
         title: "Thành công",
         description: "Đã xóa kênh kết nối",
@@ -161,11 +161,11 @@ export function EInvoiceSettingsContent() {
   // Template mutations
   const createTemplateMutation = useMutation({
     mutationFn: async (data: typeof templateFormData) => {
-      const response = await apiRequest("POST", "/api/invoice-templates", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: "Thành công",
         description: "Đã tạo mẫu hóa đơn mới",
@@ -188,7 +188,7 @@ export function EInvoiceSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật mẫu hóa đơn",
@@ -211,7 +211,7 @@ export function EInvoiceSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/invoice-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-templates"] });
       toast({
         title: "Thành công",
         description: "Đã xóa mẫu hóa đơn",

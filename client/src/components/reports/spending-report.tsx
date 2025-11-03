@@ -47,7 +47,7 @@ export function SpendingReport() {
 
   // Fetch store settings list
   const { data: storesData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     retry: 2,
   });
 
@@ -57,7 +57,7 @@ export function SpendingReport() {
     isLoading: isLoadingReceipts,
     refetch: refetchPurchaseReceipts,
   } = useQuery({
-    queryKey: ["/api/purchase-receipts", { startDate, endDate, storeFilter }],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", { startDate, endDate, storeFilter }],
     queryFn: async () => {
       const params = new URLSearchParams();
 
@@ -97,23 +97,23 @@ export function SpendingReport() {
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   // Fetch products to get category information
   const { data: products = [] } = useQuery({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   // Fetch expense vouchers for debt calculation with date filter
   const { data: expenseVouchers = [], refetch: refetchExpenseVouchers } =
     useQuery({
-      queryKey: ["/api/expense-vouchers", { startDate, endDate, storeFilter }],
+      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers", { startDate, endDate, storeFilter }],
       queryFn: async () => {
         const params = new URLSearchParams();
 
@@ -151,7 +151,7 @@ export function SpendingReport() {
 
   // Fetch orders for revenue calculation
   const { data: orders = [], refetch: refetchOrders } = useQuery({
-    queryKey: ["/api/orders/date-range", startDate, endDate, storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (startDate) params.append("startDate", startDate);

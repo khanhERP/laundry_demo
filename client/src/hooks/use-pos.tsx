@@ -71,7 +71,7 @@ export function usePOS() {
         notes: null,
       }));
 
-      const response = await fetch("/api/orders", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: orderData, items }),
@@ -109,8 +109,8 @@ export function usePOS() {
 
       setLastReceipt(receipt);
       updateActiveOrderCart([]);
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
 
       // Dispatch events for real-time updates
       if (typeof window !== 'undefined') {

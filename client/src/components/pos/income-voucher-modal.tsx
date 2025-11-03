@@ -74,9 +74,9 @@ export default function IncomeVoucherModal({
   // Load payment methods from localStorage (same as expense voucher)
   // Query payment methods from API
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -128,7 +128,7 @@ export default function IncomeVoucherModal({
 
   const createVoucherMutation = useMutation({
     mutationFn: async (data: IncomeVoucher) => {
-      const response = await fetch("/api/income-vouchers", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -141,8 +141,8 @@ export default function IncomeVoucherModal({
         title: "Thành công",
         description: "Đã tạo phiếu thu mới",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/income-vouchers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
       onClose();
     },
     onError: (error) => {
@@ -178,8 +178,8 @@ export default function IncomeVoucherModal({
         title: "Thành công",
         description: `Đã cập nhật phiếu thu ${formData.voucherNumber} thành công`,
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/income-vouchers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
       setIsEditing(false);
     },
     onError: (error) => {
@@ -207,8 +207,8 @@ export default function IncomeVoucherModal({
         title: "Thành công",
         description: "Đã xóa phiếu thu",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/income-vouchers"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
       setShowDeleteDialog(false);
       onClose();
     },

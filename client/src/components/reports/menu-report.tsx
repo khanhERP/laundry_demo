@@ -114,7 +114,7 @@ function MenuReport() {
 
   // Fetch stores list for filter dropdown
   const { data: storesData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     retry: 2,
   });
 
@@ -125,19 +125,19 @@ function MenuReport() {
 
   // Query store settings for priceIncludeTax
   const { data: storeSettings } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     retry: 2,
   });
 
   // Query categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     retry: 2,
   });
 
   // Query products - filter by search term
   const { data: products = [] } = useQuery({
-    queryKey: ["/api/products", selectedCategory, productType, productSearch],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", selectedCategory, productType, productSearch],
     retry: 2,
     enabled: true, // Always enabled to reload when productSearch changes
   });
@@ -149,7 +149,7 @@ function MenuReport() {
     error: analysisError,
     refetch,
   } = useQuery({
-    queryKey: ["/api/menu-analysis", startDate, endDate, selectedCategory, productSearch, storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/menu-analysis", startDate, endDate, selectedCategory, productSearch, storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -282,8 +282,8 @@ function MenuReport() {
 
   const handleRefresh = () => {
     // Refresh both orders and order items data
-    queryClient.invalidateQueries({ queryKey: ["/api/orders/date-range"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/order-items"] });
+    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range"] });
+    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"] });
   };
 
   if (analysisError) {

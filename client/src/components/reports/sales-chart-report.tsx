@@ -111,9 +111,9 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
 
   // Query store settings for priceIncludesTax
   const { data: storeSettings, isLoading: storesLoading } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await fetch("/api/store-settings");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -130,7 +130,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     refetch: refetchOrders,
   } = useQuery({
     queryKey: [
-      "/api/orders/date-range",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range",
       startDate,
       endDate,
       startTime,
@@ -298,10 +298,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
 
   // Query store list for filter
   const { data: storesFilterData = [] } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/store-settings/list");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -320,10 +320,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
 
   // Query order items for all orders
   const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["/api/order-items"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"],
     queryFn: async () => {
       try {
-        const response = await fetch("/api/order-items");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -360,7 +360,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     isLoading: tablesLoading,
     error: tablesError,
   } = useQuery({
-    queryKey: ["/api/tables"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
@@ -368,13 +368,13 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   const isLoading = ordersLoading || orderItemsLoading || storesLoading;
 
   const { data: employees } = useQuery({
-    queryKey: ["/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: products } = useQuery({
     queryKey: [
-      "/api/products",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products",
       selectedCategory,
       productType,
       productSearch,
@@ -394,7 +394,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["/api/categories", storeFilter],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories", storeFilter],
     queryFn: async () => {
       const storeParam =
         storeFilter && storeFilter !== "all" ? `?storeCode=${storeFilter}` : "";
@@ -406,7 +406,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   });
 
   const { data: customers } = useQuery({
-    queryKey: ["/api/customers", customerSearch, customerStatus],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", customerSearch, customerStatus],
     queryFn: async () => {
       const response = await fetch(
         `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customerSearch || "all"}/${customerStatus}`,
@@ -424,7 +424,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     error: productAnalysisError,
   } = useQuery({
     queryKey: [
-      "/api/product-analysis",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/product-analysis",
       startDate,
       endDate,
       startTime,
@@ -504,7 +504,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   });
 
   const { data: transactions } = useQuery({
-    queryKey: ["/api/transactions"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions"],
     staleTime: 5 * 60 * 1000,
   });
 

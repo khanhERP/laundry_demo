@@ -41,11 +41,11 @@ export default function ProductManagementContent() {
   }, []);
 
   const { data: productsData, isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const { data: categoriesData } = useQuery<Category[]>({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   const deleteProductMutation = useMutation({
@@ -63,7 +63,7 @@ export default function ProductManagementContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
       toast({
         title: t("common.success"),
         description: t("common.productDeleteSuccess"),

@@ -42,11 +42,11 @@ export default function CategoryManagementContent() {
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery<
     any[]
   >({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   const { data: productsData } = useQuery<any[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const resetCategoryForm = () => {
@@ -65,7 +65,7 @@ export default function CategoryManagementContent() {
     }
 
     try {
-      const response = await fetch("/api/categories", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(categoryForm),
@@ -74,7 +74,7 @@ export default function CategoryManagementContent() {
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
-      await queryClient.refetchQueries({ queryKey: ["/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryCreateSuccess"),
@@ -112,7 +112,7 @@ export default function CategoryManagementContent() {
 
       setShowCategoryForm(false);
       resetCategoryForm();
-      await queryClient.refetchQueries({ queryKey: ["/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryUpdateSuccess"),
@@ -172,7 +172,7 @@ export default function CategoryManagementContent() {
         );
       }
 
-      await queryClient.refetchQueries({ queryKey: ["/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryDeleteSuccess"),

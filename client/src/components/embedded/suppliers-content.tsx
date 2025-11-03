@@ -26,11 +26,11 @@ export default function SuppliersPageContent() {
   const itemsPerPage = 10;
 
   const { data: suppliersData, isLoading: suppliersLoading } = useQuery<Supplier[]>({
-    queryKey: ["/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   const { data: storesData } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   const handleEditSupplier = (supplier: Supplier) => {
@@ -45,7 +45,7 @@ export default function SuppliersPageContent() {
       const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers/${supplierId}`, { method: "DELETE" });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      await queryClient.refetchQueries({ queryKey: ["/api/suppliers"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"] });
       toast({ title: t("common.success"), description: t("suppliers.deleteSuccess") });
     } catch (error) {
       toast({ title: t("common.error"), description: t("suppliers.deleteError"), variant: "destructive" });

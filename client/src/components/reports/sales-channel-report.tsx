@@ -61,19 +61,19 @@ export function SalesChannelReport() {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: employees } = useQuery({
-    queryKey: ["/api/employees"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
     staleTime: 5 * 60 * 1000,
   });
 
   // Sales channel sales data query
   const { data: salesChannelSalesData, isLoading: salesLoading } = useQuery({
     queryKey: [
-      "/api/sales-channel-sales",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-sales",
       startDate,
       endDate,
       selectedSeller,
@@ -100,7 +100,7 @@ export function SalesChannelReport() {
   // Sales channel profit data query
   const { data: salesChannelProfitData, isLoading: profitLoading } = useQuery({
     queryKey: [
-      "/api/sales-channel-profit",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-profit",
       startDate,
       endDate,
       selectedSeller,
@@ -128,7 +128,7 @@ export function SalesChannelReport() {
   const { data: salesChannelProductsData, isLoading: productsLoading } =
     useQuery({
       queryKey: [
-        "/api/sales-channel-products",
+        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/sales-channel-products",
         startDate,
         endDate,
         selectedSeller,

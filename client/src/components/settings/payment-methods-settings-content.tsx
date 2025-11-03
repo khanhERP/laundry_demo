@@ -38,9 +38,9 @@ export function PaymentMethodsSettingsContent() {
 
   // Query payment methods
   const { data: paymentMethods = [] } = useQuery({
-    queryKey: ["/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -48,11 +48,11 @@ export function PaymentMethodsSettingsContent() {
   // Create payment method mutation
   const createPaymentMethodMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", "/api/payment-methods", data);
+      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: "Thành công",
         description: "Đã thêm phương thức thanh toán mới",
@@ -75,7 +75,7 @@ export function PaymentMethodsSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật phương thức thanh toán",
@@ -98,7 +98,7 @@ export function PaymentMethodsSettingsContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"] });
       toast({
         title: "Thành công",
         description: "Đã xóa phương thức thanh toán",

@@ -32,12 +32,12 @@ export function SplitOrderModal({
 
   // Fetch table info to get correct table number
   const { data: tablesData } = useQuery({
-    queryKey: ["/api/tables"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
   });
 
   // Fetch products to get correct tax rates
   const { data: productsData } = useQuery({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const getTableNumber = () => {

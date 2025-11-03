@@ -54,7 +54,7 @@ export function StoreListManagement() {
 
   // Fetch all stores
   const { data: allStoresData, isLoading } = useQuery<StoreSettings[]>({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   // Filter out stores with userType = 1 (admin accounts)
@@ -62,9 +62,9 @@ export function StoreListManagement() {
 
   // Fetch active price lists
   const { data: priceLists = [] } = useQuery({
-    queryKey: ["/api/price-lists"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists"],
     queryFn: async () => {
-      const response = await fetch("/api/price-lists");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists");
       if (!response.ok) throw new Error("Failed to fetch price lists");
       const data = await response.json();
       // Filter only active price lists
@@ -75,7 +75,7 @@ export function StoreListManagement() {
   // Create store mutation
   const createStoreMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/store-settings/create", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -89,7 +89,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã tạo cửa hàng mới",
@@ -123,7 +123,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật thông tin cửa hàng",
@@ -155,7 +155,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã xóa cửa hàng",

@@ -58,12 +58,12 @@ export default function CustomersPageContent() {
 
   // Fetch store settings to get user's store info
   const { data: userStore } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
   });
 
   // Fetch store list for admin users
   const { data: storesData, isLoading: storesLoading } = useQuery({
-    queryKey: ["/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   const isAdmin = userStore?.isAdmin || false;
@@ -75,7 +75,7 @@ export default function CustomersPageContent() {
     refetch: refetchCustomers,
   } = useQuery({
     queryKey: [
-      "/api/customers",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers",
       currentPage,
       pageSize,
       customerSearchTerm,
@@ -130,7 +130,7 @@ export default function CustomersPageContent() {
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
-      await queryClient.refetchQueries({ queryKey: ["/api/customers"] });
+      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
       toast({
         title: t("common.success"),
         description: t("settings.customerDeleteSuccess"),

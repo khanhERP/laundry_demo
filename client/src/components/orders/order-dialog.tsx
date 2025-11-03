@@ -64,19 +64,19 @@ export function OrderDialog({
   const queryClient = useQueryClient();
 
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ["/api/products"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
   });
 
   const { data: categories, isLoading: categoriesLoading } = useQuery({
-    queryKey: ["/api/categories"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
   });
 
   const { data: storeSettings } = useQuery({
-    queryKey: ["/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
   });
 
   const { data: existingOrderItems, refetch: refetchExistingItems } = useQuery({
-    queryKey: ["/api/order-items", existingOrder?.id],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", existingOrder?.id],
     enabled: !!(existingOrder?.id && mode === "edit" && open),
     staleTime: 0,
     queryFn: async () => {
@@ -343,7 +343,7 @@ export function OrderDialog({
         } else {
           console.log("📝 Creating new order...");
 
-          const response = await apiRequest("POST", "/api/orders", orderData);
+          const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", orderData);
 
           if (!response.ok) {
             const errorData = await response.text();
@@ -383,12 +383,12 @@ export function OrderDialog({
         try {
           // Clear existing cache for this specific order items
           queryClient.removeQueries({
-            queryKey: ["/api/order-items", existingOrder.id],
+            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", existingOrder.id],
           });
 
           // Force fresh fetch of order items
           const freshOrderItems = await queryClient.fetchQuery({
-            queryKey: ["/api/order-items", existingOrder.id],
+            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items", existingOrder.id],
             queryFn: async () => {
               const response = await apiRequest(
                 "GET",
@@ -416,11 +416,11 @@ export function OrderDialog({
 
       // Invalidate and refetch all related queries
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["/api/orders"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/tables"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/order-items"] }),
-        queryClient.refetchQueries({ queryKey: ["/api/orders"] }),
-        queryClient.refetchQueries({ queryKey: ["/api/tables"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
+        queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] }),
+        queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] }),
       ]);
 
       // Reset form state
@@ -1758,25 +1758,25 @@ export function OrderDialog({
                                                 Promise.all([
                                                   queryClient.invalidateQueries(
                                                     {
-                                                      queryKey: ["/api/orders"],
+                                                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
                                                     },
                                                   ),
                                                   queryClient.invalidateQueries(
                                                     {
-                                                      queryKey: ["/api/tables"],
+                                                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
                                                     },
                                                   ),
                                                   queryClient.invalidateQueries(
                                                     {
                                                       queryKey: [
-                                                        "/api/order-items",
+                                                        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items",
                                                       ],
                                                     },
                                                   ),
                                                   queryClient.invalidateQueries(
                                                     {
                                                       queryKey: [
-                                                        "/api/order-items",
+                                                        "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items",
                                                         existingOrder.id,
                                                       ],
                                                     },
@@ -1785,10 +1785,10 @@ export function OrderDialog({
                                                   // Force immediate refetch to update table grid display
                                                   return Promise.all([
                                                     queryClient.refetchQueries({
-                                                      queryKey: ["/api/orders"],
+                                                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
                                                     }),
                                                     queryClient.refetchQueries({
-                                                      queryKey: ["/api/tables"],
+                                                      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
                                                     }),
                                                   ]);
                                                 });
@@ -1813,10 +1813,10 @@ export function OrderDialog({
 
                                           // Invalidate queries to refresh data
                                           queryClient.invalidateQueries({
-                                            queryKey: ["/api/order-items"],
+                                            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"],
                                           });
                                           queryClient.invalidateQueries({
-                                            queryKey: ["/api/orders"],
+                                            queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
                                           });
                                         })
                                         .catch((error) => {
