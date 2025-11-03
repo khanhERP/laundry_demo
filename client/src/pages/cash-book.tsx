@@ -1568,7 +1568,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                           </TableCell>
                           <TableCell className="w-[95px] max-w-[95px] p-2">
                             {(() => {
-                              // Find the corresponding order/voucher to get creation date
+                              // Find the corresponding order/voucher to get orderedAt date
                               let creationDate = transaction.date; // Default to transaction date
 
                               if (transaction.voucherType === "sales_order") {
@@ -1578,16 +1578,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                     `ORDER-${o.id}` === transaction.id ||
                                     `ORD-${o.id}` === transaction.id,
                                 );
-                                // Use orderedAt or updatedAt based on general settings
-                                // ST-002 = true: Show orderedAt (ngày đặt hàng)
-                                // ST-002 = false: Show updatedAt (ngày hoàn thành)
-                                creationDate = useCreatedAtFilter
-                                  ? order?.orderedAt ||
-                                    order?.createdAt ||
-                                    transaction.date
-                                  : order?.updatedAt ||
-                                    order?.orderedAt ||
-                                    transaction.date;
+                                // Always use orderedAt (ngày đặt hàng/ngày tạo đơn)
+                                creationDate = order?.orderedAt ||
+                                  order?.createdAt ||
+                                  transaction.date;
                               } else if (
                                 transaction.voucherType === "purchase_receipt"
                               ) {
