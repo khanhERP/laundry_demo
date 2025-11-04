@@ -642,14 +642,14 @@ export function PriceListManagement() {
       return;
     }
 
-    if (priceListForm.storeCodes.length === 0) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn ít nhất 1 chi nhánh áp dụng",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (priceListForm.storeCodes.length === 0) {
+    //   toast({
+    //     title: "Lỗi",
+    //     description: "Vui lòng chọn ít nhất 1 chi nhánh áp dụng",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
     if (editingPriceList && !priceListForm.code) {
       toast({
