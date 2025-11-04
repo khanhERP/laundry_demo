@@ -713,7 +713,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
           doanhThu = orderSubtotal - orderTax;
         } else {
           // When priceIncludeTax = false: doanh thu = subtotal - discount
-          doanhThu = Math.max(0, orderSubtotal - orderDiscount);
+          doanhThu = Math.max(0, orderSubtotal - orderDiscount - orderTax);
         }
 
         periodRevenue += doanhThu;
@@ -909,7 +909,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       try {
         // Use correct date field from order - prioritize createdAt for consistency with API filter
         const orderDate = new Date(
-          order.updatedAt ||
+          order.createdAt ||
             order.created_at ||
             order.orderedAt ||
             order.paidAt ||
@@ -2521,9 +2521,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
           selectedFloor;
 
       const dateMatch = orderDate >= start && orderDate <= end;
-      let statusMatch =
-        order.status === "paid" ||
-        order.status === "completed";
+      let statusMatch = order.status === "paid" || order.status === "completed";
       if (orderStatusFilter !== "all") {
         if (orderStatusFilter == "completed") {
           statusMatch = order.status === "paid" || order.status === "completed";
@@ -6219,13 +6217,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                     "Đơn vị tính": t("common.perUnit"),
                     "Sn lượng bán": product.quantity,
                     "Thành tiền": formatCurrency(
-                      (product.unitPrice || 0) * (product.quantity || 1),
+                      product.total + (product.discount || 0),
                     ),
                     "Giảm giá": formatCurrency(product.discount),
-                    "Doanh thu": formatCurrency(
-                      (product.unitPrice || 0) * (product.quantity || 1) -
-                        (product.discount || 0),
-                    ),
+                    "Doanh thu": formatCurrency(product.total),
                     "Nhóm hàng": product.categoryName,
                   })),
                   // Add summary row
@@ -6234,11 +6229,11 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                     "Tên hàng": `${totalProducts} sản phẩm`,
                     "Đơn vị tính": "-",
                     "Số l>ợng bán": totalQuantity,
-                    "Thành tiền": formatCurrency(totalRevenue),
-                    "Giảm giá": formatCurrency(totalDiscount),
-                    "Doanh thu": formatCurrency(
-                      (totalRevenue || 0) - (totalDiscount || 0),
+                    "Thành tiền": formatCurrency(
+                      totalRevenue + (totalDiscount || 0),
                     ),
+                    "Giảm giá": formatCurrency(totalDiscount),
+                    "Doanh thu": formatCurrency(totalRevenue || 0),
                     "Nhóm hàng": "-",
                   },
                 ];
@@ -6329,7 +6324,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                         </TableCell>
                         <TableCell className="text-right font-semibold">
                           {formatCurrency(
-                            (product.unitPrice || 0) * (product.quantity || 1),
+                            product.total + (product.discount || 0),
                           )}
                         </TableCell>
                         {analysisType !== "employee" && (
@@ -6338,10 +6333,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                           </TableCell>
                         )}
                         <TableCell className="text-right font-semibold text-green-600">
-                          {formatCurrency(
-                            (product.unitPrice || 0) * (product.quantity || 1) -
-                              (product.discount || 0),
-                          )}
+                          {formatCurrency(product.total)}
                         </TableCell>
                         <TableCell className="text-center">
                           {product.categoryName}
@@ -6377,7 +6369,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-bold text-blue-600">
-                        {formatCurrency(totalRevenue)}
+                        {formatCurrency(totalRevenue + (totalDiscount || 0))}
                       </TableCell>
                       {analysisType !== "employee" && (
                         <TableCell className="text-right font-bold text-red-600">
@@ -6386,7 +6378,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                       )}
                       <TableCell className="text-right font-bold text-green-600">
                         {formatCurrency(
-                          (totalRevenue || 0) - (totalDiscount || 0),
+                          (totalRevenue || 0),
                         )}
                       </TableCell>
                       <TableCell className="text-center font-bold">
