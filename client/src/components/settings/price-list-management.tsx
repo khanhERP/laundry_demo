@@ -748,6 +748,31 @@ export function PriceListManagement() {
           ...product,
           prices,
         };
+      })
+      // Sort by the latest updatedAt from price_list_items for this product
+      .sort((a, b) => {
+        // Find the most recent updatedAt for product a
+        const aItems = priceListItemsData.filter(
+          (item: PriceListItem) => item.productId === a.id
+        );
+        const aLatestUpdate = aItems.length > 0
+          ? Math.max(...aItems.map((item: any) => 
+              item.updatedAt ? new Date(item.updatedAt).getTime() : 0
+            ))
+          : 0;
+
+        // Find the most recent updatedAt for product b
+        const bItems = priceListItemsData.filter(
+          (item: PriceListItem) => item.productId === b.id
+        );
+        const bLatestUpdate = bItems.length > 0
+          ? Math.max(...bItems.map((item: any) => 
+              item.updatedAt ? new Date(item.updatedAt).getTime() : 0
+            ))
+          : 0;
+
+        // Sort descending (newest first)
+        return bLatestUpdate - aLatestUpdate;
       });
 
     return result;
@@ -855,9 +880,15 @@ export function PriceListManagement() {
       }
     },
     onSuccess: async () => {
-      // Chỉ invalidate một lần, không refetch ngay
-      queryClient.invalidateQueries({
+      // Invalidate và refetch ngay để hiển thị sản phẩm mới
+      await queryClient.invalidateQueries({
         queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-list-items", selectedPriceLists],
+      });
+      
+      // Refetch để cập nhật UI ngay lập tức
+      await queryClient.refetchQueries({
+        queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-list-items", selectedPriceLists],
+        exact: true,
       });
 
       setShowProductSelector(false);
@@ -1470,13 +1501,19 @@ export function PriceListManagement() {
                         <tr>
                           <th
                             scope="col"
-                            className="sticky left-0 z-30 bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-4 text-left text-sm font-bold text-gray-700 tracking-wider min-w-[120px] w-[120px] border-r-2 border-gray-300 shadow-sm whitespace-normal leading-tight"
+                            className="sticky left-0 z-30 bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-4 text-center text-sm font-bold text-gray-700 tracking-wider min-w-[60px] w-[60px] border-r-2 border-gray-300 shadow-sm whitespace-normal leading-tight"
+                          >
+                            STT
+                          </th>
+                          <th
+                            scope="col"
+                            className="sticky left-[60px] z-30 bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-4 text-left text-sm font-bold text-gray-700 tracking-wider min-w-[120px] w-[120px] border-r-2 border-gray-300 shadow-sm whitespace-normal leading-tight"
                           >
                             {t("settings.productCode")}
                           </th>
                           <th
                             scope="col"
-                            className="sticky left-[120px] z-30 bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-4 text-left text-sm font-bold text-gray-700 tracking-wider min-w-[250px] w-[250px] border-r-2 border-gray-400 shadow-sm whitespace-normal leading-tight"
+                            className="sticky left-[180px] z-30 bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-4 text-left text-sm font-bold text-gray-700 tracking-wider min-w-[250px] w-[250px] border-r-2 border-gray-400 shadow-sm whitespace-normal leading-tight"
                           >
                             {t("settings.productName")}
                           </th>
@@ -1515,7 +1552,7 @@ export function PriceListManagement() {
                         {selectedPriceLists.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={3 + selectedPriceLists.length}
+                              colSpan={4 + selectedPriceLists.length}
                               className="px-4 py-8 text-center text-gray-500"
                             >
                               {t("settings.selectPriceListFirst")}
@@ -1524,7 +1561,7 @@ export function PriceListManagement() {
                         ) : paginatedProducts.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={3 + selectedPriceLists.length}
+                              colSpan={4 + selectedPriceLists.length}
                               className="px-4 py-8 text-center text-gray-500"
                             >
                               {t("settings.noProductsInPriceList")}
@@ -1539,14 +1576,21 @@ export function PriceListManagement() {
                               }`}
                             >
                               <td
-                                className={`sticky left-0 z-10 px-2 py-3 whitespace-nowrap text-xs font-mono font-semibold border-r-2 border-gray-300 min-w-[120px] w-[120px] ${
+                                className={`sticky left-0 z-10 px-2 py-3 whitespace-nowrap text-xs font-semibold text-center border-r-2 border-gray-300 min-w-[60px] w-[60px] ${
+                                  rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                }`}
+                              >
+                                {(currentPage - 1) * pageSize + rowIndex + 1}
+                              </td>
+                              <td
+                                className={`sticky left-[60px] z-10 px-2 py-3 whitespace-nowrap text-xs font-mono font-semibold border-r-2 border-gray-300 min-w-[120px] w-[120px] ${
                                   rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                                 }`}
                               >
                                 {product.sku}
                               </td>
                               <td
-                                className={`sticky left-[120px] z-10 px-2 py-3 text-sm border-r-2 border-gray-400 min-w-[200px] w-[200px] ${
+                                className={`sticky left-[180px] z-10 px-2 py-3 text-sm border-r-2 border-gray-400 min-w-[200px] w-[200px] ${
                                   rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                                 }`}
                               >
