@@ -419,9 +419,9 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   });
 
   const { data: generalSettings } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings/by-code"],
     queryFn: async () => {
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings/ST-002");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings/by-code/ST-002");
       if (!response.ok) throw new Error("Failed to fetch general settings");
       return response.json();
     },
