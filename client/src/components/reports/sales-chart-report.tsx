@@ -2523,8 +2523,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       const dateMatch = orderDate >= start && orderDate <= end;
       let statusMatch =
         order.status === "paid" ||
-        order.status === "completed" ||
-        order.status === "cancelled";
+        order.status === "completed";
       if (orderStatusFilter !== "all") {
         if (orderStatusFilter == "completed") {
           statusMatch = order.status === "paid" || order.status === "completed";
