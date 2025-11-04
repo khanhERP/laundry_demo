@@ -418,6 +418,16 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: generalSettings } = useQuery({
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings"],
+    queryFn: async () => {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings/ST-002");
+      if (!response.ok) throw new Error("Failed to fetch general settings");
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Product Analysis Data from new API
   const {
     data: productAnalysisData,
@@ -650,7 +660,6 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
   // Get dashboard stats from orders data
   const getDashboardStats = () => {
     try {
-      // Add proper loading and error checks
       if (ordersLoading || orderItemsLoading) {
         return {
           periodRevenue: 0,
@@ -669,10 +678,11 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
         };
       }
 
-      // Ensure we have valid arrays - add null checks
-      let validOrders = Array.isArray(orders) ? orders : [];
-      const validOrderItems = Array.isArray(orderItems) ? orderItems : [];
-      const validTables = Array.isArray(tables) && tables ? tables : [];
+      // Ensure we have valid arrays - add null/undefined checks
+      const validOrders = orders && Array.isArray(orders) ? orders : [];
+      const validOrderItems =
+        orderItems && Array.isArray(orderItems) ? orderItems : [];
+      const validTables = tables && Array.isArray(tables) ? tables : [];
 
       // Filter completed/paid orders for time analysis (exclude cancelled orders)
       const completedOrders = validOrders.filter(
@@ -696,29 +706,23 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
           : null,
       });
 
-      // Calculate total sales revenue using dashboard formula
-      let periodRevenue = 0;
-      let periodSubtotalRevenue = 0;
+      // Calculate total sales revenue (sum of subtotal) - Doanh thu = Thành tiền (chưa thuế)
+      const periodRevenue = completedOrders.reduce(
+        (sum: number, order: any) => {
+          const subtotal = Number(order.subtotal || 0);
+          return sum + subtotal;
+        },
+        0,
+      );
 
-      completedOrders.forEach((order: any) => {
-        const orderSubtotal = Number(order.subtotal || 0);
-        const orderDiscount = Number(order.discount || 0);
-        const orderTax = Number(order.tax || 0);
-        const orderPriceIncludeTax = order.priceIncludeTax === true;
-
-        // Calculate revenue based on priceIncludeTax setting (same as dashboard)
-        let doanhThu;
-        if (orderPriceIncludeTax) {
-          // When priceIncludeTax = true: doanh thu = subtotal - tax
-          doanhThu = orderSubtotal - orderTax;
-        } else {
-          // When priceIncludeTax = false: doanh thu = subtotal - discount
-          doanhThu = Math.max(0, orderSubtotal - orderDiscount - orderTax);
-        }
-
-        periodRevenue += doanhThu;
-        periodSubtotalRevenue += orderSubtotal;
-      });
+      // Calculate subtotal revenue (sum of subtotal) - Tổng doanh thu
+      const periodSubtotalRevenue = completedOrders.reduce(
+        (sum: number, order: any) => {
+          const subtotal = Number(order.subtotal || 0);
+          return sum + subtotal;
+        },
+        0,
+      );
 
       // Total count from completed orders only
       const periodOrderCount = completedOrders.length;
@@ -778,7 +782,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       const hourlyOrders: { [key: number]: number } = {};
 
       completedOrders.forEach((order: any) => {
-        const orderDate = new Date(order.orderedAt || order.createdAt);
+        let orderDate = new Date(order.createdAt);
+        if (generalSettings?.isActive === false) {
+          orderDate = new Date(order.updatedAt);
+        }
         if (!isNaN(orderDate.getTime())) {
           const hour = orderDate.getHours();
           hourlyOrders[hour] = (hourlyOrders[hour] || 0) + 1;
@@ -876,8 +883,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
         : order.subtotal,
       discount: order.discount || 0,
       paymentMethod: order.paymentMethod || "",
-      createdAt: order.updatedAt,
-      created_at: order.updatedAt,
+      createdAt:
+        generalSettings?.isActive === false ? order.updatedAt : order.createdAt,
+      created_at:
+        generalSettings?.isActive === false ? order.updatedAt : order.createdAt,
       customerName: order.customerName,
       tax: order.tax || 0,
       customerId: order.customerId,
@@ -908,13 +917,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     filteredCompletedOrders.forEach((order: any) => {
       try {
         // Use correct date field from order - prioritize createdAt for consistency with API filter
-        const orderDate = new Date(
-          order.createdAt ||
-            order.created_at ||
-            order.orderedAt ||
-            order.paidAt ||
-            order.date,
-        );
+        let orderDate = new Date(order.createdAt);
+        if (generalSettings?.isActive === false) {
+          orderDate = new Date(order.updatedAt);
+        }
 
         if (isNaN(orderDate.getTime())) {
           console.warn("Invalid date for order:", order.id);
@@ -2504,7 +2510,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
 
     // Filter completed orders with all search criteria
     const filteredOrders = orders.filter((order: any) => {
-      const orderDate = new Date(order.createdAt);
+      let orderDate = new Date(order.createdAt);
+      if (generalSettings?.isActive === false) {
+        orderDate = new Date(order.updatedAt);
+      }
 
       if (isNaN(orderDate.getTime())) {
         console.warn("Skipping order with invalid createdAt date:", order.id);
@@ -2671,7 +2680,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       }
 
       const orderSummary = {
-        orderDate: order.orderedAt || order.createdAt || order.created_at,
+        orderDate:
+          generalSettings?.isActive === false
+            ? order.updatedAt
+            : order.createdAt,
         orderNumber: order.orderNumber || `ORD-${order.id}`,
         customerId: order.customerId || "",
         customerName: order.customerName || "",
@@ -4547,6 +4559,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       const orderDate = new Date(
         order.orderedAt || order.created_at || order.createdAt,
       );
+      
 
       if (isNaN(orderDate.getTime())) {
         return false;
@@ -6377,9 +6390,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                         </TableCell>
                       )}
                       <TableCell className="text-right font-bold text-green-600">
-                        {formatCurrency(
-                          (totalRevenue || 0),
-                        )}
+                        {formatCurrency(totalRevenue || 0)}
                       </TableCell>
                       <TableCell className="text-center font-bold">
                         {" "}
