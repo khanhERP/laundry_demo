@@ -49,12 +49,10 @@ const formatCurrency = (value: string | number): string => {
   const numValue = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(numValue)) return "0";
   // Format: dấu phẩy (,) ngăn cách hàng nghìn, dấu chấm (.) ngăn cách thập phân
-  return numValue
-    .toLocaleString("en-US", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })
-    .replace(/,/g, ","); // Giữ dấu phẩy cho hàng nghìn
+  return numValue.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 };
 
 interface PriceList {
@@ -749,30 +747,11 @@ export function PriceListManagement() {
           prices,
         };
       })
-      // Sort by the latest updatedAt from price_list_items for this product
-      .sort((a, b) => {
-        // Find the most recent updatedAt for product a
-        const aItems = priceListItemsData.filter(
-          (item: PriceListItem) => item.productId === a.id
-        );
-        const aLatestUpdate = aItems.length > 0
-          ? Math.max(...aItems.map((item: any) => 
-              item.updatedAt ? new Date(item.updatedAt).getTime() : 0
-            ))
-          : 0;
-
-        // Find the most recent updatedAt for product b
-        const bItems = priceListItemsData.filter(
-          (item: PriceListItem) => item.productId === b.id
-        );
-        const bLatestUpdate = bItems.length > 0
-          ? Math.max(...bItems.map((item: any) => 
-              item.updatedAt ? new Date(item.updatedAt).getTime() : 0
-            ))
-          : 0;
-
-        // Sort descending (newest first)
-        return bLatestUpdate - aLatestUpdate;
+      // Sort by product createdAt descending (newest first)
+      .sort((a: any, b: any) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA; // DESC order
       });
 
     return result;
@@ -1633,32 +1612,41 @@ export function PriceListManagement() {
                                       }`}
                                     >
                                       <Input
-                                        type="number"
-                                        value={currentValue}
+                                        type="text"
+                                        value={
+                                          currentValue
+                                            ? formatCurrency(currentValue)
+                                            : ""
+                                        }
                                         data-price-input={`${product.id}-${colIndex}`}
-                                        onChange={(e) =>
+                                        onChange={(e) => {
+                                          // Allow numbers and dot for decimal
+                                          const rawValue = e.target.value.replace(/[^0-9.]/g, "");
                                           handlePriceInputChange(
                                             priceListId,
                                             product.id,
-                                            e.target.value,
-                                          )
-                                        }
-                                        onBlur={(e) =>
+                                            rawValue,
+                                          );
+                                        }}
+                                        onBlur={(e) => {
+                                          // Allow numbers and dot for decimal
+                                          const rawValue = e.target.value.replace(/[^0-9.]/g, "");
                                           handlePriceSave(
                                             priceListId,
                                             product.id,
-                                            e.target.value,
-                                          )
-                                        }
+                                            rawValue,
+                                          );
+                                        }}
                                         onKeyDown={(e) => {
                                           if (e.key === "Enter") {
                                             e.preventDefault();
 
-                                            // Save current value
+                                            // Save current value - allow decimal
+                                            const rawValue = e.currentTarget.value.replace(/[^0-9.]/g, "");
                                             handlePriceSave(
                                               priceListId,
                                               product.id,
-                                              e.currentTarget.value,
+                                              rawValue,
                                             );
 
                                             // Move to next cell
@@ -1707,8 +1695,6 @@ export function PriceListManagement() {
                                           }
                                         }}
                                         className="text-right w-full"
-                                        min="0"
-                                        step="1000"
                                         disabled={!canEdit}
                                         title={
                                           !canEdit
