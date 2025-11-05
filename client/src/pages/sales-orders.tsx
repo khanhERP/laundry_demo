@@ -3569,7 +3569,15 @@ export default function SalesOrders() {
                                           ? "order"
                                           : "invoice"),
                                     };
-                                    setSelectedInvoice(itemWithType);
+                                    // Toggle: close if already selected, open if not
+                                    if (
+                                      selectedInvoice?.id === item.id &&
+                                      selectedInvoice?.type === item.type
+                                    ) {
+                                      setSelectedInvoice(null);
+                                    } else {
+                                      setSelectedInvoice(itemWithType);
+                                    }
                                   }}
                                 >
                                   <td className="px-3 py-3 text-center">

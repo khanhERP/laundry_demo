@@ -15,11 +15,11 @@ export function AttendanceStats() {
   );
 
   const { data: employees } = useQuery({
-    queryKey: ['/api/employees'],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
   });
 
   const { data: attendanceRecords } = useQuery({
-    queryKey: ['/api/attendance'],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'],
   });
 
   const getMonthlyStats = () => {

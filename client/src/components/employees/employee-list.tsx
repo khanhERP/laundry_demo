@@ -31,7 +31,7 @@ export function EmployeeList() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'] });
       toast({
         title: t('common.success'),
         description: t('employees.deleteSuccess'),
