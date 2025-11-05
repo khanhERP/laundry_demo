@@ -5,10 +5,32 @@ import { Label } from "@/components/ui/label";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, ExternalLink } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useTranslation } from "@/lib/i18n";
 import {
   Select,
@@ -30,6 +52,8 @@ interface StoreData {
   domain?: string;
   priceListId?: number | null;
   priceIncludesTax?: boolean;
+  isEdit?: boolean;
+  isCancelled?: boolean;
   typeUser: number;
 }
 
@@ -51,8 +75,11 @@ export function StoreSettingsContent() {
     taxId: "",
     pinCode: "",
     domain: "",
+    businessType: "laundry", // Default value, can be adjusted based on actual data
     priceListId: null as number | null,
     priceIncludesTax: false,
+    isEdit: false,
+    isCancelled: false,
   });
 
   // Generate next store code
@@ -60,7 +87,7 @@ export function StoreSettingsContent() {
     if (!stores || stores.length === 0) {
       return "CH-0001";
     }
-    
+
     // Find the highest code number
     const maxCode = stores.reduce((max, store) => {
       const match = store.storeCode.match(/CH-(\d+)/);
@@ -70,9 +97,9 @@ export function StoreSettingsContent() {
       }
       return max;
     }, 0);
-    
+
     const nextNum = maxCode + 1;
-    return `CH-${nextNum.toString().padStart(4, '0')}`;
+    return `CH-${nextNum.toString().padStart(4, "0")}`;
   };
 
   // Fetch current store settings to check isAdmin
@@ -110,11 +137,18 @@ export function StoreSettingsContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
-      toast({ title: "Thành công", description: "Tạo cửa hàng mới thành công" });
+      toast({
+        title: "Thành công",
+        description: "Tạo cửa hàng mới thành công",
+      });
       handleCloseDialog();
     },
     onError: (error: Error) => {
-      toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+      toast({
+        title: "Lỗi",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -135,11 +169,18 @@ export function StoreSettingsContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
-      toast({ title: "Thành công", description: "Cập nhật cửa hàng thành công" });
+      toast({
+        title: "Thành công",
+        description: "Cập nhật cửa hàng thành công",
+      });
       handleCloseDialog();
     },
     onError: (error: Error) => {
-      toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+      toast({
+        title: "Lỗi",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -161,7 +202,11 @@ export function StoreSettingsContent() {
       setDeleteConfirm(null);
     },
     onError: (error: Error) => {
-      toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+      toast({
+        title: "Lỗi",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -185,8 +230,11 @@ export function StoreSettingsContent() {
         taxId: store.taxId || "",
         pinCode: store.pinCode || "",
         domain: store.domain || "",
+        businessType: "laundry", // Default value, can be adjusted based on actual data
         priceListId: store.priceListId || null,
         priceIncludesTax: store.priceIncludesTax || false,
+        isEdit: store.isEdit || false,
+        isCancelled: store.isCancelled || false,
       });
     } else {
       setEditingStore(null);
@@ -200,8 +248,11 @@ export function StoreSettingsContent() {
         taxId: "",
         pinCode: "",
         domain: "",
+        businessType: "laundry", // Default value, can be adjusted based on actual data
         priceListId: null,
         priceIncludesTax: false,
+        isEdit: false,
+        isCancelled: false,
       });
     }
     setIsDialogOpen(true);
@@ -219,14 +270,21 @@ export function StoreSettingsContent() {
       taxId: "",
       pinCode: "",
       domain: "",
+      businessType: "laundry", // Default value, can be adjusted based on actual data
       priceListId: null,
       priceIncludesTax: false,
+      isEdit: false,
+      isCancelled: false,
     });
   };
 
   const handleSubmit = () => {
     if (!formData.storeName || !formData.storeCode) {
-      toast({ title: "Lỗi", description: "Vui lòng nhập tên và mã cửa hàng", variant: "destructive" });
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập tên và mã cửa hàng",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -248,7 +306,7 @@ export function StoreSettingsContent() {
           <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
             <Plus className="w-6 h-6 text-white" />
           </div>
-          {t('settings.storeManagement')}
+          {t("settings.storeManagement")}
         </CardTitle>
         {isAdmin && (
           <Button
@@ -257,7 +315,7 @@ export function StoreSettingsContent() {
             className="bg-green-600 hover:bg-green-700 text-white shadow-md"
           >
             <Plus className="w-4 h-4 mr-2" />
-            {t('settings.addStore')}
+            {t("settings.addStore")}
           </Button>
         )}
       </CardHeader>
@@ -266,7 +324,7 @@ export function StoreSettingsContent() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">{t('settings.loading')}</p>
+              <p className="text-gray-600">{t("settings.loading")}</p>
             </div>
           </div>
         ) : stores.length === 0 ? (
@@ -274,21 +332,37 @@ export function StoreSettingsContent() {
             <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Plus className="w-12 h-12 text-gray-400" />
             </div>
-            <p className="text-gray-500 text-lg mb-2">{t('settings.noStoresYet')}</p>
-            <p className="text-gray-400 text-sm">{t('settings.clickAddStoreToStart')}</p>
+            <p className="text-gray-500 text-lg mb-2">
+              {t("settings.noStoresYet")}
+            </p>
+            <p className="text-gray-400 text-sm">
+              {t("settings.clickAddStoreToStart")}
+            </p>
           </div>
         ) : (
           <div className="rounded-lg border border-gray-200">
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 hover:bg-gray-50">
-                  <TableHead className="font-semibold text-gray-700 w-[200px] bg-gray-50 whitespace-nowrap">{t("settings.storeName")}</TableHead>
-                  <TableHead className="font-semibold text-gray-700 w-[100px] bg-gray-50 whitespace-nowrap">{t("settings.storeCode")}</TableHead>
-                  <TableHead className="font-semibold text-gray-700 w-[280px] bg-gray-50 whitespace-nowrap">{t("settings.address")}</TableHead>
-                  <TableHead className="font-semibold text-gray-700 w-[120px] bg-gray-50 whitespace-nowrap">{t("settings.phone")}</TableHead>
-                  <TableHead className="font-semibold text-gray-700 w-[150px] bg-gray-50 whitespace-nowrap">{t("settings.goToSalesPage")}</TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-[200px] bg-gray-50 whitespace-nowrap">
+                    {t("settings.storeName")}
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-[100px] bg-gray-50 whitespace-nowrap">
+                    {t("settings.storeCode")}
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-[280px] bg-gray-50 whitespace-nowrap">
+                    {t("settings.address")}
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-[120px] bg-gray-50 whitespace-nowrap">
+                    {t("settings.phone")}
+                  </TableHead>
+                  <TableHead className="font-semibold text-gray-700 w-[150px] bg-gray-50 whitespace-nowrap">
+                    {t("settings.goToSalesPage")}
+                  </TableHead>
                   {isAdmin && (
-                    <TableHead className="text-center font-semibold text-gray-700 w-[80px] bg-gray-50 whitespace-nowrap">{t("common.actions")}</TableHead>
+                    <TableHead className="text-center font-semibold text-gray-700 w-[80px] bg-gray-50 whitespace-nowrap">
+                      {t("common.actions")}
+                    </TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -296,7 +370,7 @@ export function StoreSettingsContent() {
                 {paginatedStores.map((store, index) => (
                   <TableRow
                     key={store.id}
-                    className={`transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'} hover:bg-green-50`}
+                    className={`transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-50/50"} hover:bg-green-50`}
                   >
                     <TableCell className="font-medium text-gray-900">
                       <span title={store.storeName}>{store.storeName}</span>
@@ -307,8 +381,13 @@ export function StoreSettingsContent() {
                       </span>
                     </TableCell>
                     <TableCell className="text-gray-600">
-                      <div className="line-clamp-2" title={store.address || "-"}>
-                        {store.address || <span className="text-gray-400">-</span>}
+                      <div
+                        className="line-clamp-2"
+                        title={store.address || "-"}
+                      >
+                        {store.address || (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600 whitespace-nowrap">
@@ -317,7 +396,11 @@ export function StoreSettingsContent() {
                     <TableCell className="text-gray-600">
                       {store.domain ? (
                         <a
-                          href={store.domain.startsWith('http') ? store.domain : `https://${store.domain}`}
+                          href={
+                            store.domain.startsWith("http")
+                              ? store.domain
+                              : `https://${store.domain}`
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 inline-flex items-center justify-center"
@@ -364,8 +447,10 @@ export function StoreSettingsContent() {
           <div className="mt-4 flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">
-                {t("settings.displayingProducts")} {(currentPage - 1) * itemsPerPage + 1}-
-                {Math.min(currentPage * itemsPerPage, stores.length)} / {stores.length}
+                {t("settings.displayingProducts")}{" "}
+                {(currentPage - 1) * itemsPerPage + 1}-
+                {Math.min(currentPage * itemsPerPage, stores.length)} /{" "}
+                {stores.length}
               </span>
               <Select
                 value={itemsPerPage.toString()}
@@ -384,7 +469,9 @@ export function StoreSettingsContent() {
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-600">{t("settings.itemsPerPageLabel")}</span>
+              <span className="text-sm text-gray-600">
+                {t("settings.itemsPerPageLabel")}
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -399,7 +486,7 @@ export function StoreSettingsContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
               >
                 {t("settings.previousPage")}
@@ -410,7 +497,9 @@ export function StoreSettingsContent() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                }
                 disabled={currentPage === totalPages}
               >
                 {t("settings.nextPage")}
@@ -431,7 +520,9 @@ export function StoreSettingsContent() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingStore ? "Sửa cửa hàng" : "Thêm cửa hàng mới"}</DialogTitle>
+              <DialogTitle>
+                {editingStore ? "Sửa cửa hàng" : "Thêm cửa hàng mới"}
+              </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
@@ -439,7 +530,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="storeName"
                   value={formData.storeName}
-                  onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, storeName: e.target.value })
+                  }
                   placeholder="Nhập tên cửa hàng"
                 />
               </div>
@@ -463,7 +556,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="address"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   placeholder="Nhập địa chỉ"
                 />
               </div>
@@ -472,7 +567,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="phone"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   placeholder="Nhập số điện thoại"
                 />
               </div>
@@ -481,7 +578,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   placeholder="Nhập email"
                 />
               </div>
@@ -490,7 +589,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="taxId"
                   value={formData.taxId}
-                  onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, taxId: e.target.value })
+                  }
                   placeholder="Nhập mã số thuế"
                 />
               </div>
@@ -515,7 +616,9 @@ export function StoreSettingsContent() {
                 <Input
                   id="domain"
                   value={formData.domain}
-                  onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, domain: e.target.value })
+                  }
                   placeholder={t("settings.domainPlaceholder")}
                 />
               </div>
@@ -527,7 +630,9 @@ export function StoreSettingsContent() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      priceListId: e.target.value ? parseInt(e.target.value) : null,
+                      priceListId: e.target.value
+                        ? parseInt(e.target.value)
+                        : null,
                     })
                   }
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -554,8 +659,33 @@ export function StoreSettingsContent() {
                     }
                     className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                   />
-                  <Label htmlFor="priceIncludesTax" className="text-sm font-medium cursor-pointer">
+                  <Label
+                    htmlFor="priceIncludesTax"
+                    className="text-sm font-medium cursor-pointer"
+                  >
                     Giá đã bao gồm thuế
+                  </Label>
+                </div>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isEdit"
+                    checked={formData.isEdit || false}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isEdit: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <Label
+                    htmlFor="isEdit"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Cho phép sửa giá trên website bán hàng
                   </Label>
                 </div>
               </div>
@@ -564,7 +694,10 @@ export function StoreSettingsContent() {
               <Button variant="outline" onClick={handleCloseDialog}>
                 Hủy
               </Button>
-              <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
+              <Button
+                onClick={handleSubmit}
+                disabled={createMutation.isPending || updateMutation.isPending}
+              >
                 {editingStore ? "Cập nhật" : "Tạo mới"}
               </Button>
             </DialogFooter>
@@ -572,17 +705,23 @@ export function StoreSettingsContent() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={deleteConfirm !== null} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialog
+          open={deleteConfirm !== null}
+          onOpenChange={() => setDeleteConfirm(null)}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
               <AlertDialogDescription>
-                Bạn có chắc chắn muốn xóa cửa hàng này? Hành động này không thể hoàn tác.
+                Bạn có chắc chắn muốn xóa cửa hàng này? Hành động này không thể
+                hoàn tác.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Hủy</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
+              <AlertDialogAction
+                onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              >
                 Xóa
               </AlertDialogAction>
             </AlertDialogFooter>

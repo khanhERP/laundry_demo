@@ -93,7 +93,12 @@ class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Report Error Boundary caught an error:", error, errorInfo);
+    console.error("❌ Report Error Boundary caught an error:", {
+      errorMessage: error.message,
+      errorStack: error.stack,
+      componentStack: errorInfo.componentStack,
+      errorName: error.name
+    });
   }
 
   render() {
@@ -595,8 +600,9 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
                         {t("common.quickSelect")}
                       </label>
                       <Select
-                        value={quickRange}
+                        value={quickRange || undefined}
                         onValueChange={(value) => {
+                          if (!value) return;
                           setQuickRange(value);
                           const today = new Date();
                           let start = new Date();
@@ -631,12 +637,10 @@ export default function ReportsPage({ onLogout }: ReportsPageProps) {
                             );
                           }
 
-                          if (value) {
-                            const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
-                            const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
-                            setStartDate(startStr);
-                            setEndDate(endStr);
-                          }
+                          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
+                          const endStr = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+                          setStartDate(startStr);
+                          setEndDate(endStr);
                         }}
                       >
                         <SelectTrigger className="h-10 border-gray-300 hover:border-green-400 focus:border-green-500 focus:ring-green-500">

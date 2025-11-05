@@ -191,29 +191,34 @@ export function PriceListManagement() {
         if (editingPriceList && pl.id === editingPriceList.id) {
           return false;
         }
-        
+
         if (!pl.storeCode) return false;
         const storeCodes = pl.storeCode.split(",").map((s: string) => s.trim());
         return storeCodes.includes(store.storeCode);
       });
 
       // If store is currently applied to the editing price list
-      if (editingPriceList && currentlyAppliedStores.includes(store.storeCode)) {
+      if (
+        editingPriceList &&
+        currentlyAppliedStores.includes(store.storeCode)
+      ) {
         // Only show if this store is NOT being used by any other active price list
         if (storePriceLists.length > 0) {
           // Check if any of those price lists are still active
-          const hasOtherActivePriceList = storePriceLists.some((pl: PriceList) => {
-            // If price list has no validTo date, it's permanently active
-            if (!pl.validTo) {
-              return true;
-            }
+          const hasOtherActivePriceList = storePriceLists.some(
+            (pl: PriceList) => {
+              // If price list has no validTo date, it's permanently active
+              if (!pl.validTo) {
+                return true;
+              }
 
-            const plValidTo = new Date(pl.validTo);
-            plValidTo.setHours(0, 0, 0, 0);
+              const plValidTo = new Date(pl.validTo);
+              plValidTo.setHours(0, 0, 0, 0);
 
-            // If validTo is today or in the future, the price list is still active
-            return plValidTo >= today;
-          });
+              // If validTo is today or in the future, the price list is still active
+              return plValidTo >= today;
+            },
+          );
 
           // Don't show this store if it's being used by another active price list
           if (hasOtherActivePriceList) {
@@ -269,7 +274,16 @@ export function PriceListManagement() {
       // Store is available only if it doesn't have active price list
       return !hasActivePriceList;
     });
-  }, [isAdmin, allStores, userStoreCodes, isDialogOpen, priceListForm.validFrom, priceListForm.validTo, priceLists, editingPriceList]);
+  }, [
+    isAdmin,
+    allStores,
+    userStoreCodes,
+    isDialogOpen,
+    priceListForm.validFrom,
+    priceListForm.validTo,
+    priceLists,
+    editingPriceList,
+  ]);
 
   // Fetch next price list code
   const { data: nextCodeData } = useQuery({
@@ -863,7 +877,7 @@ export function PriceListManagement() {
       await queryClient.invalidateQueries({
         queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-list-items", selectedPriceLists],
       });
-      
+
       // Refetch để cập nhật UI ngay lập tức
       await queryClient.refetchQueries({
         queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-list-items", selectedPriceLists],
@@ -1621,7 +1635,11 @@ export function PriceListManagement() {
                                         data-price-input={`${product.id}-${colIndex}`}
                                         onChange={(e) => {
                                           // Allow numbers and dot for decimal
-                                          const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+                                          const rawValue =
+                                            e.target.value.replace(
+                                              /[^0-9.]/g,
+                                              "",
+                                            );
                                           handlePriceInputChange(
                                             priceListId,
                                             product.id,
@@ -1630,7 +1648,11 @@ export function PriceListManagement() {
                                         }}
                                         onBlur={(e) => {
                                           // Allow numbers and dot for decimal
-                                          const rawValue = e.target.value.replace(/[^0-9.]/g, "");
+                                          const rawValue =
+                                            e.target.value.replace(
+                                              /[^0-9.]/g,
+                                              "",
+                                            );
                                           handlePriceSave(
                                             priceListId,
                                             product.id,
@@ -1642,7 +1664,11 @@ export function PriceListManagement() {
                                             e.preventDefault();
 
                                             // Save current value - allow decimal
-                                            const rawValue = e.currentTarget.value.replace(/[^0-9.]/g, "");
+                                            const rawValue =
+                                              e.currentTarget.value.replace(
+                                                /[^0-9.]/g,
+                                                "",
+                                              );
                                             handlePriceSave(
                                               priceListId,
                                               product.id,
@@ -2247,7 +2273,8 @@ export function PriceListManagement() {
               />
               {!editingPriceList && nextCodeData?.code && (
                 <p className="text-xs text-green-600">
-                  {t("settings.nextCodeWillBe")} <strong>{nextCodeData.code}</strong>
+                  {t("settings.nextCodeWillBe")}{" "}
+                  <strong>{nextCodeData.code}</strong>
                 </p>
               )}
             </div>

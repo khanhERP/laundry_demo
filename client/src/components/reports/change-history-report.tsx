@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +48,12 @@ export function ChangeHistoryReport() {
   });
 
   // Fetch change history
-  const { data: changeHistory = [], isLoading, isError, error } = useQuery({
+  const {
+    data: changeHistory = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-change-history", startDate, endDate, storeFilter],
     queryFn: async () => {
       try {
@@ -81,12 +85,12 @@ export function ChangeHistoryReport() {
           throw new Error(`Failed to fetch change history: ${response.status}`);
         }
         const data = await response.json();
-        
+
         console.log("✅ Change history fetched:", {
           total: data.length,
           firstRecord: data[0],
         });
-        
+
         return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error("❌ Error fetching change history:", error);
@@ -129,7 +133,10 @@ export function ChangeHistoryReport() {
               <Label className="text-sm font-medium mb-2 text-gray-700">
                 Cửa hàng
               </Label>
-              <Select value={storeFilter || undefined} onValueChange={setStoreFilter}>
+              <Select
+                value={storeFilter || undefined}
+                onValueChange={setStoreFilter}
+              >
                 <SelectTrigger className="h-10">
                   <SelectValue placeholder="Chọn cửa hàng" />
                 </SelectTrigger>
@@ -242,12 +249,15 @@ export function ChangeHistoryReport() {
                     filteredHistory.map((item: any, index: number) => {
                       try {
                         return (
-                          <TableRow key={item.id || index} className="hover:bg-gray-50">
+                          <TableRow
+                            key={item.id || index}
+                            className="hover:bg-gray-50"
+                          >
                             <TableCell className="text-sm">
                               {item.changedAt
                                 ? format(
                                     new Date(item.changedAt),
-                                    "dd/MM/yyyy HH:mm:ss"
+                                    "dd/MM/yyyy HH:mm:ss",
                                   )
                                 : "-"}
                             </TableCell>
@@ -255,10 +265,18 @@ export function ChangeHistoryReport() {
                               {item.storeName || "-"}
                             </TableCell>
                             <TableCell className="text-sm">
-                              {item.action === "update" ? "Sửa" : item.action === "create" ? "Tạo mới" : "Đơn bán hàng"}
+                              {item.action === "update"
+                                ? "Sửa"
+                                : item.action === "create"
+                                  ? "Tạo mới"
+                                  : "Đơn bán hàng"}
                             </TableCell>
                             <TableCell className="text-sm">
-                              {item.action === "update" ? "Sửa" : item.action === "create" ? "Tạo" : "Cập nhật"}
+                              {item.action === "update"
+                                ? "Sửa"
+                                : item.action === "create"
+                                  ? "Tạo"
+                                  : "Cập nhật"}
                             </TableCell>
                             <TableCell className="text-sm font-medium text-blue-600">
                               {item.orderNumber || "-"}
@@ -271,7 +289,11 @@ export function ChangeHistoryReport() {
                           </TableRow>
                         );
                       } catch (renderError) {
-                        console.error("Error rendering history item:", renderError, item);
+                        console.error(
+                          "Error rendering history item:",
+                          renderError,
+                          item,
+                        );
                         return null;
                       }
                     })
@@ -284,7 +306,9 @@ export function ChangeHistoryReport() {
           {/* Summary */}
           {filteredHistory.length > 0 && (
             <div className="mt-4 text-sm text-gray-600">
-              Tổng số: <span className="font-semibold">{filteredHistory.length}</span> thay đổi
+              Tổng số:{" "}
+              <span className="font-semibold">{filteredHistory.length}</span>{" "}
+              thay đổi
             </div>
           )}
         </CardContent>

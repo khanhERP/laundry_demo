@@ -3553,7 +3553,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
         // - Thành tiền = subtotal + discount (before discount deduction)
         // - Doanh thu = subtotal (after discount, net revenue)
         // - Tổng tiền = total from DB
-        thanhTien = orderSubtotal + orderDiscount + orderTax; // Thành tiền = subtotal + discount + tax
+        thanhTien = orderSubtotal + orderDiscount + orderTax; // Th �nh tiền = subtotal + discount + tax
         doanhThu = thanhTien - orderDiscount - orderTax; // Doanh thu = subtotal + tax
         tongTien = orderTotal;
       } else {

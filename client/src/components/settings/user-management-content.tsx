@@ -47,6 +47,7 @@ interface UserData {
   storeName: string;
   storeCode: string;
   isAdmin: boolean;
+  isCancelled?: boolean;
   typeUser: number;
   parent?: string;
 }
@@ -64,7 +65,9 @@ export function UserManagementContent() {
     password: "",
     storeName: "",
     storeCode: "",
+    businessType: "laundry", // Default value, can be adjusted based on actual data
     isAdmin: false,
+    isCancelled: false,
     parent: "",
   });
   const [selectedParentStores, setSelectedParentStores] = useState<string[]>(
@@ -189,6 +192,8 @@ export function UserManagementContent() {
         storeName: user.storeName,
         storeCode: user.storeCode,
         isAdmin: user.isAdmin,
+        businessType: "laundry", // Default value, can be adjusted based on actual data
+        isCancelled: user.isCancelled || false,
         parent: user.parent,
       });
     } else {
@@ -200,6 +205,7 @@ export function UserManagementContent() {
         password: "",
         storeName: "",
         storeCode: "",
+        businessType: "laundry", // Default value, can be adjusted based on actual data
         isAdmin: false,
         parent: "",
       });
@@ -217,7 +223,9 @@ export function UserManagementContent() {
       password: "",
       storeName: "",
       storeCode: "",
+      businessType: "laundry", // Default value, can be adjusted based on actual data
       isAdmin: false,
+      isCancelled: false,
       parent: "",
     });
   };
@@ -257,6 +265,7 @@ export function UserManagementContent() {
       createMutation.mutate({
         ...formData,
         parent: parentStoresString,
+        businessType: "laundry",
         typeUser: 1,
       });
     }
@@ -465,6 +474,18 @@ export function UserManagementContent() {
                 />
                 <Label htmlFor="isAdmin" className="cursor-pointer">
                   {t("settings.userManagementContent.adminRights")}
+                </Label>
+              </div>
+              <div className="space-y-2 col-span-2 flex items-center gap-2">
+                <Checkbox
+                  id="isCancelled"
+                  checked={formData.isCancelled}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, isCancelled: checked === true })
+                  }
+                />
+                <Label htmlFor="isCancelled" className="cursor-pointer">
+                  Được hủy đơn
                 </Label>
               </div>
             </div>

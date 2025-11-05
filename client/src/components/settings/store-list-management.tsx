@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +35,9 @@ export function StoreListManagement() {
   const [showStoreForm, setShowStoreForm] = useState(false);
   const [editingStore, setEditingStore] = useState<StoreSettings | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [storeToDelete, setStoreToDelete] = useState<StoreSettings | null>(null);
+  const [storeToDelete, setStoreToDelete] = useState<StoreSettings | null>(
+    null,
+  );
 
   const [storeForm, setStoreForm] = useState({
     storeName: "",
@@ -47,7 +48,7 @@ export function StoreListManagement() {
     address: "",
     phone: "",
     email: "",
-    businessType: "restaurant",
+    businessType: "laundry",
     openTime: "09:00",
     closeTime: "22:00",
   });
@@ -58,7 +59,8 @@ export function StoreListManagement() {
   });
 
   // Filter out stores with userType = 1 (admin accounts)
-  const storesData = allStoresData?.filter((store: any) => store.userType !== 1) || [];
+  const storesData =
+    allStoresData?.filter((store: any) => store.userType !== 1) || [];
 
   // Fetch active price lists
   const { data: priceLists = [] } = useQuery({
@@ -182,7 +184,7 @@ export function StoreListManagement() {
       address: "",
       phone: "",
       email: "",
-      businessType: "restaurant",
+      businessType: "laundry",
       openTime: "09:00",
       closeTime: "22:00",
     });
@@ -199,7 +201,7 @@ export function StoreListManagement() {
       address: store.address || "",
       phone: store.phone || "",
       email: store.email || "",
-      businessType: store.businessType || "restaurant",
+      businessType: store.businessType || "laundry",
       openTime: store.openTime || "09:00",
       closeTime: store.closeTime || "22:00",
     });
@@ -357,7 +359,9 @@ export function StoreListManagement() {
                 onChange={(e) =>
                   setStoreForm({
                     ...storeForm,
-                    priceListId: e.target.value ? parseInt(e.target.value) : null,
+                    priceListId: e.target.value
+                      ? parseInt(e.target.value)
+                      : null,
                   })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
