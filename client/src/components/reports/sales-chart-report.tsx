@@ -6991,7 +6991,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                   {t("common.shop")}
                 </Label>
                 <Select
-                  value={selectedShop}
+                  value={selectedShop || undefined}
                   onValueChange={setSelectedShop}
                   disabled={tablesLoading}
                 >
@@ -7015,12 +7015,12 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                         {t("common.errorLoadingData")}
                       </SelectItem>
                     ) : (
-                      getStoresFilter().map((stores: any) => (
+                      getStoresFilter().map((stores: any, index: number) => (
                         <SelectItem
-                          key={stores.storeCode}
-                          value={stores.storeCode}
+                          key={stores.storeCode || index}
+                          value={stores.storeCode || `store-${index}`}
                         >
-                          {stores.storeName}
+                          {stores.storeName || "Không rõ tên cửa hàng"}
                         </SelectItem>
                       ))
                     )}
