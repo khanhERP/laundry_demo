@@ -356,7 +356,7 @@ export function StoreSettingsContent() {
                   <TableHead className="font-semibold text-gray-700 w-[120px] bg-gray-50 whitespace-nowrap">
                     {t("settings.phone")}
                   </TableHead>
-                  <TableHead className="font-semibold text-gray-700 w-[150px] bg-gray-50 whitespace-nowrap">
+                  <TableHead className="font-semibold text-gray-700 w-[80px] bg-gray-50 whitespace-nowrap">
                     {t("settings.goToSalesPage")}
                   </TableHead>
                   {isAdmin && (
@@ -393,7 +393,7 @@ export function StoreSettingsContent() {
                     <TableCell className="text-gray-600 whitespace-nowrap">
                       {store.phone || <span className="text-gray-400">-</span>}
                     </TableCell>
-                    <TableCell className="text-gray-600">
+                    <TableCell className="text-gray-600 text-center">
                       {store.domain ? (
                         <a
                           href={
