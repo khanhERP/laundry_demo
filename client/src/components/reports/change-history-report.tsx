@@ -316,13 +316,17 @@ export function ChangeHistoryReport() {
                           ? "Cập nhật"
                           : item.action === "create"
                             ? "Tạo mới"
-                            : "Cập nhật";
+                            : item.action === "delete"
+                              ? "Xóa"
+                              : "Cập nhật";
                         
                         const actionColor = item.action === "update"
                           ? "bg-blue-100 text-blue-700"
                           : item.action === "create"
                             ? "bg-green-100 text-green-700"
-                            : "bg-purple-100 text-purple-700";
+                            : item.action === "delete"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-purple-100 text-purple-700";
 
                         return (
                           <TableRow

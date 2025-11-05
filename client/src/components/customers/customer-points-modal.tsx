@@ -131,7 +131,7 @@ export function CustomerPointsModal({
         queryKey: ['customer-point-history', customerId],
       });
       queryClient.invalidateQueries({
-        queryKey: ['/api/customers'],
+        queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers'],
       });
       toast({
         title: t("common.success"),

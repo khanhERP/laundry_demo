@@ -3,6 +3,9 @@ import type { OrdersTranslations } from "../types";
 export const ordersTranslations: { [key: string]: OrdersTranslations } = {
   ko: {
     atCounter: "카운터",
+    dateFilterMode: "날짜 필터 모드",
+    createdDateFilter: "생성일",
+    completedDateFilter: "완료일",
     phoneNumber: "전화번호",
     issueInvoice: "송장 발행",
     orderNumberLabel: "주문 번호",
@@ -238,6 +241,9 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
   },
   en: {
     atCounter: "At Counter",
+    dateFilterMode: "Date Filter Mode",
+    createdDateFilter: "Created Date",
+    completedDateFilter: "Completed Date",
     orderNumberLabel: "Order Number",
     issueInvoice: "Issue Invoice",
     phoneNumber: "Phone Number",
@@ -477,6 +483,9 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
   },
   vi: {
     atCounter: "Tại quầy",
+    dateFilterMode: "Chế độ lọc ngày",
+    createdDateFilter: "Ngày tạo",
+    completedDateFilter: "Ngày hoàn thành",
     phoneNumber: "Số điện thoại",
     issueInvoice: "Xuất hóa đơn",
     orderNumberLabel: "Số đơn hàng",
