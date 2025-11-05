@@ -2726,7 +2726,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
               ]
             : orderItemsForOrder.map((item: any) => {
                 // Sử dụng giá trị CHÍNH XÁC từ order_items và order
-                const itemQuantity = Number(item.quantity || 1);
+                const itemQuantity = parseFloat(item.quantity || 1);
                 let itemUnitPrice = Number(item.unitPrice || 0); // Đơn giá từ order_items
                 let itemTotal = itemUnitPrice * itemQuantity; // Thành tiền = đơn giá * số lượng (trước thuế)
 
@@ -2813,7 +2813,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     groupedOrders.forEach((order) => {
       // For quantity, sum from items
       order.items.forEach((item) => {
-        totalQuantity += item.quantity;
+        totalQuantity += parseFloat(item.quantity);
       });
 
       // For financial data, use order-level values to avoid double counting
@@ -2853,7 +2853,12 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                     "Mã hàng": "-",
                     "Tên hàng": "Tổng đơn hàng",
                     ĐVT: "-",
-                    "Số lượng bán": order.items.length,
+                    "Số lượng bán": order.items.reduce(
+                      (sum: number, item: any) => {
+                        return sum + parseFloat(item.quantity || 0);
+                      },
+                      0,
+                    ),
                     "Đơn giá": "-", // Hide unit price for parent row
                     "Thành tiền": formatCurrency(order.totalAmount),
                     "Giảm giá": formatCurrency(order.discount),
@@ -2896,7 +2901,7 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                       "Mã hàng": item.productCode,
                       "Tên hàng": item.productName,
                       ĐVT: item.unit,
-                      "Số lượng bán": item.quantity,
+                      "Số lượng bán": parseFloat(item.quantity),
                       "Đơn giá": formatCurrency(item.unitPrice),
                       "Thành tiền": formatCurrency(item.totalAmount),
                       "Giảm giá": formatCurrency(item.discount),
@@ -3083,7 +3088,11 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
                               -
                             </TableCell>
                             <TableCell className="text-center min-w-[100px] px-2 font-semibold">
-                              {order.items.length}
+                              {order.items.reduce(
+                                (sum: number, item: any) =>
+                                  sum + parseFloat(item.quantity),
+                                0,
+                              )}
                             </TableCell>
                             <TableCell className="text-right min-w-[120px] px-2 font-bold">
                               -
@@ -4559,7 +4568,6 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
       const orderDate = new Date(
         order.orderedAt || order.created_at || order.createdAt,
       );
-      
 
       if (isNaN(orderDate.getTime())) {
         return false;
