@@ -2812,9 +2812,10 @@ export function SalesChartReport({ isAdmin }: { isAdmin?: boolean }) {
     // Sum from order-level data to get correct totals
     groupedOrders.forEach((order) => {
       // For quantity, sum from items
-      order.items.forEach((item) => {
-        totalQuantity += parseFloat(item.quantity);
-      });
+      totalQuantity += order.items.reduce(
+        (sum: number, item: any) => sum + parseFloat(item.quantity),
+        0,
+      );
 
       // For financial data, use order-level values to avoid double counting
       totalAmount += order.totalAmount; // Order's subtotal
