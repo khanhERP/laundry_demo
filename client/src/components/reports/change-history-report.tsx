@@ -317,7 +317,7 @@ export function ChangeHistoryReport() {
                           : item.action === "create"
                             ? "Tạo mới"
                             : item.action === "delete"
-                              ? "Xóa"
+                              ? "Hủy đơn"
                               : "Cập nhật";
                         
                         const actionColor = item.action === "update"
@@ -342,7 +342,7 @@ export function ChangeHistoryReport() {
                                 : "-"}
                             </TableCell>
                             <TableCell className="text-sm text-gray-700">
-                              <div className="font-medium">{item.storeName || "-"}</div>
+                              <div className="font-medium">{item.storeName || item.storeCode}</div>
                             </TableCell>
                             <TableCell className="text-sm">
                               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${actionColor}`}>
