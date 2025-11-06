@@ -154,12 +154,10 @@ export function SpendingReport() {
     queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
       if (storeFilter !== "all") params.append("storeCode", storeFilter);
 
       const response = await fetch(
-        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range?${params.toString()}`,
+        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDate}/${endDate}/all?${params.toString()}`,
       );
       if (!response.ok) throw new Error("Failed to fetch orders");
       return response.json();
