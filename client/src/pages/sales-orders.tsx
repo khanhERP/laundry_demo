@@ -4149,7 +4149,7 @@ export default function SalesOrders() {
                             </div>
                           </th>
                           <th
-                            className="w-[80px] px-3 py-3 text-left font-medium text-[16px] text-gray-600 cursor-pointer hover:bg-gray-100">
+                            className="w-[150px] px-3 py-3 text-left font-medium text-[16px] text-gray-600 cursor-pointer hover:bg-gray-100">
                             <div className="leading-tight flex items-center gap-1">
                               {t("orders.storeName")}
                             </div>
