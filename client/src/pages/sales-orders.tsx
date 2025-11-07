@@ -492,7 +492,13 @@ export default function SalesOrders() {
     refetchIntervalInBackground: false, // Không background polling
   });
 
-  const orders = ordersResponse?.orders || [];
+  const orders =
+    ordersResponse?.orders.map((item) => {
+      item.storeName =
+        storesData.find((store) => store.storeCode === item.storeCode)
+          ?.storeName ?? "";
+      return item;
+    }) || [];
 
   // Query all products to get tax rates
   const { data: products = [] } = useQuery({
@@ -4143,6 +4149,12 @@ export default function SalesOrders() {
                             </div>
                           </th>
                           <th
+                            className="w-[80px] px-3 py-3 text-left font-medium text-[16px] text-gray-600 cursor-pointer hover:bg-gray-100">
+                            <div className="leading-tight flex items-center gap-1">
+                              {t("orders.storeName")}
+                            </div>
+                          </th>
+                          <th
                             className="w-[120px] px-3 py-3 text-left font-medium text-[16px] text-gray-600 cursor-pointer hover:bg-gray-100"
                             onClick={() => handleSort("customerCode")}
                           >
@@ -4463,6 +4475,14 @@ export default function SalesOrders() {
                                           }
                                           return t("orders.atCounter"); // default fallback
                                         })()}
+                                      </div>
+                                    </td>
+                                    <td className="px-3 py-3">
+                                      <div
+                                        className="font-mono"
+                                        title={item.storeName}
+                                      >
+                                        {item.storeName || "-"}
                                       </div>
                                     </td>
                                     <td className="px-3 py-3">

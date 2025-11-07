@@ -6,6 +6,7 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
     dateFilterMode: "날짜 필터 모드",
     createdDateFilter: "생성일",
     completedDateFilter: "완료일",
+    storeName: "매장명",
     phoneNumber: "전화번호",
     issueInvoice: "송장 발행",
     orderNumberLabel: "주문 번호",
@@ -209,7 +210,7 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
     payment: "결제",
     orderPlaced: "주문 완료",
     orderPlacedSuccess: "주문이 성공적으로 접수되었습니다",
-    orderFailed: "주문 접수에 실패했습니다",
+    orderFailed: "주문 접수에 실패a��습니다",
     tableOrder: "테이블 주문",
     tableCapacity: "테이블 정원",
     status: {
@@ -241,6 +242,7 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
   },
   en: {
     atCounter: "At Counter",
+    storeName: "Store Name",
     dateFilterMode: "Date Filter Mode",
     createdDateFilter: "Created Date",
     completedDateFilter: "Completed Date",
@@ -484,6 +486,7 @@ export const ordersTranslations: { [key: string]: OrdersTranslations } = {
   vi: {
     atCounter: "Tại quầy",
     dateFilterMode: "Chế độ lọc ngày",
+    storeName: "Tên cửa hàng",
     createdDateFilter: "Ngày tạo",
     completedDateFilter: "Ngày hoàn thành",
     phoneNumber: "Số điện thoại",
