@@ -368,7 +368,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
             balance: 0, // Will be calculated later
             voucherType: "income_voucher",
             internalId: voucher.id, // Keep internal ID for click handling
-            completionDate: voucher.updatedAt,
+            completionDate: voucher.date,
           });
         }
       });
@@ -1740,7 +1740,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                       pr.receiptNumber === transaction.id ||
                                       `PURCHASE-${pr.id}` === transaction.id,
                                   );
-                                  updatedAt = receipt?.updatedAt;
+                                  updatedAt = receipt?.createdAt;
                                 } else if (
                                   transaction.voucherType === "income_voucher"
                                 ) {
@@ -1748,7 +1748,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                     (v: any) =>
                                       v.voucherNumber === transaction.id,
                                   );
-                                  updatedAt = voucher?.updatedAt;
+                                  updatedAt = voucher?.date;
                                 } else if (
                                   transaction.voucherType === "expense_voucher"
                                 ) {
@@ -1756,7 +1756,7 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
                                     (v: any) =>
                                       v.voucherNumber === transaction.id,
                                   );
-                                  updatedAt = voucher?.updatedAt;
+                                  updatedAt = voucher?.date;
                                 }
 
                                 if (updatedAt) {
