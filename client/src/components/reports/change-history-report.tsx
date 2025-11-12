@@ -35,10 +35,10 @@ export function ChangeHistoryReport() {
 
   // Fetch stores list
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/list");
         if (!response.ok) throw new Error("Failed to fetch stores");
         const data = await response.json();
         return Array.isArray(data)
@@ -58,7 +58,7 @@ export function ChangeHistoryReport() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-change-history", startDate, endDate, storeFilter],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/order-change-history", startDate, endDate, storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -75,10 +75,10 @@ export function ChangeHistoryReport() {
           startDate,
           endDate,
           storeFilter,
-          url: `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-change-history?${params}`,
+          url: `https://laundry-be-admin-demo.onrender.com/api/order-change-history?${params}`,
         });
 
-        const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-change-history?${params}`);
+        const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/order-change-history?${params}`);
         if (!response.ok) {
           const errorText = await response.text();
           console.error("Failed to fetch change history:", {

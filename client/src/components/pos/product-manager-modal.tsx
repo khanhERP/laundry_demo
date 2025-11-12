@@ -118,17 +118,17 @@ export function ProductManagerModal({
     isLoading,
     refetch,
   } = useQuery<Product[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
     enabled: isOpen,
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
     enabled: isOpen,
   });
 
   const { data: productUnits = [] } = useQuery<string[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/units"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products/units"],
     enabled: isOpen,
   });
 
@@ -148,7 +148,7 @@ export function ProductManagerModal({
       }
 
       console.log("Sending product data:", finalData);
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products", {
+      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -162,8 +162,8 @@ export function ProductManagerModal({
       return response.json();
     },
     onSuccess: (newProduct) => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products/active"] });
 
       toast({
         title: "✅ Tạo sản phẩm thành công",
@@ -229,7 +229,7 @@ export function ProductManagerModal({
         }
       }
 
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${id}`, {
+      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(finalData),
@@ -248,8 +248,8 @@ export function ProductManagerModal({
       return result;
     },
     onSuccess: (updatedProduct) => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products/active"] });
 
       toast({
         title: "✅ Cập nhật thành công",
@@ -279,15 +279,15 @@ export function ProductManagerModal({
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${id}`, {
+      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/products/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete product");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/active"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products/active"] });
       toast({
         title: "Success",
         description: "Product deleted successfully",

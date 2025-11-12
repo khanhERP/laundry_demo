@@ -41,16 +41,16 @@ export default function ProductManagementContent() {
   }, []);
 
   const { data: productsData, isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
   });
 
   const { data: categoriesData } = useQuery<Category[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
   });
 
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: number) => {
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products/${productId}`, {
+      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/products/${productId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -63,7 +63,7 @@ export default function ProductManagementContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
       toast({
         title: t("common.success"),
         description: t("common.productDeleteSuccess"),

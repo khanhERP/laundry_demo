@@ -95,10 +95,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query general settings to determine date filter logic
   const { data: generalSettings = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/general-settings"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/general-settings");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/general-settings");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -117,10 +117,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query orders (thu - income from sales)
   const { data: orders = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/orders");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -134,10 +134,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query purchase receipts (chi - expenses from purchases)
   const { data: purchaseReceipts = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/purchase-receipts"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/purchase-receipts");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -151,10 +151,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query income vouchers (thu - manual income entries)
   const { data: incomeVouchers = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/income-vouchers"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/income-vouchers");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/income-vouchers");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -168,10 +168,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query expense vouchers (chi - manual expense entries)
   const { data: expenseVouchers = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/expense-vouchers"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/expense-vouchers");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -185,10 +185,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Query suppliers for name mapping
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/suppliers"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/suppliers");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -202,10 +202,10 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
 
   // Fetch stores for filtering
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -236,9 +236,9 @@ export default function CashBookPage({ onLogout }: CashBookPageProps) {
   // Load payment methods from localStorage (same as settings page)
   // Query payment methods from API
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
+      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/payment-methods");
       return response.json();
     },
   });

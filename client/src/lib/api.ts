@@ -1,5 +1,5 @@
 export const loginPosAsync = async (request: LoginPosRequest): Promise<LoginResponse> => {
-  const response = await fetch('https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/pos/login', {
+  const response = await fetch('https://laundry-be-admin-demo.onrender.com/api/pos/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export const createQRPosAsync = async (request: CreateQRPosRequest, bankCode: st
     console.log('📤 Request payload:', { ...request, bankCode, clientID });
     
     // Use proxy route to avoid CORS issues
-    const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/pos/create-qr-proxy`, {
+    const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/pos/create-qr-proxy`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export const createQRPosAsync = async (request: CreateQRPosRequest, bankCode: st
     
     // Fallback to alternative internal API route
     try {
-      const fallbackResponse = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/pos/create-qr?bankCode=${bankCode}&clientID=${clientID}`, {
+      const fallbackResponse = await fetch(`https://laundry-be-admin-demo.onrender.com/api/pos/create-qr?bankCode=${bankCode}&clientID=${clientID}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

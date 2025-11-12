@@ -83,7 +83,7 @@ export function CustomerFormModal({
 
       // Fetch all orders and filter by customer ID on client side
       // since the API doesn't support customerId filter yet
-      const response = await apiRequest("GET", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders`);
+      const response = await apiRequest("GET", `https://laundry-be-admin-demo.onrender.com/api/orders`);
       const allOrders = await response.json();
 
       // Filter orders that belong to this customer
@@ -104,7 +104,7 @@ export function CustomerFormModal({
   // Generate customer ID for new customers
   const generateCustomerId = async () => {
     try {
-      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/next-id");
+      const response = await apiRequest("GET", "https://laundry-be-admin-demo.onrender.com/api/customers/next-id");
       const data = await response.json();
       return data.nextId;
     } catch (error) {
@@ -163,11 +163,11 @@ export function CustomerFormModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers", data);
+      const response = await apiRequest("POST", "https://laundry-be-admin-demo.onrender.com/api/customers", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/customers"] });
       toast({
         title: "common.success",
         description: customer
@@ -193,13 +193,13 @@ export function CustomerFormModal({
       }
       const response = await apiRequest(
         "PUT",
-        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/${customer.id}`,
+        `https://laundry-be-admin-demo.onrender.com/api/customers/${customer.id}`,
         data,
       );
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/customers"] });
       toast({
         title: t("common.success"),
         description: "Cập nhật thông tin khách hàng thành công",
@@ -227,7 +227,7 @@ export function CustomerFormModal({
     ) {
       // Generate new ID if not already set
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers/next-id");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/customers/next-id");
         const { nextId } = await response.json();
         customerIdToUse = nextId;
       } catch (error) {

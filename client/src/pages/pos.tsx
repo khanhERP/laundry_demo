@@ -90,10 +90,10 @@ export default function POS({ onLogout }: POSPageProps) {
 
               // Clear cache and force refresh
               queryClient.clear();
-              queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-              queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+              queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
+              queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"] });
               queryClient.invalidateQueries({
-                queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
+                queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings"],
               });
 
               // Dispatch custom events for components
@@ -138,9 +138,9 @@ export default function POS({ onLogout }: POSPageProps) {
 
       // Force data refresh for any e-invoice related events
       queryClient.clear();
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
-      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings"] });
 
       // Dispatch refresh event for components
       window.dispatchEvent(
@@ -351,7 +351,7 @@ export default function POS({ onLogout }: POSPageProps) {
               try {
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+                const wsUrl = `https://laundry-be-admin-demo.onrender.com/ws`;
                 const ws = new WebSocket(wsUrl);
 
                 ws.onopen = () => {

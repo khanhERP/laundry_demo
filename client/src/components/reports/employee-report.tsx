@@ -59,28 +59,28 @@ export function EmployeeReport() {
   const [salesChannel, setSalesChannel] = useState("all");
 
   const { data: employees } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/employees"],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: transactions } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions", startDate, endDate],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/transactions", startDate, endDate],
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 
   const { data: products } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: categories } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Employee sales data query
   const { data: employeeSalesData } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employee-sales", startDate, endDate, selectedEmployee],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/employee-sales", startDate, endDate, selectedEmployee],
     staleTime: 1 * 60 * 1000, // 1 minute
   });
 

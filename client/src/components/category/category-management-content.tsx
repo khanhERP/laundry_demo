@@ -42,11 +42,11 @@ export default function CategoryManagementContent() {
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery<
     any[]
   >({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
   });
 
   const { data: productsData } = useQuery<any[]>({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
   });
 
   const resetCategoryForm = () => {
@@ -65,7 +65,7 @@ export default function CategoryManagementContent() {
     }
 
     try {
-      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories", {
+      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(categoryForm),
@@ -74,7 +74,7 @@ export default function CategoryManagementContent() {
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
 
-      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryCreateSuccess"),
@@ -101,7 +101,7 @@ export default function CategoryManagementContent() {
     }
 
     try {
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories/${editingCategory.id}`, {
+      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/categories/${editingCategory.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(categoryForm),
@@ -112,7 +112,7 @@ export default function CategoryManagementContent() {
 
       setShowCategoryForm(false);
       resetCategoryForm();
-      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryUpdateSuccess"),
@@ -161,7 +161,7 @@ export default function CategoryManagementContent() {
     if (!categoryToDelete) return;
 
     try {
-      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories/${categoryToDelete.id}`, {
+      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/categories/${categoryToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -172,7 +172,7 @@ export default function CategoryManagementContent() {
         );
       }
 
-      await queryClient.refetchQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"] });
+      await queryClient.refetchQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"] });
       toast({
         title: t("common.success"),
         description: t("settings.categoryDeleteSuccess"),

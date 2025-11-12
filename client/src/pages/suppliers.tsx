@@ -29,33 +29,33 @@ export default function SuppliersPage({ onLogout }: SuppliersPageProps) {
   const queryClient = useQueryClient();
 
   const { data: suppliers, isLoading } = useQuery({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers', { status: selectedStatus, search: searchQuery }],
+    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/suppliers', { status: selectedStatus, search: searchQuery }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedStatus !== 'all') params.append('status', selectedStatus);
       if (searchQuery) params.append('search', searchQuery);
       
-      const response = await apiRequest('GET', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers?${params}`);
+      const response = await apiRequest('GET', `https://laundry-be-admin-demo.onrender.com/api/suppliers?${params}`);
       return response.json();
     },
   });
 
   // Fetch purchase order statistics for suppliers
   const { data: supplierStats } = useQuery({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/supplier-stats'],
+    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/purchase-orders/supplier-stats'],
     queryFn: async () => {
-      const response = await apiRequest('GET', 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-orders/supplier-stats');
+      const response = await apiRequest('GET', 'https://laundry-be-admin-demo.onrender.com/api/purchase-orders/supplier-stats');
       return response.json();
     },
   });
 
   const deleteSupplierMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers/${id}`);
+      const response = await apiRequest('DELETE', `https://laundry-be-admin-demo.onrender.com/api/suppliers/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/suppliers'] });
       toast({
         title: t('suppliers.deleteSuccess'),
         description: t('suppliers.deleteSuccessDesc'),

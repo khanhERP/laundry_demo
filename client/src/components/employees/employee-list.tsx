@@ -19,7 +19,7 @@ export function EmployeeList() {
   const { t } = useTranslation();
 
   const { data: employeesData, isLoading } = useQuery<Employee[]>({
-    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
+    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/employees'],
   });
 
   // Sort employees by ID descending (newest first)
@@ -27,11 +27,11 @@ export function EmployeeList() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees/${id}`);
+      const response = await apiRequest('DELETE', `https://laundry-be-admin-demo.onrender.com/api/employees/${id}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'] });
+      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/employees'] });
       toast({
         title: t('common.success'),
         description: t('employees.deleteSuccess'),

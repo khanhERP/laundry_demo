@@ -47,7 +47,7 @@ export function SpendingReport() {
 
   // Fetch store settings list
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
     retry: 2,
   });
 
@@ -57,7 +57,7 @@ export function SpendingReport() {
     isLoading: isLoadingReceipts,
     refetch: refetchPurchaseReceipts,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts", { startDate, endDate, storeFilter }],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/purchase-receipts", { startDate, endDate, storeFilter }],
     queryFn: async () => {
       const params = new URLSearchParams();
 
@@ -76,11 +76,11 @@ export function SpendingReport() {
         startDate,
         endDate,
         storeFilter,
-        url: `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts?${params.toString()}`,
+        url: `https://laundry-be-admin-demo.onrender.com/api/purchase-receipts?${params.toString()}`,
       });
 
       const response = await fetch(
-        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts?${params.toString()}`,
+        `https://laundry-be-admin-demo.onrender.com/api/purchase-receipts?${params.toString()}`,
       );
       if (!response.ok) throw new Error("Failed to fetch purchase receipts");
       const result = await response.json();
@@ -97,23 +97,23 @@ export function SpendingReport() {
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
   });
 
   // Fetch products to get category information
   const { data: products = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
   });
 
   // Fetch suppliers
   const { data: suppliers = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/suppliers"],
   });
 
   // Fetch expense vouchers for debt calculation with date filter
   const { data: expenseVouchers = [], refetch: refetchExpenseVouchers } =
     useQuery({
-      queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers", { startDate, endDate, storeFilter }],
+      queryKey: ["https://laundry-be-admin-demo.onrender.com/api/expense-vouchers", { startDate, endDate, storeFilter }],
       queryFn: async () => {
         const params = new URLSearchParams();
 
@@ -131,11 +131,11 @@ export function SpendingReport() {
           startDate,
           endDate,
           storeFilter,
-          url: `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers?${params.toString()}`,
+          url: `https://laundry-be-admin-demo.onrender.com/api/expense-vouchers?${params.toString()}`,
         });
 
         const response = await fetch(
-          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/expense-vouchers?${params.toString()}`,
+          `https://laundry-be-admin-demo.onrender.com/api/expense-vouchers?${params.toString()}`,
         );
         if (!response.ok) throw new Error("Failed to fetch expense vouchers");
         const result = await response.json();
@@ -151,13 +151,13 @@ export function SpendingReport() {
 
   // Fetch orders for revenue calculation
   const { data: orders = [], refetch: refetchOrders } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, storeFilter],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders/date-range", startDate, endDate, storeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (storeFilter !== "all") params.append("storeFilter", storeFilter);
 
       const response = await fetch(
-        `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDate}/${endDate}/all?${params.toString()}`,
+        `https://laundry-be-admin-demo.onrender.com/api/orders/date-range/${startDate}/${endDate}/all?${params.toString()}`,
       );
       if (!response.ok) throw new Error("Failed to fetch orders");
       return response.json();

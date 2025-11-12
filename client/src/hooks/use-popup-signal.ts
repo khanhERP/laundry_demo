@@ -8,7 +8,7 @@ export function usePopupSignal() {
     // Connect WebSocket to same port as main application with /ws path
     const isSecure = window.location.protocol === 'https:';
     const wsProtocol = isSecure ? 'wss:' : 'ws:';
-    const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
+    const wsUrl = `https://laundry-be-admin-demo.onrender.com/ws`;
 
     console.log('Connecting to WebSocket:', wsUrl);
 
@@ -63,7 +63,7 @@ export function usePopupSignal() {
   }, []);
 
   const sendPopupClose = (success: boolean) => {
-    fetch('https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/popup/close', {
+    fetch('https://laundry-be-admin-demo.onrender.com/api/popup/close', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

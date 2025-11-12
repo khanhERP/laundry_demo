@@ -62,10 +62,10 @@ export function OrderReport() {
 
   // Fetch store settings list
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list", {
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/list", {
           headers: {
             "Content-Type": "application/json",
           },
@@ -84,11 +84,11 @@ export function OrderReport() {
 
   // Query orders by date range
   const { data: orders = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range", startDate, endDate, "all"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders/date-range", startDate, endDate, "all"],
     queryFn: async () => {
       try {
         const response = await fetch(
-          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range/${startDate}/${endDate}/all`,
+          `https://laundry-be-admin-demo.onrender.com/api/orders/date-range/${startDate}/${endDate}/all`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -104,11 +104,11 @@ export function OrderReport() {
 
   // Query transactions by date range
   const { data: transactions = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions", startDate, endDate],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/transactions", startDate, endDate],
     queryFn: async () => {
       try {
         const response = await fetch(
-          `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/transactions/${startDate}/${endDate}`,
+          `https://laundry-be-admin-demo.onrender.com/api/transactions/${startDate}/${endDate}`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -123,15 +123,15 @@ export function OrderReport() {
   });
 
   const { data: products = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/products"],
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/categories"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/categories"],
   });
 
   const { data: employees = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/employees"],
   });
 
   const getFilteredData = () => {

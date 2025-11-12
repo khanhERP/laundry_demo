@@ -70,10 +70,10 @@ export function DashboardOverview() {
 
   // Fetch stores for filtering
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -93,7 +93,7 @@ export function DashboardOverview() {
     isLoading: ordersLoading,
     error: ordersError,
   } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list", startDate, endDate, "all", storeFilter],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders/list", startDate, endDate, "all", storeFilter],
     queryFn: async () => {
       try {
         const params = new URLSearchParams({
@@ -111,7 +111,7 @@ export function DashboardOverview() {
           params.append("storeFilter", storeFilter);
         }
 
-        const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/list?${params.toString()}`);
+        const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/orders/list?${params.toString()}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -133,10 +133,10 @@ export function DashboardOverview() {
 
   // Query order items for all orders
   const { data: orderItems = [], isLoading: orderItemsLoading } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/order-items"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/order-items");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -154,17 +154,17 @@ export function DashboardOverview() {
   });
 
   const { data: tables } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/tables"],
   });
 
   const handleRefresh = () => {
     // Refresh the queries to get the latest data for the selected date
     setStartDate(formatDateToYYYYMMDD(new Date()));
     setEndDate(formatDateToYYYYMMDD(new Date()));
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders/date-range"] });
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/order-items"] });
-    queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/tables"] });
+    queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders"] });
+    queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders/date-range"] });
+    queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/order-items"] });
+    queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/tables"] });
   };
 
   const getDashboardStats = () => {
@@ -382,10 +382,10 @@ export function DashboardOverview() {
 
   // Get all current orders to check active ones (not date-filtered)
   const { data: allCurrentOrders = [] } = useQuery({
-    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"],
+    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders");
+        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/orders");
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         return await response.json();
