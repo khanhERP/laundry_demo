@@ -4315,8 +4315,7 @@ export default function SalesOrders() {
                             )
                             .map((item) => {
                               // Get customer info - prioritize customerId from customer table if order has customerId
-                              let customerCode =
-                                item.customerCode || item.customerTaxCode || "";
+                              let customerCode = "";
 
                               // If order has customerId, try to find customer in customers list
                               if (
