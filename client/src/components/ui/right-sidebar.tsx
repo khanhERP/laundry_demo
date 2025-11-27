@@ -43,9 +43,9 @@ export function RightSidebar() {
 
   // Query store settings to get business type
   const { data: storeSettings } = useQuery({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://laundry-be-admin-demo.onrender.com/api/store-settings");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       return response.json();
     },
   });

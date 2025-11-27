@@ -20,21 +20,21 @@ export default function AttendanceQRPage() {
   const { t } = useTranslation();
 
   const { data: employees } = useQuery({
-    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/employees'],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
   });
 
   const { data: todayAttendance, refetch: refetchTodayAttendance } = useQuery({
-    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/attendance/today', selectedEmployeeId],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/today', selectedEmployeeId],
     enabled: !!selectedEmployeeId,
   });
 
   const clockInMutation = useMutation({
-    mutationFn: () => apiRequest('POST', 'https://laundry-be-admin-demo.onrender.com/api/attendance/clock-in', {
+    mutationFn: () => apiRequest('POST', 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/clock-in', {
       employeeId: parseInt(selectedEmployeeId),
       notes
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'] });
       refetchTodayAttendance();
       setNotes("");
       toast({
@@ -52,9 +52,9 @@ export default function AttendanceQRPage() {
   });
 
   const clockOutMutation = useMutation({
-    mutationFn: () => apiRequest('POST', `https://laundry-be-admin-demo.onrender.com/api/attendance/clock-out/${(todayAttendance as AttendanceRecord)?.id}`, {}),
+    mutationFn: () => apiRequest('POST', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/clock-out/${(todayAttendance as AttendanceRecord)?.id}`, {}),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'] });
       refetchTodayAttendance();
       toast({
         title: "퇴근 기록 완료",
@@ -71,9 +71,9 @@ export default function AttendanceQRPage() {
   });
 
   const breakStartMutation = useMutation({
-    mutationFn: () => apiRequest('POST', `https://laundry-be-admin-demo.onrender.com/api/attendance/break-start/${(todayAttendance as AttendanceRecord)?.id}`, {}),
+    mutationFn: () => apiRequest('POST', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/break-start/${(todayAttendance as AttendanceRecord)?.id}`, {}),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'] });
       refetchTodayAttendance();
       toast({
         title: t('attendance.breakStartSuccess'),
@@ -90,9 +90,9 @@ export default function AttendanceQRPage() {
   });
 
   const breakEndMutation = useMutation({
-    mutationFn: () => apiRequest('POST', `https://laundry-be-admin-demo.onrender.com/api/attendance/break-end/${(todayAttendance as AttendanceRecord)?.id}`, {}),
+    mutationFn: () => apiRequest('POST', `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance/break-end/${(todayAttendance as AttendanceRecord)?.id}`, {}),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['https://laundry-be-admin-demo.onrender.com/api/attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance'] });
       refetchTodayAttendance();
       toast({
         title: "휴식 종료",

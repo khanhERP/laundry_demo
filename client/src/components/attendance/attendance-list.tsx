@@ -30,15 +30,15 @@ export function AttendanceList({
 }: AttendanceListProps) {
   const { t } = useTranslation();
   const { data: employees } = useQuery({
-    queryKey: ['https://laundry-be-admin-demo.onrender.com/api/employees'],
+    queryKey: ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/employees'],
   });
 
   const { data: attendanceRecords, isLoading } = useQuery({
     queryKey: useRange 
-      ? ['https://laundry-be-admin-demo.onrender.com/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
-      : ['https://laundry-be-admin-demo.onrender.com/api/attendance', selectedDate],
+      ? ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance', 'range', dateRange?.startDate, dateRange?.endDate]
+      : ['https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance', selectedDate],
     queryFn: async () => {
-      let url = 'https://laundry-be-admin-demo.onrender.com/api/attendance';
+      let url = 'https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/attendance';
       if (useRange && dateRange?.startDate && dateRange?.endDate) {
         url += `?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`;
       } else {

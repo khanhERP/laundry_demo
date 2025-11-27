@@ -55,7 +55,7 @@ export function StoreListManagement() {
 
   // Fetch all stores
   const { data: allStoresData, isLoading } = useQuery<StoreSettings[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   // Filter out stores with userType = 1 (admin accounts)
@@ -64,9 +64,9 @@ export function StoreListManagement() {
 
   // Fetch active price lists
   const { data: priceLists = [] } = useQuery({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/price-lists"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists"],
     queryFn: async () => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/price-lists");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/price-lists");
       if (!response.ok) throw new Error("Failed to fetch price lists");
       const data = await response.json();
       // Filter only active price lists
@@ -77,7 +77,7 @@ export function StoreListManagement() {
   // Create store mutation
   const createStoreMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/create", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -91,7 +91,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã tạo cửa hàng mới",
@@ -111,7 +111,7 @@ export function StoreListManagement() {
   // Update store mutation
   const updateStoreMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/store-settings/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -125,7 +125,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã cập nhật thông tin cửa hàng",
@@ -146,7 +146,7 @@ export function StoreListManagement() {
   // Delete store mutation
   const deleteStoreMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/store-settings/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/${id}`, {
         method: "DELETE",
       });
 
@@ -157,7 +157,7 @@ export function StoreListManagement() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: "Thành công",
         description: "Đã xóa cửa hàng",

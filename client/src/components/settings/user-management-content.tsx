@@ -76,19 +76,19 @@ export function UserManagementContent() {
 
   // Fetch users with typeUser = 1
   const { data: users = [], isLoading } = useQuery<UserData[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     select: (data) => data.filter((user) => user.typeUser === 1),
   });
 
   // Fetch all stores for parent selection
   const { data: allStores = [] } = useQuery<UserData[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/create", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -101,7 +101,7 @@ export function UserManagementContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: t("common.success"),
         description: t("settings.userManagementContent.userCreatedSuccess"),
@@ -120,7 +120,7 @@ export function UserManagementContent() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: typeof formData }) => {
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/store-settings/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -133,7 +133,7 @@ export function UserManagementContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: t("common.success"),
         description: t("settings.userManagementContent.userUpdatedSuccess"),
@@ -152,7 +152,7 @@ export function UserManagementContent() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/store-settings/${id}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -162,7 +162,7 @@ export function UserManagementContent() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"] });
       toast({
         title: t("common.success"),
         description: t("settings.userManagementContent.userDeletedSuccess"),

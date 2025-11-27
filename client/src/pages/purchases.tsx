@@ -104,7 +104,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
     isLoading: isOrdersLoading,
   } = useQuery<{ data: PurchaseOrder[]; success: boolean; message: string }>({
     queryKey: [
-      "https://laundry-be-admin-demo.onrender.com/api/purchase-receipts",
+      "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts",
       {
         startDate,
         endDate,
@@ -136,7 +136,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
         console.log("🔍 Adding PO number search:", poNumberFilter.trim());
       }
 
-      const url = `https://laundry-be-admin-demo.onrender.com/api/purchase-receipts${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts${params.toString() ? `?${params.toString()}` : ""}`;
       console.log("🔍 Fetching purchase receipts with filters:", url);
 
       const response = await fetch(url);
@@ -172,15 +172,15 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
 
   // Fetch suppliers for filtering
   const { data: suppliers = [] } = useQuery<Supplier[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/suppliers"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/suppliers"],
   });
 
   // Fetch stores for filtering
   const { data: storesData = [] } = useQuery({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/store-settings/list"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list"],
     queryFn: async () => {
       try {
-        const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings/list");
+        const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings/list");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -198,9 +198,9 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
 
   // Fetch payment methods
   const { data: paymentMethodsData } = useQuery({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/payment-methods"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods"],
     queryFn: async () => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/payment-methods");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/payment-methods");
       return response.json();
     },
   });
@@ -314,7 +314,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
   // Bulk delete mutation
   const bulkDeleteMutation = useMutation({
     mutationFn: async (orderIds: number[]) => {
-      return apiRequest("POST", "https://laundry-be-admin-demo.onrender.com/api/purchase-receipts/bulk-delete", {
+      return apiRequest("POST", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts/bulk-delete", {
         orderIds,
       });
     },
@@ -331,7 +331,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
       setSelectedOrders(new Set());
 
       // Refetch purchase receipts
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/purchase-receipts"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"] });
 
       // Close dialog
       setShowDeleteDialog(false);
@@ -875,7 +875,7 @@ export default function PurchasesPage({ onLogout }: PurchasesPageProps) {
                   setShowEditDialog(false);
                   setEditingPurchaseId(null);
                   queryClient.invalidateQueries({
-                    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/purchase-receipts"],
+                    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/purchase-receipts"],
                   });
                   toast({
                     title: t("common.success"),

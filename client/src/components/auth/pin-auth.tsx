@@ -40,7 +40,7 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
 
   const verifyToken = async (token: string) => {
     try {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/auth/verify", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auth/verify", {
         headers: {
           "Authorization": `Bearer ${token}`
         },
@@ -86,7 +86,7 @@ export function PinAuth({ onAuthSuccess }: PinAuthProps) {
       console.log("Submitting login:", username);
 
       // Call login API
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/auth/login", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

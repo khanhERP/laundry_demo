@@ -97,7 +97,7 @@ export function ShoppingCart({
   const { data: storeSettings } = useQuery({
     queryKey: ["store-settings"],
     queryFn: async () => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/store-settings");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/store-settings");
       if (!response.ok) {
         throw new Error("Failed to fetch store settings");
       }
@@ -375,7 +375,7 @@ export function ShoppingCart({
   const { data: products } = useQuery<any[]>({
     queryKey: ["products"],
     queryFn: async () => {
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/products");
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -404,7 +404,7 @@ export function ShoppingCart({
   const fetchCustomers = async (searchTerm: string) => {
     try {
       setIsSearching(true);
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/customers?search=${searchTerm}`);
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/customers?search=${searchTerm}`);
       if (!response.ok) {
         throw new Error("Failed to fetch customers");
       }
@@ -479,7 +479,7 @@ export function ShoppingCart({
   useEffect(() => {
     console.log("📡 Shopping Cart: Initializing single WebSocket connection");
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `https://laundry-be-admin-demo.onrender.com/ws`;
+    const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
 
     let reconnectTimer: NodeJS.Timeout | null = null;
     let shouldReconnect = true;
@@ -801,7 +801,7 @@ export function ShoppingCart({
       // Send WebSocket signal for refresh
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `https://laundry-be-admin-demo.onrender.com/ws`;
+        const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
         const ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -988,7 +988,7 @@ export function ShoppingCart({
         items: cartItemsForOrder,
       });
 
-      const response = await fetch("https://laundry-be-admin-demo.onrender.com/api/orders", {
+      const response = await fetch("https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1024,7 +1024,7 @@ export function ShoppingCart({
       }
 
       // Refresh orders list
-      await queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/orders"] });
+      await queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/orders"] });
     } catch (error) {
       console.error("❌ Error placing order:", error);
       toast({
@@ -2609,7 +2609,7 @@ export function ShoppingCart({
                 // Fallback WebSocket connection if main one is not available
                 const protocol =
                   window.location.protocol === "https:" ? "wss:" : "ws:";
-                const wsUrl = `https://laundry-be-admin-demo.onrender.com/ws`;
+                const wsUrl = `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/ws`;
                 const fallbackWs = new WebSocket(wsUrl);
 
                 fallbackWs.onopen = () => {

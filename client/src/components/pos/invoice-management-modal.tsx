@@ -63,9 +63,9 @@ export function InvoiceManagementModal({
 
   // Fetch invoices list
   const { data: invoices = [], isLoading } = useQuery<Invoice[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/invoices"],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoices"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "https://laundry-be-admin-demo.onrender.com/api/invoices");
+      const response = await apiRequest("GET", "https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoices");
       return response.json();
     },
     enabled: isOpen,
@@ -73,10 +73,10 @@ export function InvoiceManagementModal({
 
   // Fetch invoice items for selected invoice
   const { data: invoiceItems = [] } = useQuery<InvoiceItem[]>({
-    queryKey: ["https://laundry-be-admin-demo.onrender.com/api/invoice-items", selectedInvoice?.id],
+    queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-items", selectedInvoice?.id],
     queryFn: async () => {
       if (!selectedInvoice?.id) return [];
-      const response = await apiRequest("GET", `https://laundry-be-admin-demo.onrender.com/api/invoice-items/${selectedInvoice.id}`);
+      const response = await apiRequest("GET", `https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/invoice-items/${selectedInvoice.id}`);
       return response.json();
     },
     enabled: !!selectedInvoice?.id,

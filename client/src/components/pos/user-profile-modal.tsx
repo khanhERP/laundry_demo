@@ -60,7 +60,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
 
   const updateUserMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch(`https://laundry-be-admin-demo.onrender.com/api/users/${userInfo.userId}`, {
+      const response = await fetch(`https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/users/${userInfo.userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -86,7 +86,7 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       });
       
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["https://laundry-be-admin-demo.onrender.com/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["https://7874c3c9-831f-419c-bd7a-28fed8813680-00-26bwuawdklolu.pike.replit.dev/api/users"] });
     },
     onError: (error) => {
       toast({
